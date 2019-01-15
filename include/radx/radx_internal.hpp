@@ -7,8 +7,8 @@ namespace radx {
 
     class Interface { // used for connection between algorithms and storage
     public:
-        vuh::Array<uint32_t>& referenceBuffer;
-        vuh::Array<uint32_t>& extraKeyBuffer;
+        vuh::Array<uint32_t> referenceBuffer;
+        vuh::Array<uint32_t> extraKeyBuffer;
     };
 
     class Algorithm : public std::enable_shared_from_this<Algorithm> {
@@ -35,6 +35,10 @@ namespace radx {
             std::shared_ptr<radx::Device> device;
             std::shared_ptr<radx::Interface> interface;
             
+            // side-load buffer
+            std::shared_ptr<vuh::Array<uint32_t>> keys;
+            std::shared_ptr<vuh::Array<uint32_t>> values;
+
         public:
         virtual VkResult initialize(std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>& algorithm) {
             this->device = device;
@@ -46,6 +50,15 @@ namespace radx {
             this->device = device;
             this->algorithm = algorithm;
             return VK_SUCCESS;
+        };
+
+        // for building arguments 
+        virtual VkResult setKeys(std::shared_ptr<vuh::Array<uint32_t>> keys){ this->keys = keys; };
+        virtual VkResult setValues(std::shared_ptr<vuh::Array<uint32_t>> values){ this->values = values; };
+
+        // VUH does not support command buffers, but for future reserved command buffer reference acceptance 
+        virtual VkResult buildCommand(){
+            
         };
 
     };
