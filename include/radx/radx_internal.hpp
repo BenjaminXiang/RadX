@@ -18,9 +18,9 @@ namespace radx {
             struct Params{uint32_t size; uint32_t bitfield;};
 
         public:
-            std::shared_ptr<vuh::Program<Specs, Params>> histogramProgram;
-            std::shared_ptr<vuh::Program<Specs, Params>> permuteProgram;
-            std::shared_ptr<vuh::Program<Specs, Params>> workloadProgram;
+            std::unique_ptr<vuh::Program<Specs, Params>> histogramProgram;
+            std::unique_ptr<vuh::Program<Specs, Params>> permuteProgram;
+            std::unique_ptr<vuh::Program<Specs, Params>> workloadProgram;
             virtual std::shared_ptr<Algorithm> initialize(std::shared_ptr<radx::Device>& device);
 
             // can be used by children 
