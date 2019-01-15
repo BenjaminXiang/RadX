@@ -5,22 +5,38 @@
 
 namespace radx {
 
+    // general command buffer pipeline barrier
+    static inline void commandBarrier(vk::CommandBuffer cmdBuffer) {
+        vk::MemoryBarrier memoryBarrier = {};
+        memoryBarrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite | vk::AccessFlagBits::eMemoryWrite | vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eColorAttachmentWrite;
+        memoryBarrier.dstAccessMask = vk::AccessFlagBits::eShaderRead  | vk::AccessFlagBits::eMemoryRead  | vk::AccessFlagBits::eTransferRead  | vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eUniformRead;
+        cmdBuffer.pipelineBarrier(
+            vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eColorAttachmentOutput,
+            vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexInput,
+            vk::DependencyFlagBits::eByRegion,
+            {memoryBarrier},{},{});
+    };
+
+
+
     class Interface { // used for connection between algorithms and storage
     public:
-        vuh::Array<uint32_t> referenceBuffer;
-        vuh::Array<uint32_t> extraKeyBuffer;
+        vk::Buffer extraKeys = {}, references = {};
+        vk::DescriptorSet descriptorSet = {};
+
+        // internal 
+        size_t maxElementCount = 1024*1024;
     };
 
     class Algorithm : public std::enable_shared_from_this<Algorithm> {
         protected:
             std::shared_ptr<radx::Device> device;
-            using Specs = vuh::typelist<uint32_t>;
-            struct Params{uint32_t size; uint32_t bitfield;};
 
         public:
-            std::unique_ptr<vuh::Program<Specs, Params>> histogramProgram;
-            std::unique_ptr<vuh::Program<Specs, Params>> permuteProgram;
-            std::unique_ptr<vuh::Program<Specs, Params>> workloadProgram;
+            uint32_t groupX = 1, groupY = 1;
+            vk::Pipeline histogramPipeline, workloadPipeline, permutePipeline;
+            vk::PipelineLayout pipelineLayout;
+
             virtual std::shared_ptr<Algorithm> initialize(std::shared_ptr<radx::Device>& device);
 
             // can be used by children 
@@ -35,40 +51,62 @@ namespace radx {
             std::shared_ptr<radx::Device> device;
             std::shared_ptr<radx::Interface> interface;
             
-            // side-load buffer
-            std::shared_ptr<vuh::Array<uint32_t>> keys;
-            std::shared_ptr<vuh::Array<uint32_t>> values;
+            // input descriptor set
+            vk::DescriptorSet inputDescriptorSet;
+
+            // input buffers and element counts
+            // TODO: add dedicated descriptor set helper 
+            size_t elementCount = 0;
+            vk::DescriptorBufferInfo keysBufferInfo;
+            vk::DescriptorBufferInfo valuesBufferInfo;
 
         public:
-        virtual VkResult initialize(std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>& algorithm) {
-            this->device = device;
-            this->algorithm = std::dynamic_pointer_cast<T>(algorithm);
-            return VK_SUCCESS;
-        };
+            virtual Sort<T>& initialize(std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm) {
+                this->device = device, this->algorithm = algorithm;
+                return *this;
+            };
 
-        virtual VkResult initialize(std::shared_ptr<radx::Device>& device, std::shared_ptr<T>& algorithm) {
-            this->device = device;
-            this->algorithm = algorithm;
-            return VK_SUCCESS;
-        };
+            virtual Sort<T>& initialize(std::shared_ptr<radx::Device>& device, const std::shared_ptr<radx::Algorithm>& algorithm) {
+                this->initialize(device, std::dynamic_pointer_cast<T>(algorithm));
+                return *this;
+            };
 
-        // for building arguments 
-        virtual VkResult setKeys(std::shared_ptr<vuh::Array<uint32_t>> keys){ this->keys = keys; };
-        virtual VkResult setValues(std::shared_ptr<vuh::Array<uint32_t>> values){ this->values = values; };
+            // for building arguments 
+            virtual Sort<T>& setKeys(vk::DescriptorBufferInfo keys = {}){ this->keysBufferInfo = keys; return *this; };
+            virtual Sort<T>& setValues(vk::DescriptorBufferInfo values = {}){ this->valuesBufferInfo = values; return *this; };
+            virtual Sort<T>& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; };
 
-        // VUH does not support command buffers, but for future reserved command buffer reference acceptance 
-        virtual VkResult buildCommand(){
-            
-        };
+            // 
+            virtual VkResult buildCommand(vk::CommandBuffer& cmdBuf){
+                std::vector<vk::DescriptorSet> descriptors = {this->interface->descriptorSet, this->inputDescriptorSet};
+                cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, algorithm->pipelineLayout, 0, descriptors, {});
+                
+                for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
+                    cmdBuf.pushConstants(algorithm->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t), &I);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->histogramPipeline);
+                    cmdBuf.dispatch(algorithm->groupX, algorithm->groupY, 1u);
+                    commandBarrier(cmdBuf);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->workloadPipeline);
+                    cmdBuf.dispatch(1u, 1u, 1u);
+                    commandBarrier(cmdBuf);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->permutePipeline);
+                    cmdBuf.dispatch(algorithm->groupX, algorithm->groupY, 1u);
+                    commandBarrier(cmdBuf);
+                }
+            };
 
     };
 
+    // TODO: pipeline creation and setup for device 
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
         protected:
         public:
-        virtual std::shared_ptr<Algorithm> initialize(std::shared_ptr<radx::Device>& device) override {
-            return Algorithm::shared_from_this();
-        };
+            virtual std::shared_ptr<Algorithm> initialize(std::shared_ptr<radx::Device>& device) override {
+                return Algorithm::shared_from_this();
+            };
     };
 
 };

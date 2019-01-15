@@ -15,9 +15,9 @@ find_package (Vulkan QUIET)
 # Set source directories
 set(SOURCES_LIST 
     "./include/vulkan/*"
-    "./include/vuh/*"
-    "./include/volk/volk.h"
-    "./include/volk/volk.c"
+    "./include/vma/*"
+    "./include/vku/*"
+    "./include/volk/*"
 )
 
 # Set definition

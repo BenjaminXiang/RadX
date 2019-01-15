@@ -1,3 +1,4 @@
+#define VKU_NO_GLFW
 #include "sort.hpp"
 
 int main(){
