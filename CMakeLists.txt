@@ -18,6 +18,8 @@ set(SOURCES_LIST
     "./include/vma/*"
     "./include/vku/*"
     "./include/volk/*"
+    "./include/spirv/*"
+    "./include/spirv/*/*"
 )
 
 # Set definition

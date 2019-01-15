@@ -18,15 +18,8 @@ namespace rad {
 
         public:
         TestSort(){
-            vku::Framework fw{"Radix sort test application"};
-            if (!fw.ok()) { std::cout << "Framework creation failed" << std::endl; exit(1); }
-
-            // Get a device from the demo framework.
-            auto vdevice = fw.device();
-            auto cache = fw.pipelineCache();
-            auto descriptorPool = fw.descriptorPool();
-            auto memprops = fw.memprops();
-            auto physical = fw.physicalDevice();
+            
+            
 
             // create radix sort application (RadX C++)
             physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(physical);
