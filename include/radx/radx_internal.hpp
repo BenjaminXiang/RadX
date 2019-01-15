@@ -18,9 +18,9 @@ namespace radx {
             struct Params{uint32_t size; uint32_t bitfield;};
 
         public:
-            vuh::Program<Specs, Params> histogramProgram;
-            vuh::Program<Specs, Params> permuteProgram;
-            vuh::Program<Specs, Params> workloadProgram;
+            std::shared_ptr<vuh::Program<Specs, Params>> histogramProgram;
+            std::shared_ptr<vuh::Program<Specs, Params>> permuteProgram;
+            std::shared_ptr<vuh::Program<Specs, Params>> workloadProgram;
             virtual std::shared_ptr<Algorithm> initialize(std::shared_ptr<radx::Device>& device);
 
             // can be used by children 
@@ -29,7 +29,7 @@ namespace radx {
     };
 
     template <class T>
-    class Sort : public std::enable_shared_from_this<Sort> {
+    class Sort : public std::enable_shared_from_this<Sort<T>> {
         protected:
             std::shared_ptr<T> algorithm;
             std::shared_ptr<radx::Device> device;
