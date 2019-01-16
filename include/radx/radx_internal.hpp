@@ -193,16 +193,18 @@ namespace radx {
             //std::shared_ptr<radx::InputInterface> inputInterface;
             
         public:
-            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<radx::Algorithm>& algorithm) {
-                this->initialize(device, std::dynamic_pointer_cast<T>(algorithm));
-                return *this;
-            };
-
             virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
                 this->device = device, this->algorithm = algorithm;
                 this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
                 return *this;
             };
+
+            // accepts only right-based links 
+            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>&& algorithm, const size_t& maxElementCount = 1024 * 1024) {
+                this->initialize(device, std::dynamic_pointer_cast<T>(algorithm), maxElementCount);
+                return *this;
+            };
+
 
             // TODO: add unique ptr support of input interface 
             virtual Sort<T>& genCommand(const vk::CommandBuffer& cmdBuf, std::shared_ptr<radx::InputInterface>& inputInterface){
