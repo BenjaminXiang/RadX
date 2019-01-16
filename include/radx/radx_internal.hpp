@@ -166,14 +166,17 @@ namespace radx {
         protected:
             std::shared_ptr<radx::Device> device;
 
-        public:
             uint32_t groupX = 1, groupY = 1;
             std::vector<vk::Pipeline> pipelines = {};
             vk::PipelineLayout pipelineLayout;
 
-            virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
+            // internal methods (for devs)
             virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres);
             virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024);
+
+        public:
+            friend Sort<Algorithm>;
+            virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
 
             // can be used by children 
             virtual operator Algorithm&() { return *this; };
@@ -215,6 +218,7 @@ namespace radx {
             uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
 
         public:
+            friend Sort<Radix>;
             virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
                 std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
