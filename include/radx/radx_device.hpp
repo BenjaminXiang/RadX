@@ -23,7 +23,7 @@ namespace radx {
         vk::PhysicalDevice physicalDevice = {};
         vk::PhysicalDeviceFeatures2 features = {};
         vk::PhysicalDeviceProperties2 properties = {};
-        
+        std::vector<uint32_t> queueFamilyIndices = {};
 
         // required (if there is no, will generated)
         radx::Vendor vendor = radx::Vendor::NV_TURING;
@@ -59,21 +59,36 @@ namespace radx {
         protected:
             vk::Device device;
             std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
+            
 
             // descriptor set layout 
             vk::DescriptorPool descriptorPool = {}; // TODO: add custom descriptor pool support
             vk::DescriptorSetLayout sortInputLayout, sortInterfaceLayout;
 
         public:
+            
+
             std::shared_ptr<Device> setDescriptorPool(vk::DescriptorPool& descriptorPool){
                 this->descriptorPool = descriptorPool;
+                return shared_from_this();
             };
 
             std::shared_ptr<Device> initialize(vk::Device& device, std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper){
                 this->physicalHelper = physicalHelper;
                 this->device = device;
-
                 return shared_from_this();
             };
+
+            // Queue Family indices
+            std::vector<uint32_t>& queueFamilyIndices() {return physicalHelper->queueFamilyIndices;};
+            const std::vector<uint32_t>& queueFamilyIndices() const {return physicalHelper->queueFamilyIndices;};
+
+            // vk::Device caster
+            operator vk::Device&() { return device; };
+            operator const vk::Device&() const { return device; };
+
+            // Allocator
+            operator VmaAllocator&() { return physicalHelper->allocator; };
+            operator const VmaAllocator&() const { return physicalHelper->allocator; };
     };
 };

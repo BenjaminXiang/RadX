@@ -1,14 +1,20 @@
 #version 460 core
 #extension GL_GOOGLE_include_directive : enable
 
+#define EXTEND_LOCAL_GROUPS
+#include "../include/driver.glsl"
+#include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
+
 #include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
 shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
-shared m8pq KTYPE _data[Wave_Size];
+shared m8pq utype_v _data[Wave_Size];
 shared uvec4 addrL[Wave_Size];
+shared uint addrC[Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 #define key _data[Lane_Idx]
@@ -21,8 +27,8 @@ initSubgroupIncFunctionTarget(localHistogram[WHERE], countOffset, 1, uint)
 const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
-
 #define addr addrL[Lane_Idx]
+#define addn addrC[Lane_Idx]
 #define addrW addr[w]
 
 #define validAddressW subgroupInverseBallot(validAddressL[w])
@@ -31,9 +37,11 @@ const uint BSIZE = min(Wc,Wave_Size);
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 #define validAddress validAddressW
 #else
-#define validAddress lessThan(addr,uvec4(blocks.limit))
+#define validAddress lessThan(addr,uvec2(blocks.limit))
 #endif
 
+
+layout ( binding = 2, set = 0, std430 ) readonly subgroupcoherent buffer RadiceCacheB { u8vec2 RadiceCache[]; };
 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
@@ -51,7 +59,7 @@ void main() {
 
     // calculate blocks
     const lowp uint w = Wave_Idx;
-    [[flatten]] if (Wave_Idx < VEC_SIZE) addrW = w*Wave_Size_RT + blocks.offset + Lane_Idx;
+    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = w*Wave_Size_RT + blocks.offset + Lane_Idx, addn = blocks.offset + Lane_Idx; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         LGROUP_BARRIER
@@ -61,14 +69,7 @@ void main() {
         IFALL(all(not(validAddress))) break;
         LGROUP_BARRIER
 
-        [[flatten]] if (Wave_Idx < VEC_SIZE) 
-        { //const lowp uint w = Wave_Idx;
-#ifdef READ_U8
-            { key[Wave_Idx] = validAddressW ? Key8n[addrW][push_block.Shift] : utype_t(0xFFu); };
-#else
-            { key[Wave_Idx] = utype_t(BFE(validAddressW ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
-#endif
-        };
+        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = RadiceCache[addn][Wave_Idx]; };
         LGROUP_BARRIER
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
@@ -103,6 +104,6 @@ void main() {
 #endif
         };
         LGROUP_BARRIER
-            [[flatten]] if (Wave_Idx < VEC_SIZE) addrW += ( Wave_Size_RT << VEC_SHIF );
+            [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ), addn += Wave_Size_RT; };
     };
 };

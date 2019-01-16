@@ -1,7 +1,4 @@
-#define EXTEND_LOCAL_GROUPS
-#include "../include/driver.glsl"
-#include "../include/mathlib.glsl"
-#include "../include/ballotlib.glsl"
+
 
 
 // roundly like http://www.heterogeneouscompute.org/wordpress/wp-content/uploads/2011/06/RadixSort.pdf
@@ -36,9 +33,9 @@
 
 
 //#if defined(ENABLE_TURING_INSTRUCTION_SET)
-    #define VEC_SIZE 4u
+    #define VEC_SIZE 2u
     #define VEC_MULT VEC_SIZE
-    #define VEC_SHIF 2u
+    #define VEC_SHIF 1u
     #define VEC_SEQU WPTRX(Wave_Idx) // yes, yes!
     #define KTYPE utype_v//utype_t[VEC_SIZE]
 
@@ -64,7 +61,7 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
-#define utype_v u8x4_t
+#define utype_v u8x2_t
 
 #ifdef USE_MORTON_32
 #define KEYTYPE uint32_t
@@ -89,15 +86,15 @@ const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
 //#define KEYTYPE uint
 //#ifdef READ_U8
-layout ( binding = 0, set = INDIR, align_ssbo )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
+layout ( binding = 0, set = INDIR, std430 )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
 //#endif
-layout ( binding = 0, set = INDIR, align_ssbo )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
-layout ( binding = 1, set = INDIR, align_ssbo )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-layout ( binding = 0, set = OUTDIR, align_ssbo )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
-layout ( binding = 1, set = OUTDIR, align_ssbo )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
-layout ( binding = 2, set = 0, align_ssbo )  readonly buffer VarsB { RadicePropStruct radProps[]; };
-layout ( binding = 3, set = 0, align_ssbo )  subgroupcoherent buffer HistogramB {uint Histogram[]; };
-layout ( binding = 4, set = 0, align_ssbo )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
+layout ( binding = 0, set = INDIR, std430 )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
+layout ( binding = 1, set = INDIR, std430 )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
+layout ( binding = 0, set = OUTDIR, std430 )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
+layout ( binding = 1, set = OUTDIR, std430 )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
+
+layout ( binding = 3, set = 0, std430 )  subgroupcoherent buffer HistogramB {uint Histogram[]; };
+layout ( binding = 4, set = 0, std430 )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint NumKeys; int Shift; } push_block;
@@ -106,7 +103,7 @@ layout ( push_constant ) uniform PushBlock { uint NumKeys; int Shift; } push_blo
 struct blocks_info { uint count, offset, limit; };
 blocks_info get_blocks_info(in uint n) {
     // tiling should be strictly same
-    const uint block_tile = Wave_Size_RT << 2u;//VEC_SHIF;
+    const uint block_tile = Wave_Size_RT << VEC_SHIF;
     const uint block_size = tiled(n, gl_NumWorkGroups.x);
     const uint block_count = tiled(n, block_tile * gl_NumWorkGroups.x);
     const uint block_offset = gl_WorkGroupID.x * block_tile * block_count;
@@ -116,5 +113,5 @@ blocks_info get_blocks_info(in uint n) {
 #ifdef PREFER_UNPACKED
 #define upfunc(x) (x)
 #else
-#define upfunc(x) up4x_8(x)
+#define upfunc(x) up2x_8(x)
 #endif

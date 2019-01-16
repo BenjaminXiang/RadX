@@ -421,8 +421,26 @@ u32x1_t p2x_16(in highp uvec2 a) { return bitfieldInsert(a.x,a.y,16,16); };
 
 // coding library (8-bit)
 const lowp uvec4 u8x4shf = {0u,8u,16u,24u};
+const lowp uvec2 u8x2shf = {0u,8u};
+
+// for 16-bit types 
+const m8pq u8x2_t u8x2shf16x = {0us,8us};
+
+
+// 32-bit packing 
 u32x1_t p4x_8(in lowp uvec4 a) { a<<=u8x4shf; return (a[0]|a[1]|a[2]|a[3]); };
 m8pq u8x4_t up4x_8(in u32x1_t a)  { return u8x4_t((a.xxxx>>u8x4shf)&0xFFu); };
 
+
+// 16-bit packing (32-bit proxy)
+u16x1_t p2x_8(in lowp uvec2 a) { a<<=u8x2shf; return u16x1_t(a[0]|a[1]); };
+m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); };
+
+
+// 16-bit packing (natural)
+//#ifdef ENABLE_INT16_SUPPORT
+//u16x1_t p2x_8(in m8pq u8x2_t a) { a<<=u8x2shf16x; return u16x1_t(a[0]|a[1]); };
+//m8pq u8x2_t up2x_8(in u16x1_t a)  { return u8x2_t((a.xx>>u8x2shf16x)&0xFFus); };
+//#endif
 
 #endif

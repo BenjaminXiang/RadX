@@ -21,12 +21,36 @@ namespace radx {
 
     class Interface { // used for connection between algorithms and storage
     public:
-        vk::Buffer extraKeys = {}, references = {};
+        size_t maxElementCount = 1024*1024;
+        vk::DescriptorBufferInfo extraKeysBufferInfo, referencesBufferInfo;
         vk::DescriptorSet descriptorSet = {};
 
-        // internal 
-        size_t maxElementCount = 1024*1024;
+        virtual Interface& setExtraKeys(vk::DescriptorBufferInfo extraKeys = {}){ this->extraKeysBufferInfo = extraKeys; return *this; };
+        virtual Interface& setReferences(vk::DescriptorBufferInfo references = {}){ this->referencesBufferInfo = references; return *this; };
+        virtual Interface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; };
+
+        virtual Interface& buildDescriptorSet(){
+            
+        };
     };
+
+    class InputInterface {
+    public:
+        size_t elementCount = 0;
+        vk::DescriptorBufferInfo keysBufferInfo, valuesBufferInfo;
+        vk::DescriptorSet inputDescriptorSet;
+
+        // for building arguments 
+        virtual InputInterface& setKeys(vk::DescriptorBufferInfo keys = {}){ this->keysBufferInfo = keys; return *this; };
+        virtual InputInterface& setValues(vk::DescriptorBufferInfo values = {}){ this->valuesBufferInfo = values; return *this; };
+        virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; };
+
+        virtual InputInterface& buildDescriptorSet(){
+            
+        };
+    };
+
+
 
     class Algorithm : public std::enable_shared_from_this<Algorithm> {
         protected:
@@ -50,16 +74,8 @@ namespace radx {
             std::shared_ptr<T> algorithm;
             std::shared_ptr<radx::Device> device;
             std::shared_ptr<radx::Interface> interface;
+            std::shared_ptr<radx::InputInterface> inputInterface;
             
-            // input descriptor set
-            vk::DescriptorSet inputDescriptorSet;
-
-            // input buffers and element counts
-            // TODO: add dedicated descriptor set helper 
-            size_t elementCount = 0;
-            vk::DescriptorBufferInfo keysBufferInfo;
-            vk::DescriptorBufferInfo valuesBufferInfo;
-
         public:
             virtual Sort<T>& initialize(std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm) {
                 this->device = device, this->algorithm = algorithm;
@@ -70,11 +86,6 @@ namespace radx {
                 this->initialize(device, std::dynamic_pointer_cast<T>(algorithm));
                 return *this;
             };
-
-            // for building arguments 
-            virtual Sort<T>& setKeys(vk::DescriptorBufferInfo keys = {}){ this->keysBufferInfo = keys; return *this; };
-            virtual Sort<T>& setValues(vk::DescriptorBufferInfo values = {}){ this->valuesBufferInfo = values; return *this; };
-            virtual Sort<T>& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; };
 
             // 
             virtual VkResult buildCommand(vk::CommandBuffer& cmdBuf){
