@@ -163,126 +163,126 @@ namespace radx {
 
     // abstract class for sorting alrgorithm
     class Algorithm : public std::enable_shared_from_this<Algorithm> {
-        protected:
-            std::shared_ptr<radx::Device> device;
+    protected:
+        std::shared_ptr<radx::Device> device;
 
-            uint32_t groupX = 1, groupY = 1;
-            std::vector<vk::Pipeline> pipelines = {};
-            vk::PipelineLayout pipelineLayout;
+        uint32_t groupX = 1, groupY = 1;
+        std::vector<vk::Pipeline> pipelines = {};
+        vk::PipelineLayout pipelineLayout;
 
-            // internal methods (for devs)
-            virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres);
-            virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024);
+        // internal methods (for devs)
+        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres);
+        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024);
 
-        public:
-            friend Sort<Algorithm>;
-            virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
+    public:
+        friend Sort<Algorithm>;
+        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
 
-            // can be used by children 
-            virtual operator Algorithm&() { return *this; };
-            virtual operator const Algorithm&() const { return *this; };
+        // can be used by children 
+        virtual operator Algorithm&() { return *this; };
+        virtual operator const Algorithm&() const { return *this; };
     };
 
 
     template <class T>
     class Sort : public std::enable_shared_from_this<Sort<T>> {
-        protected:
-            std::shared_ptr<T> algorithm;
-            std::shared_ptr<radx::Device> device;
-            std::unique_ptr<radx::InternalInterface> internalInterface;
-            //std::shared_ptr<radx::InputInterface> inputInterface;
-            
-        public:
-            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
-                this->device = device, this->algorithm = algorithm;
-                this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
-                return *this;
-            };
+    protected:
+        std::shared_ptr<T> algorithm;
+        std::shared_ptr<radx::Device> device;
+        std::unique_ptr<radx::InternalInterface> internalInterface;
+        //std::shared_ptr<radx::InputInterface> inputInterface;
+        
+    public:
+        virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
+            this->device = device, this->algorithm = algorithm;
+            this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
+            return *this;
+        };
 
-            // accepts only right-based links 
-            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>&& algorithm, const size_t& maxElementCount = 1024 * 1024) {
-                this->initialize(device, std::dynamic_pointer_cast<T>(algorithm), maxElementCount);
-                return *this;
-            };
+        // accepts only right-based links 
+        virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>&& algorithm, const size_t& maxElementCount = 1024 * 1024) {
+            this->initialize(device, std::dynamic_pointer_cast<T>(algorithm), maxElementCount);
+            return *this;
+        };
 
 
-            // TODO: add unique ptr support of input interface 
-            virtual Sort<T>& genCommand(const vk::CommandBuffer& cmdBuf, std::shared_ptr<radx::InputInterface>& inputInterface){
-                VkResult vkres = VK_SUCCESS; algorithm->genCommand(cmdBuf, internalInterface, inputInterface, vkres); //return vkres;
-                return *this;
-            };
+        // TODO: add unique ptr support of input interface 
+        virtual Sort<T>& genCommand(const vk::CommandBuffer& cmdBuf, std::shared_ptr<radx::InputInterface>& inputInterface){
+            VkResult vkres = VK_SUCCESS; algorithm->genCommand(cmdBuf, internalInterface, inputInterface, vkres); //return vkres;
+            return *this;
+        };
 
     };
 
     // TODO: better vendor-based setup for device 
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
-        protected:
-            uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
+    protected:
+        uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
 
-        public:
-            friend Sort<Radix>;
-            virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
-                std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
+    public:
+        friend Sort<Radix>;
+        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
+            std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
-                // push constant ranges
-                vk::PushConstantRange pConstRange{};
-                pConstRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
-                pConstRange.offset = 0u;
-                pConstRange.size = sizeof(uint32_t)*4u;
+            // push constant ranges
+            vk::PushConstantRange pConstRange{};
+            pConstRange.stageFlags = vk::ShaderStageFlagBits::eCompute;
+            pConstRange.offset = 0u;
+            pConstRange.size = sizeof(uint32_t)*4u;
 
-                // pipeline layout create info
-                vk::PipelineLayoutCreateInfo pplLayoutCi{};
-                pplLayoutCi.setLayoutCount = setLayouts.size();
-                pplLayoutCi.pSetLayouts = setLayouts.data();
-                pplLayoutCi.pushConstantRangeCount = 1;
-                pplLayoutCi.pPushConstantRanges = &pConstRange;
+            // pipeline layout create info
+            vk::PipelineLayoutCreateInfo pplLayoutCi{};
+            pplLayoutCi.setLayoutCount = setLayouts.size();
+            pplLayoutCi.pSetLayouts = setLayouts.data();
+            pplLayoutCi.pushConstantRangeCount = 1;
+            pplLayoutCi.pPushConstantRanges = &pConstRange;
 
-                // create pipeline layout 
-                this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
-                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), this->pipelineLayout));
-                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), this->pipelineLayout));
-                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), this->pipelineLayout));
-                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
+            // create pipeline layout 
+            this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
+            this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), this->pipelineLayout));
+            this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), this->pipelineLayout));
+            this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), this->pipelineLayout));
+            this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
 
-                // return shared_ptr when needed
-                return Algorithm::shared_from_this();
-            };
+            // return shared_ptr when needed
+            return Algorithm::shared_from_this();
+        };
 
-            virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
-                std::vector<vk::DescriptorSet> descriptors = {internalInterface->descriptorSet, inputInterface->descriptorSet};
-                cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
-                
-                for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
-                    std::array<uint32_t,4> stageC = {I,0,0,0};
-                    cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
+        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
+            std::vector<vk::DescriptorSet> descriptors = {internalInterface->descriptorSet, inputInterface->descriptorSet};
+            cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
+            
+            for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
+                std::array<uint32_t,4> stageC = {I,0,0,0};
+                cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
 
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
-                    cmdBuf.dispatch(this->groupX, 1u, 1u);
-                    commandBarrier(cmdBuf);
+                cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
+                cmdBuf.dispatch(this->groupX, 1u, 1u);
+                commandBarrier(cmdBuf);
 
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
-                    cmdBuf.dispatch(this->groupX, this->groupY, 1u);
-                    commandBarrier(cmdBuf);
+                cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
+                cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                commandBarrier(cmdBuf);
 
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->workload]);
-                    cmdBuf.dispatch(1u, 1u, 1u);
-                    commandBarrier(cmdBuf);
+                cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->workload]);
+                cmdBuf.dispatch(1u, 1u, 1u);
+                commandBarrier(cmdBuf);
 
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
-                    cmdBuf.dispatch(this->groupX, this->groupY, 1u);
-                    commandBarrier(cmdBuf);
-                }
+                cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
+                cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                commandBarrier(cmdBuf);
+            }
 
-                return Algorithm::shared_from_this();
-            };
+            return Algorithm::shared_from_this();
+        };
 
-            // TODO: create sorter memory and descriptor set 
-            virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
-                internalInterface->maxElementCount = maxElementCount;
-                
-                
-                return Algorithm::shared_from_this();
-            };
+        // TODO: create sorter memory and descriptor set 
+        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
+            internalInterface->maxElementCount = maxElementCount;
+            
+            
+            return Algorithm::shared_from_this();
+        };
     };
 
 };
