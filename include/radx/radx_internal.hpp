@@ -117,6 +117,7 @@ namespace radx {
         std::shared_ptr<radx::Device> device = {};
         std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
 
+        // TODO: use std::vector instead of 
         vk::DescriptorBufferInfo keysCacheBufferInfo = {}, referencesBufferInfo = {},
                                  keysStoreBufferInfo = {}, valuesStoreBufferInfo = {},
                                  histogramBufferInfo = {}, prefixScansBufferInfo = {};
@@ -185,6 +186,7 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device = {};
 
+        // TODO: use std::vector instead of 
         vk::DescriptorBufferInfo keysBufferInfo = {}, valuesBufferInfo = {};
         vk::DescriptorSet descriptorSet;
         size_t elementCount = 0;
