@@ -118,7 +118,7 @@ blocks_info get_blocks_info(in uint n) {
         block_offset_1x = block_size_1x * gl_WorkGroupID.x,
         block_limit_1x = block_offset_1x + block_size_1x;
 
-    return blocks_info(block_count, block_offset, block_limit, block_offset_1x);
+    return blocks_info(block_count, block_offset, min(block_limit, n), block_offset_1x);
 };
 
 #ifdef PREFER_UNPACKED
