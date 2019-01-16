@@ -36,3 +36,9 @@
 GLSLANG.spv
 */"GLSLANG.spv"
 */GLSLANG.spv
+
+# CMake build directory 
+build/
+build/*
+build*/
+
