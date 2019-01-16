@@ -18,13 +18,11 @@ CMakeFiles/gltfPBR.dir/include/volk/volk.c.o: ../include/volk/volk.c
 CMakeFiles/gltfPBR.dir/include/volk/volk.c.o: ../include/volk/volk.h
 
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx.hpp
+CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx_buffer.hpp
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx_core.hpp
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx_device.hpp
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx_internal.hpp
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/radx/radx_shaders.hpp
-CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/spirv/unified1/spirv.hpp11
-CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/vku/vku.hpp
-CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/vku/vku_framework.hpp
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/vma/vk_mem_alloc.h
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/volk/volk.h
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../include/vulkan/vk_platform.h

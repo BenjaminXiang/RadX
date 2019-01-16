@@ -84,12 +84,10 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-//#define KEYTYPE uint
-//#ifdef READ_U8
 layout ( binding = 0, set = INDIR, std430 )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
-//#endif
 layout ( binding = 0, set = INDIR, std430 )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
 layout ( binding = 1, set = INDIR, std430 )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
+
 layout ( binding = 0, set = OUTDIR, std430 )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
 layout ( binding = 1, set = OUTDIR, std430 )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
 
@@ -97,7 +95,9 @@ layout ( binding = 3, set = 0, std430 )  subgroupcoherent buffer HistogramB {uin
 layout ( binding = 4, set = 0, std430 )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
 
 // push constant in radix sort
-layout ( push_constant ) uniform PushBlock { uint NumKeys; int Shift; } push_block;
+layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;
+layout ( binding = 5, set = 0 ) uniform InlineUniformB { uint MaxNumElements, r0, r1, r2; } internal_block;
+layout ( binding = 2, set = 1 ) uniform InputInlineUniformB { uint NumElements, r0, r1, r2; } inline_block;
 
 // division of radix sort
 struct blocks_info { uint count, offset, limit, offset1x; };

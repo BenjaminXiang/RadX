@@ -37,18 +37,18 @@ namespace radx {
         };
 
         // require to generate both VMA and vendor name 
-        PhysicalDeviceHelper(vk::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
+        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
             this->physicalDevice = physicalDevice, this->getFeaturesWithProperties();
         };
 
         // require vendor name 
-        PhysicalDeviceHelper(vk::PhysicalDevice& physicalDevice, VmaAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
+        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice, const VmaAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
             this->physicalDevice = physicalDevice, this->getFeaturesWithProperties();
             this->allocator = allocator;
         };
 
         // don't need to do anything 
-        PhysicalDeviceHelper(vk::PhysicalDevice& physicalDevice, VmaAllocator& allocator, radx::Vendor vendor) : physicalDevice(physicalDevice), vendor(vendor), allocator(allocator) {
+        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice, const VmaAllocator& allocator, const radx::Vendor& vendor) : physicalDevice(physicalDevice), vendor(vendor), allocator(allocator) {
             this->physicalDevice = physicalDevice, this->getFeaturesWithProperties();
             this->allocator = allocator;
             this->vendor = vendor;
@@ -60,13 +60,14 @@ namespace radx {
             vk::Device device;
             std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
             
-
             // descriptor set layout 
-            vk::DescriptorPool descriptorPool = {}; // TODO: add custom descriptor pool support
+            vk::DescriptorPool descriptorPool = {};
             vk::DescriptorSetLayout sortInputLayout, sortInterfaceLayout;
 
         public:
-            
+            std::vector<vk::DescriptorSetLayout> getDescriptorSetLayoutSupport() const {
+                return {sortInterfaceLayout, sortInputLayout};
+            };
 
             std::shared_ptr<Device> setDescriptorPool(vk::DescriptorPool& descriptorPool){
                 this->descriptorPool = descriptorPool;

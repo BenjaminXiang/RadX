@@ -19,13 +19,11 @@ CMakeFiles/gltfPBR.dir/include/volk/volk.c.o
  /home/elviras9t/RadX/include/volk/volk.h
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o
  ../include/radx/radx.hpp
+ ../include/radx/radx_buffer.hpp
  ../include/radx/radx_core.hpp
  ../include/radx/radx_device.hpp
  ../include/radx/radx_internal.hpp
  ../include/radx/radx_shaders.hpp
- ../include/spirv/unified1/spirv.hpp11
- ../include/vku/vku.hpp
- ../include/vku/vku_framework.hpp
  ../include/vma/vk_mem_alloc.h
  ../include/volk/volk.h
  ../include/vulkan/vk_platform.h

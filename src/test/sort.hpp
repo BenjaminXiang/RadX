@@ -5,7 +5,6 @@
 
 #define VKU_NO_GLFW
 #include "radx/radx.hpp"
-#include "vku/vku_framework.hpp"
 
 namespace rad {
 
@@ -18,12 +17,11 @@ namespace rad {
 
         public:
         TestSort(){
-            
-            
+            // TODO: create vkPhysicalDevice and vk::Device
 
             // create radix sort application (RadX C++)
-            physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(physical);
-            device = std::make_shared<radx::Device>()->initialize(vdevice, physicalHelper);
+            physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(vkphysical);
+            device = std::make_shared<radx::Device>()->initialize(vkdevice, physicalHelper);
             program = std::make_shared<radx::Radix>();
             radixSort = std::make_shared<radx::Sort<radx::Radix>>();
             radixSort->initialize(device, program->initialize(device));

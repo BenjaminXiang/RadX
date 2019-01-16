@@ -60,41 +60,41 @@ include CMakeFiles/gltfPBR.dir/flags.make
 CMakeFiles/gltfPBR.dir/src/test/sort.cpp.o: CMakeFiles/gltfPBR.dir/flags.make
 CMakeFiles/gltfPBR.dir/src/test/sort.cpp.o: ../src/test/sort.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/elviras9t/RadX/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/gltfPBR.dir/src/test/sort.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/gltfPBR.dir/src/test/sort.cpp.o -c /home/elviras9t/RadX/src/test/sort.cpp
+	/usr/bin/g++-8  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/gltfPBR.dir/src/test/sort.cpp.o -c /home/elviras9t/RadX/src/test/sort.cpp
 
 CMakeFiles/gltfPBR.dir/src/test/sort.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gltfPBR.dir/src/test/sort.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/elviras9t/RadX/src/test/sort.cpp > CMakeFiles/gltfPBR.dir/src/test/sort.cpp.i
+	/usr/bin/g++-8 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/elviras9t/RadX/src/test/sort.cpp > CMakeFiles/gltfPBR.dir/src/test/sort.cpp.i
 
 CMakeFiles/gltfPBR.dir/src/test/sort.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gltfPBR.dir/src/test/sort.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/elviras9t/RadX/src/test/sort.cpp -o CMakeFiles/gltfPBR.dir/src/test/sort.cpp.s
+	/usr/bin/g++-8 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/elviras9t/RadX/src/test/sort.cpp -o CMakeFiles/gltfPBR.dir/src/test/sort.cpp.s
 
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: CMakeFiles/gltfPBR.dir/flags.make
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.o: ../src/test/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/elviras9t/RadX/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/gltfPBR.dir/src/test/main.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/gltfPBR.dir/src/test/main.cpp.o -c /home/elviras9t/RadX/src/test/main.cpp
+	/usr/bin/g++-8  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/gltfPBR.dir/src/test/main.cpp.o -c /home/elviras9t/RadX/src/test/main.cpp
 
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gltfPBR.dir/src/test/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/elviras9t/RadX/src/test/main.cpp > CMakeFiles/gltfPBR.dir/src/test/main.cpp.i
+	/usr/bin/g++-8 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/elviras9t/RadX/src/test/main.cpp > CMakeFiles/gltfPBR.dir/src/test/main.cpp.i
 
 CMakeFiles/gltfPBR.dir/src/test/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gltfPBR.dir/src/test/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/elviras9t/RadX/src/test/main.cpp -o CMakeFiles/gltfPBR.dir/src/test/main.cpp.s
+	/usr/bin/g++-8 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/elviras9t/RadX/src/test/main.cpp -o CMakeFiles/gltfPBR.dir/src/test/main.cpp.s
 
 CMakeFiles/gltfPBR.dir/include/volk/volk.c.o: CMakeFiles/gltfPBR.dir/flags.make
 CMakeFiles/gltfPBR.dir/include/volk/volk.c.o: ../include/volk/volk.c
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/elviras9t/RadX/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/gltfPBR.dir/include/volk/volk.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/gltfPBR.dir/include/volk/volk.c.o   -c /home/elviras9t/RadX/include/volk/volk.c
+	/usr/bin/gcc-8 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/gltfPBR.dir/include/volk/volk.c.o   -c /home/elviras9t/RadX/include/volk/volk.c
 
 CMakeFiles/gltfPBR.dir/include/volk/volk.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/gltfPBR.dir/include/volk/volk.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/elviras9t/RadX/include/volk/volk.c > CMakeFiles/gltfPBR.dir/include/volk/volk.c.i
+	/usr/bin/gcc-8 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/elviras9t/RadX/include/volk/volk.c > CMakeFiles/gltfPBR.dir/include/volk/volk.c.i
 
 CMakeFiles/gltfPBR.dir/include/volk/volk.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/gltfPBR.dir/include/volk/volk.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/elviras9t/RadX/include/volk/volk.c -o CMakeFiles/gltfPBR.dir/include/volk/volk.c.s
+	/usr/bin/gcc-8 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/elviras9t/RadX/include/volk/volk.c -o CMakeFiles/gltfPBR.dir/include/volk/volk.c.s
 
 # Object files for target gltfPBR
 gltfPBR_OBJECTS = \

@@ -3,6 +3,9 @@
 #include <memory>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <future>
+#include <fstream>
 
 // include vulkan API 
 #include <volk/volk.h>
@@ -12,6 +15,7 @@
 namespace radx {
 
     class Device;
+    class PhysicalDeviceHelper;
 
     template<class T>
     class Sort;
