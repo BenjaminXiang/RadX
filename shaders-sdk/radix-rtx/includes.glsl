@@ -106,15 +106,17 @@ blocks_info get_blocks_info(in uint n) {
         block_tile = Wave_Size_RT << VEC_SHIF, 
         block_count_simd = tiled(n, block_tile), 
         block_count = tiled(block_count_simd, gl_NumWorkGroups.x), 
-        block_limit = tiled(n, block_count * block_tile) * block_tile, 
-        block_offset = block_limit * gl_WorkGroupID.x;
+        block_size = tiled(n, block_count * block_tile) * block_tile, 
+        block_offset = block_size * gl_WorkGroupID.x,
+        block_limit = block_offset + block_size;
 
     const uint n_1x = tiled(n, VEC_SIZE), 
         block_tile_1x = Wave_Size_RT, 
         block_count_simd_1x = tiled(n_1x, block_tile_1x), 
         block_count_1x = tiled(block_count_simd_1x, gl_NumWorkGroups.x), 
-        block_limit_1x = tiled(n_1x, block_count_1x * block_tile_1x) * block_tile_1x, 
-        block_offset_1x = block_limit_1x * gl_WorkGroupID.x;
+        block_size_1x = tiled(n_1x, block_count_1x * block_tile_1x) * block_tile_1x, 
+        block_offset_1x = block_size_1x * gl_WorkGroupID.x,
+        block_limit_1x = block_offset_1x + block_size_1x;
 
     return blocks_info(block_count, block_offset, block_limit, block_offset_1x);
 };
