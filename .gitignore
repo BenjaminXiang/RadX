@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# validation SPV file
+"GLSLANG.spv"
+GLSLANG.spv
+*/"GLSLANG.spv"
+*/GLSLANG.spv
