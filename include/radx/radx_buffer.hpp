@@ -46,8 +46,8 @@ namespace radx {
             // AllocationInfo
             operator VmaAllocationInfo&() { return allocationInfo; };
             operator const VmaAllocationInfo&() const { return allocationInfo; };
+            
         protected:
-
             vk::Buffer buffer;
             VmaAllocation allocation;
             VmaAllocationInfo allocationInfo;

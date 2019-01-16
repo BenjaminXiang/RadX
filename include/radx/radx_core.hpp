@@ -23,7 +23,13 @@ namespace radx {
     // radix sort algorithm
     class Algorithm;
     class Radix;
+    class VmaAllocatedBuffer;
 
+    // 
+    class InputInterface;
+    class InternalInterface;
+
+    // radix sort templated
     using RadixSort = Sort<Radix>;
 
 };
