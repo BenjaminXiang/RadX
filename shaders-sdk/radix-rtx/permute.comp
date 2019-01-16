@@ -53,7 +53,7 @@ void main() {
         const lowp uint radice = rk + Lane_Idx;
         [[flatten]] if (radice < RADICES) localHistogram[radice+0u] = PrefixSum[gl_WorkGroupID.x * RADICES + radice];
     };
-    [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(push_block.NumKeys), bcount = min(blocks.count, 1048576u);
+    [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(inline_block.NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER
     [[flatten]] IFANY (bcount <= 0) return;
 

@@ -16,7 +16,7 @@ shared u8x2_t RadicesL[Wave_Size];
 layout ( binding = 2, set = 0, std430 )  subgroupcoherent buffer RadiceCacheB { uint16_t RadiceCache[]; };
 
 void main() {
-    #define wsize push_block.NumKeys
+    #define wsize inline_block.NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
