@@ -10,7 +10,7 @@ The output was:
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
 
-The C compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.12.1/CompilerIdC/a.out"
+The C compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.13.20190115-ge870c/CompilerIdC/a.out"
 
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
 Compiler: /usr/bin/g++-8 
@@ -23,33 +23,33 @@ The output was:
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
 
-The CXX compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.12.1/CompilerIdCXX/a.out"
+The CXX compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.13.20190115-ge870c/CompilerIdCXX/a.out"
 
 Determining if the C compiler works passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cc043/fast"
-/usr/bin/make -f CMakeFiles/cmTC_cc043.dir/build.make CMakeFiles/cmTC_cc043.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_d00c8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d00c8.dir/build.make CMakeFiles/cmTC_d00c8.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_cc043.dir/testCCompiler.c.o
-/usr/bin/gcc-8    -o CMakeFiles/cmTC_cc043.dir/testCCompiler.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_cc043
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc043.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_cc043.dir/testCCompiler.c.o  -o cmTC_cc043 
+Building C object CMakeFiles/cmTC_d00c8.dir/testCCompiler.c.o
+/usr/bin/gcc-8    -o CMakeFiles/cmTC_d00c8.dir/testCCompiler.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_d00c8
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d00c8.dir/link.txt --verbose=1
+/usr/bin/gcc-8      CMakeFiles/cmTC_d00c8.dir/testCCompiler.c.o  -o cmTC_d00c8 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_98a43/fast"
-/usr/bin/make -f CMakeFiles/cmTC_98a43.dir/build.make CMakeFiles/cmTC_98a43.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_b214a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b214a.dir/build.make CMakeFiles/cmTC_b214a.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o
-/usr/bin/gcc-8    -o CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.12/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_98a43
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98a43.dir/link.txt --verbose=1
-/usr/bin/gcc-8     -v CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o  -o cmTC_98a43 
+Building C object CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o
+/usr/bin/gcc-8    -o CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_b214a
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b214a.dir/link.txt --verbose=1
+/usr/bin/gcc-8     -v CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o  -o cmTC_b214a 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/gcc-8
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper
@@ -61,9 +61,9 @@ Thread model: posix
 gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) 
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_98a43' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cc6lYPD4.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_98a43 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_98a43' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b214a' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccPaDJGh.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_b214a /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b214a' '-mtune=generic' '-march=x86-64'
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -71,14 +71,14 @@ Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_98a43/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_98a43.dir/build.make CMakeFiles/cmTC_98a43.dir/build]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_b214a/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_b214a.dir/build.make CMakeFiles/cmTC_b214a.dir/build]
   ignore line: [make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/gcc-8    -o CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.12/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_98a43]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98a43.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/gcc-8     -v CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o  -o cmTC_98a43 ]
+  ignore line: [Building C object CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/gcc-8    -o CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_b214a]
+  ignore line: [/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b214a.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/gcc-8     -v CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o  -o cmTC_b214a ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/gcc-8]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper]
@@ -90,13 +90,13 @@ Parsed C implicit link information from above output:
   ignore line: [gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_98a43' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cc6lYPD4.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_98a43 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b214a' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccPaDJGh.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_b214a /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/cc6lYPD4.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccPaDJGh.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -115,7 +115,7 @@ Parsed C implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_98a43] ==> ignore
+    arg [cmTC_b214a] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o] ==> ignore
@@ -127,7 +127,7 @@ Parsed C implicit link information from above output:
     arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..]
-    arg [CMakeFiles/cmTC_98a43.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_b214a.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--push-state] ==> ignore
     arg [--as-needed] ==> ignore
@@ -159,14 +159,14 @@ Parsed C implicit link information from above output:
 Detecting C [-std=c11] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f17f6/fast"
-/usr/bin/make -f CMakeFiles/cmTC_f17f6.dir/build.make CMakeFiles/cmTC_f17f6.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_9c07b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9c07b.dir/build.make CMakeFiles/cmTC_9c07b.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f17f6.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c11 -o CMakeFiles/cmTC_f17f6.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_f17f6
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f17f6.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_f17f6.dir/feature_tests.c.o  -o cmTC_f17f6 
+Building C object CMakeFiles/cmTC_9c07b.dir/feature_tests.c.o
+/usr/bin/gcc-8   -std=c11 -o CMakeFiles/cmTC_9c07b.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_9c07b
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9c07b.dir/link.txt --verbose=1
+/usr/bin/gcc-8      CMakeFiles/cmTC_9c07b.dir/feature_tests.c.o  -o cmTC_9c07b 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -179,14 +179,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting C [-std=c99] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_217a7/fast"
-/usr/bin/make -f CMakeFiles/cmTC_217a7.dir/build.make CMakeFiles/cmTC_217a7.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_a67bc/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a67bc.dir/build.make CMakeFiles/cmTC_a67bc.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_217a7.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c99 -o CMakeFiles/cmTC_217a7.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_217a7
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_217a7.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_217a7.dir/feature_tests.c.o  -o cmTC_217a7 
+Building C object CMakeFiles/cmTC_a67bc.dir/feature_tests.c.o
+/usr/bin/gcc-8   -std=c99 -o CMakeFiles/cmTC_a67bc.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_a67bc
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a67bc.dir/link.txt --verbose=1
+/usr/bin/gcc-8      CMakeFiles/cmTC_a67bc.dir/feature_tests.c.o  -o cmTC_a67bc 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -199,14 +199,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting C [-std=c90] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_bc037/fast"
-/usr/bin/make -f CMakeFiles/cmTC_bc037.dir/build.make CMakeFiles/cmTC_bc037.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_c738a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c738a.dir/build.make CMakeFiles/cmTC_c738a.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_bc037.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c90 -o CMakeFiles/cmTC_bc037.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_bc037
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bc037.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_bc037.dir/feature_tests.c.o  -o cmTC_bc037 
+Building C object CMakeFiles/cmTC_c738a.dir/feature_tests.c.o
+/usr/bin/gcc-8   -std=c90 -o CMakeFiles/cmTC_c738a.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_c738a
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c738a.dir/link.txt --verbose=1
+/usr/bin/gcc-8      CMakeFiles/cmTC_c738a.dir/feature_tests.c.o  -o cmTC_c738a 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -217,28 +217,28 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Determining if the CXX compiler works passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_8a2b3/fast"
-/usr/bin/make -f CMakeFiles/cmTC_8a2b3.dir/build.make CMakeFiles/cmTC_8a2b3.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_2a5a7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2a5a7.dir/build.make CMakeFiles/cmTC_2a5a7.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_8a2b3.dir/testCXXCompiler.cxx.o
-/usr/bin/g++-8     -o CMakeFiles/cmTC_8a2b3.dir/testCXXCompiler.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_8a2b3
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8a2b3.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_8a2b3.dir/testCXXCompiler.cxx.o  -o cmTC_8a2b3 
+Building CXX object CMakeFiles/cmTC_2a5a7.dir/testCXXCompiler.cxx.o
+/usr/bin/g++-8     -o CMakeFiles/cmTC_2a5a7.dir/testCXXCompiler.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_2a5a7
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2a5a7.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_2a5a7.dir/testCXXCompiler.cxx.o  -o cmTC_2a5a7 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f2438/fast"
-/usr/bin/make -f CMakeFiles/cmTC_f2438.dir/build.make CMakeFiles/cmTC_f2438.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_0ff16/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0ff16.dir/build.make CMakeFiles/cmTC_0ff16.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/g++-8     -o CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.12/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_f2438
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f2438.dir/link.txt --verbose=1
-/usr/bin/g++-8      -v CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_f2438 
+Building CXX object CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/g++-8     -o CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_0ff16
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0ff16.dir/link.txt --verbose=1
+/usr/bin/g++-8      -v CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_0ff16 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/g++-8
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper
@@ -250,9 +250,9 @@ Thread model: posix
 gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) 
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f2438' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccHZhFzq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_f2438 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f2438' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0ff16' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cccVh5bs.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0ff16 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0ff16' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -260,14 +260,14 @@ Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_f2438/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_f2438.dir/build.make CMakeFiles/cmTC_f2438.dir/build]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_0ff16/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_0ff16.dir/build.make CMakeFiles/cmTC_0ff16.dir/build]
   ignore line: [make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/g++-8     -o CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.12/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_f2438]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f2438.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/g++-8      -v CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_f2438 ]
+  ignore line: [Building CXX object CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/g++-8     -o CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_0ff16]
+  ignore line: [/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0ff16.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/g++-8      -v CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_0ff16 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/g++-8]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper]
@@ -279,13 +279,13 @@ Parsed CXX implicit link information from above output:
   ignore line: [gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f2438' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccHZhFzq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_f2438 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0ff16' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cccVh5bs.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0ff16 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccHZhFzq.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cccVh5bs.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -304,7 +304,7 @@ Parsed CXX implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_f2438] ==> ignore
+    arg [cmTC_0ff16] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o] ==> ignore
@@ -316,7 +316,7 @@ Parsed CXX implicit link information from above output:
     arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..]
-    arg [CMakeFiles/cmTC_f2438.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_0ff16.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -344,14 +344,14 @@ Parsed CXX implicit link information from above output:
 Detecting CXX [-std=c++2a] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_3a6c6/fast"
-/usr/bin/make -f CMakeFiles/cmTC_3a6c6.dir/build.make CMakeFiles/cmTC_3a6c6.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_1d130/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1d130.dir/build.make CMakeFiles/cmTC_1d130.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_3a6c6.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++2a -o CMakeFiles/cmTC_3a6c6.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_3a6c6
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3a6c6.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_3a6c6.dir/feature_tests.cxx.o  -o cmTC_3a6c6 
+Building CXX object CMakeFiles/cmTC_1d130.dir/feature_tests.cxx.o
+/usr/bin/g++-8    -std=c++2a -o CMakeFiles/cmTC_1d130.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_1d130
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1d130.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_1d130.dir/feature_tests.cxx.o  -o cmTC_1d130 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -417,14 +417,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting CXX [-std=c++17] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_e453c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_e453c.dir/build.make CMakeFiles/cmTC_e453c.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_d76f9/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d76f9.dir/build.make CMakeFiles/cmTC_d76f9.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_e453c.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++17 -o CMakeFiles/cmTC_e453c.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_e453c
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e453c.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_e453c.dir/feature_tests.cxx.o  -o cmTC_e453c 
+Building CXX object CMakeFiles/cmTC_d76f9.dir/feature_tests.cxx.o
+/usr/bin/g++-8    -std=c++17 -o CMakeFiles/cmTC_d76f9.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_d76f9
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d76f9.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_d76f9.dir/feature_tests.cxx.o  -o cmTC_d76f9 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -490,14 +490,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting CXX [-std=c++14] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_1453b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_1453b.dir/build.make CMakeFiles/cmTC_1453b.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_b7a7a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b7a7a.dir/build.make CMakeFiles/cmTC_b7a7a.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_1453b.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++14 -o CMakeFiles/cmTC_1453b.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_1453b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1453b.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_1453b.dir/feature_tests.cxx.o  -o cmTC_1453b 
+Building CXX object CMakeFiles/cmTC_b7a7a.dir/feature_tests.cxx.o
+/usr/bin/g++-8    -std=c++14 -o CMakeFiles/cmTC_b7a7a.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_b7a7a
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b7a7a.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_b7a7a.dir/feature_tests.cxx.o  -o cmTC_b7a7a 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -563,14 +563,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_4a5d9/fast"
-/usr/bin/make -f CMakeFiles/cmTC_4a5d9.dir/build.make CMakeFiles/cmTC_4a5d9.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_f2fd7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f2fd7.dir/build.make CMakeFiles/cmTC_f2fd7.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_4a5d9.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++11 -o CMakeFiles/cmTC_4a5d9.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_4a5d9
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4a5d9.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_4a5d9.dir/feature_tests.cxx.o  -o cmTC_4a5d9 
+Building CXX object CMakeFiles/cmTC_f2fd7.dir/feature_tests.cxx.o
+/usr/bin/g++-8    -std=c++11 -o CMakeFiles/cmTC_f2fd7.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_f2fd7
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f2fd7.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_f2fd7.dir/feature_tests.cxx.o  -o cmTC_f2fd7 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -636,14 +636,14 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_98284/fast"
-/usr/bin/make -f CMakeFiles/cmTC_98284.dir/build.make CMakeFiles/cmTC_98284.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_7d284/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7d284.dir/build.make CMakeFiles/cmTC_7d284.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_98284.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++98 -o CMakeFiles/cmTC_98284.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_98284
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98284.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_98284.dir/feature_tests.cxx.o  -o cmTC_98284 
+Building CXX object CMakeFiles/cmTC_7d284.dir/feature_tests.cxx.o
+/usr/bin/g++-8    -std=c++98 -o CMakeFiles/cmTC_7d284.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_7d284
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7d284.dir/link.txt --verbose=1
+/usr/bin/g++-8       CMakeFiles/cmTC_7d284.dir/feature_tests.cxx.o  -o cmTC_7d284 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
@@ -707,790 +707,84 @@ make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 Determining if the function XOpenDisplay exists in the /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_2cc58/fast"
-/usr/bin/make -f CMakeFiles/cmTC_2cc58.dir/build.make CMakeFiles/cmTC_2cc58.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_5607b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5607b.dir/build.make CMakeFiles/cmTC_5607b.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_2cc58.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=XOpenDisplay   -o CMakeFiles/cmTC_2cc58.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_2cc58
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2cc58.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=XOpenDisplay    CMakeFiles/cmTC_2cc58.dir/CheckFunctionExists.c.o  -o cmTC_2cc58 /usr/lib/x86_64-linux-gnu/libX11.so /usr/lib/x86_64-linux-gnu/libXext.so 
+Building C object CMakeFiles/cmTC_5607b.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=XOpenDisplay   -o CMakeFiles/cmTC_5607b.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_5607b
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5607b.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=XOpenDisplay    CMakeFiles/cmTC_5607b.dir/CheckFunctionExists.c.o  -o cmTC_5607b /usr/lib/x86_64-linux-gnu/libX11.so /usr/lib/x86_64-linux-gnu/libXext.so 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function gethostbyname exists passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_aa44b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_aa44b.dir/build.make CMakeFiles/cmTC_aa44b.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_a87b3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a87b3.dir/build.make CMakeFiles/cmTC_a87b3.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_aa44b.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=gethostbyname   -o CMakeFiles/cmTC_aa44b.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_aa44b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_aa44b.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=gethostbyname    CMakeFiles/cmTC_aa44b.dir/CheckFunctionExists.c.o  -o cmTC_aa44b 
+Building C object CMakeFiles/cmTC_a87b3.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=gethostbyname   -o CMakeFiles/cmTC_a87b3.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_a87b3
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a87b3.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=gethostbyname    CMakeFiles/cmTC_a87b3.dir/CheckFunctionExists.c.o  -o cmTC_a87b3 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function connect exists passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_61e2a/fast"
-/usr/bin/make -f CMakeFiles/cmTC_61e2a.dir/build.make CMakeFiles/cmTC_61e2a.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_6aa39/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6aa39.dir/build.make CMakeFiles/cmTC_6aa39.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_61e2a.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=connect   -o CMakeFiles/cmTC_61e2a.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_61e2a
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_61e2a.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=connect    CMakeFiles/cmTC_61e2a.dir/CheckFunctionExists.c.o  -o cmTC_61e2a 
+Building C object CMakeFiles/cmTC_6aa39.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=connect   -o CMakeFiles/cmTC_6aa39.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_6aa39
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6aa39.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=connect    CMakeFiles/cmTC_6aa39.dir/CheckFunctionExists.c.o  -o cmTC_6aa39 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function remove exists passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_ff2d5/fast"
-/usr/bin/make -f CMakeFiles/cmTC_ff2d5.dir/build.make CMakeFiles/cmTC_ff2d5.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_d40fb/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d40fb.dir/build.make CMakeFiles/cmTC_d40fb.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_ff2d5.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=remove   -o CMakeFiles/cmTC_ff2d5.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_ff2d5
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ff2d5.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=remove    CMakeFiles/cmTC_ff2d5.dir/CheckFunctionExists.c.o  -o cmTC_ff2d5 
+Building C object CMakeFiles/cmTC_d40fb.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=remove   -o CMakeFiles/cmTC_d40fb.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_d40fb
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d40fb.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=remove    CMakeFiles/cmTC_d40fb.dir/CheckFunctionExists.c.o  -o cmTC_d40fb 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function shmat exists passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_bf8d5/fast"
-/usr/bin/make -f CMakeFiles/cmTC_bf8d5.dir/build.make CMakeFiles/cmTC_bf8d5.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_8bfba/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8bfba.dir/build.make CMakeFiles/cmTC_8bfba.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_bf8d5.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=shmat   -o CMakeFiles/cmTC_bf8d5.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_bf8d5
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bf8d5.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=shmat    CMakeFiles/cmTC_bf8d5.dir/CheckFunctionExists.c.o  -o cmTC_bf8d5 
+Building C object CMakeFiles/cmTC_8bfba.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=shmat   -o CMakeFiles/cmTC_8bfba.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_8bfba
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8bfba.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=shmat    CMakeFiles/cmTC_8bfba.dir/CheckFunctionExists.c.o  -o cmTC_8bfba 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function IceConnectionNumber exists in the ICE passed with the following output:
 Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f5dab/fast"
-/usr/bin/make -f CMakeFiles/cmTC_f5dab.dir/build.make CMakeFiles/cmTC_f5dab.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_82eaf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_82eaf.dir/build.make CMakeFiles/cmTC_82eaf.dir/build
 make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f5dab.dir/CheckFunctionExists.c.o
-/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=IceConnectionNumber   -o CMakeFiles/cmTC_f5dab.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.12/Modules/CheckFunctionExists.c
-Linking C executable cmTC_f5dab
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f5dab.dir/link.txt --verbose=1
-/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=IceConnectionNumber    CMakeFiles/cmTC_f5dab.dir/CheckFunctionExists.c.o  -o cmTC_f5dab -lICE 
+Building C object CMakeFiles/cmTC_82eaf.dir/CheckFunctionExists.c.o
+/usr/bin/gcc-8   -DCHECK_FUNCTION_EXISTS=IceConnectionNumber   -o CMakeFiles/cmTC_82eaf.dir/CheckFunctionExists.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_82eaf
+/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_82eaf.dir/link.txt --verbose=1
+/usr/bin/gcc-8  -DCHECK_FUNCTION_EXISTS=IceConnectionNumber    CMakeFiles/cmTC_82eaf.dir/CheckFunctionExists.c.o  -o cmTC_82eaf -lICE 
 make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
 
 
-The system is: Linux - 4.20.0-042000-lowlatency - x86_64
-Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
-Compiler: /usr/bin/gcc-8 
-Build flags: 
-Id flags:  
-
-The output was:
-0
-
-
-Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
-
-The C compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.13.20190115-ge870c/CompilerIdC/a.out"
-
-Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
-Compiler: /usr/bin/g++-8 
-Build flags: 
-Id flags:  
-
-The output was:
-0
-
-
-Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
-
-The CXX compiler identification is GNU, found in "/home/elviras9t/RadX/build/CMakeFiles/3.13.20190115-ge870c/CompilerIdCXX/a.out"
-
-Determining if the C compiler works passed with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_0fdd2/fast"
-/usr/bin/make -f CMakeFiles/cmTC_0fdd2.dir/build.make CMakeFiles/cmTC_0fdd2.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_0fdd2.dir/testCCompiler.c.o
-/usr/bin/gcc-8    -o CMakeFiles/cmTC_0fdd2.dir/testCCompiler.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_0fdd2
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0fdd2.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_0fdd2.dir/testCCompiler.c.o  -o cmTC_0fdd2 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-Detecting C compiler ABI info compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_01817/fast"
-/usr/bin/make -f CMakeFiles/cmTC_01817.dir/build.make CMakeFiles/cmTC_01817.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o
-/usr/bin/gcc-8    -o CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_01817
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_01817.dir/link.txt --verbose=1
-/usr/bin/gcc-8     -v CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o  -o cmTC_01817 
-Using built-in specs.
-COLLECT_GCC=/usr/bin/gcc-8
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper
-OFFLOAD_TARGET_NAMES=nvptx-none
-OFFLOAD_TARGET_DEFAULT=1
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 8.2.0-7ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++ --prefix=/usr --with-gcc-major-version-only --program-suffix=-8 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
-Thread model: posix
-gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) 
-COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/
-LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_01817' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccU84ogi.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_01817 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_01817' '-mtune=generic' '-march=x86-64'
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-Parsed C implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp]
-  ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_01817/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_01817.dir/build.make CMakeFiles/cmTC_01817.dir/build]
-  ignore line: [make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/gcc-8    -o CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o   -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_01817]
-  ignore line: [/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_01817.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/gcc-8     -v CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o  -o cmTC_01817 ]
-  ignore line: [Using built-in specs.]
-  ignore line: [COLLECT_GCC=/usr/bin/gcc-8]
-  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper]
-  ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none]
-  ignore line: [OFFLOAD_TARGET_DEFAULT=1]
-  ignore line: [Target: x86_64-linux-gnu]
-  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 8.2.0-7ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++ --prefix=/usr --with-gcc-major-version-only --program-suffix=-8 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
-  ignore line: [Thread model: posix]
-  ignore line: [gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) ]
-  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/]
-  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_01817' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccU84ogi.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_01817 /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/collect2] ==> ignore
-    arg [-plugin] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so] ==> ignore
-    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccU84ogi.res] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-    arg [-plugin-opt=-pass-through=-lc] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-    arg [--sysroot=/] ==> ignore
-    arg [--build-id] ==> ignore
-    arg [--eh-frame-hdr] ==> ignore
-    arg [-m] ==> ignore
-    arg [elf_x86_64] ==> ignore
-    arg [--hash-style=gnu] ==> ignore
-    arg [--as-needed] ==> ignore
-    arg [-dynamic-linker] ==> ignore
-    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
-    arg [-pie] ==> ignore
-    arg [-znow] ==> ignore
-    arg [-zrelro] ==> ignore
-    arg [-o] ==> ignore
-    arg [cmTC_01817] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o] ==> ignore
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib]
-    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
-    arg [-L/lib/../lib] ==> dir [/lib/../lib]
-    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
-    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..]
-    arg [CMakeFiles/cmTC_01817.dir/CMakeCCompilerABI.c.o] ==> ignore
-    arg [-lgcc] ==> lib [gcc]
-    arg [--push-state] ==> ignore
-    arg [--as-needed] ==> ignore
-    arg [-lgcc_s] ==> lib [gcc_s]
-    arg [--pop-state] ==> ignore
-    arg [-lc] ==> lib [c]
-    arg [-lgcc] ==> lib [gcc]
-    arg [--push-state] ==> ignore
-    arg [--as-needed] ==> ignore
-    arg [-lgcc_s] ==> lib [gcc_s]
-    arg [--pop-state] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o] ==> ignore
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8] ==> [/usr/lib/gcc/x86_64-linux-gnu/8]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib] ==> [/usr/lib]
-  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
-  collapse library dir [/lib/../lib] ==> [/lib]
-  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> [/usr/lib]
-  implicit libs: [gcc;gcc_s;c;gcc;gcc_s]
-  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/8;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
-  implicit fwks: []
-
-
-
-
-Detecting C [-std=c11] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_596cd/fast"
-/usr/bin/make -f CMakeFiles/cmTC_596cd.dir/build.make CMakeFiles/cmTC_596cd.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_596cd.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c11 -o CMakeFiles/cmTC_596cd.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_596cd
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_596cd.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_596cd.dir/feature_tests.c.o  -o cmTC_596cd 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: C_FEATURE:1c_function_prototypes
-    Feature record: C_FEATURE:1c_restrict
-    Feature record: C_FEATURE:1c_static_assert
-    Feature record: C_FEATURE:1c_variadic_macros
-
-
-Detecting C [-std=c99] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_ed414/fast"
-/usr/bin/make -f CMakeFiles/cmTC_ed414.dir/build.make CMakeFiles/cmTC_ed414.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_ed414.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c99 -o CMakeFiles/cmTC_ed414.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_ed414
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ed414.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_ed414.dir/feature_tests.c.o  -o cmTC_ed414 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: C_FEATURE:1c_function_prototypes
-    Feature record: C_FEATURE:1c_restrict
-    Feature record: C_FEATURE:0c_static_assert
-    Feature record: C_FEATURE:1c_variadic_macros
-
-
-Detecting C [-std=c90] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_c2bb4/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c2bb4.dir/build.make CMakeFiles/cmTC_c2bb4.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_c2bb4.dir/feature_tests.c.o
-/usr/bin/gcc-8   -std=c90 -o CMakeFiles/cmTC_c2bb4.dir/feature_tests.c.o   -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_c2bb4
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c2bb4.dir/link.txt --verbose=1
-/usr/bin/gcc-8      CMakeFiles/cmTC_c2bb4.dir/feature_tests.c.o  -o cmTC_c2bb4 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: C_FEATURE:1c_function_prototypes
-    Feature record: C_FEATURE:0c_restrict
-    Feature record: C_FEATURE:0c_static_assert
-    Feature record: C_FEATURE:0c_variadic_macros
-Determining if the CXX compiler works passed with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_83ab0/fast"
-/usr/bin/make -f CMakeFiles/cmTC_83ab0.dir/build.make CMakeFiles/cmTC_83ab0.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_83ab0.dir/testCXXCompiler.cxx.o
-/usr/bin/g++-8     -o CMakeFiles/cmTC_83ab0.dir/testCXXCompiler.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_83ab0
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83ab0.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_83ab0.dir/testCXXCompiler.cxx.o  -o cmTC_83ab0 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-Detecting CXX compiler ABI info compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_0747c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_0747c.dir/build.make CMakeFiles/cmTC_0747c.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/g++-8     -o CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_0747c
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0747c.dir/link.txt --verbose=1
-/usr/bin/g++-8      -v CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_0747c 
-Using built-in specs.
-COLLECT_GCC=/usr/bin/g++-8
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper
-OFFLOAD_TARGET_NAMES=nvptx-none
-OFFLOAD_TARGET_DEFAULT=1
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 8.2.0-7ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++ --prefix=/usr --with-gcc-major-version-only --program-suffix=-8 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
-Thread model: posix
-gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) 
-COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/
-LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0747c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cc8bhm6l.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0747c /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0747c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-Parsed CXX implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp]
-  ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_0747c/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_0747c.dir/build.make CMakeFiles/cmTC_0747c.dir/build]
-  ignore line: [make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/g++-8     -o CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o -c /home/elviras9t/share/cmake-3.13/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_0747c]
-  ignore line: [/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0747c.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/g++-8      -v CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_0747c ]
-  ignore line: [Using built-in specs.]
-  ignore line: [COLLECT_GCC=/usr/bin/g++-8]
-  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper]
-  ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none]
-  ignore line: [OFFLOAD_TARGET_DEFAULT=1]
-  ignore line: [Target: x86_64-linux-gnu]
-  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 8.2.0-7ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++ --prefix=/usr --with-gcc-major-version-only --program-suffix=-8 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
-  ignore line: [Thread model: posix]
-  ignore line: [gcc version 8.2.0 (Ubuntu 8.2.0-7ubuntu1) ]
-  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/]
-  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/8/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/8/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0747c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/8/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/cc8bhm6l.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0747c /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/collect2] ==> ignore
-    arg [-plugin] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so] ==> ignore
-    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/cc8bhm6l.res] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-    arg [-plugin-opt=-pass-through=-lc] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-    arg [--sysroot=/] ==> ignore
-    arg [--build-id] ==> ignore
-    arg [--eh-frame-hdr] ==> ignore
-    arg [-m] ==> ignore
-    arg [elf_x86_64] ==> ignore
-    arg [--hash-style=gnu] ==> ignore
-    arg [--as-needed] ==> ignore
-    arg [-dynamic-linker] ==> ignore
-    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
-    arg [-pie] ==> ignore
-    arg [-znow] ==> ignore
-    arg [-zrelro] ==> ignore
-    arg [-o] ==> ignore
-    arg [cmTC_0747c] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o] ==> ignore
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib]
-    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
-    arg [-L/lib/../lib] ==> dir [/lib/../lib]
-    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
-    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..]
-    arg [CMakeFiles/cmTC_0747c.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
-    arg [-lstdc++] ==> lib [stdc++]
-    arg [-lm] ==> lib [m]
-    arg [-lgcc_s] ==> lib [gcc_s]
-    arg [-lgcc] ==> lib [gcc]
-    arg [-lc] ==> lib [c]
-    arg [-lgcc_s] ==> lib [gcc_s]
-    arg [-lgcc] ==> lib [gcc]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o] ==> ignore
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8] ==> [/usr/lib/gcc/x86_64-linux-gnu/8]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib] ==> [/usr/lib]
-  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
-  collapse library dir [/lib/../lib] ==> [/lib]
-  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/8/../../..] ==> [/usr/lib]
-  implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
-  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/8;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
-  implicit fwks: []
-
-
-
-
-Detecting CXX [-std=c++2a] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_6c7f7/fast"
-/usr/bin/make -f CMakeFiles/cmTC_6c7f7.dir/build.make CMakeFiles/cmTC_6c7f7.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_6c7f7.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++2a -o CMakeFiles/cmTC_6c7f7.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_6c7f7
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6c7f7.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_6c7f7.dir/feature_tests.cxx.o  -o cmTC_6c7f7 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:1cxx_alias_templates
-    Feature record: CXX_FEATURE:1cxx_alignas
-    Feature record: CXX_FEATURE:1cxx_alignof
-    Feature record: CXX_FEATURE:1cxx_attributes
-    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:1cxx_auto_type
-    Feature record: CXX_FEATURE:1cxx_binary_literals
-    Feature record: CXX_FEATURE:1cxx_constexpr
-    Feature record: CXX_FEATURE:1cxx_contextual_conversions
-    Feature record: CXX_FEATURE:1cxx_decltype
-    Feature record: CXX_FEATURE:1cxx_decltype_auto
-    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:1cxx_default_function_template_args
-    Feature record: CXX_FEATURE:1cxx_defaulted_functions
-    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:1cxx_delegating_constructors
-    Feature record: CXX_FEATURE:1cxx_deleted_functions
-    Feature record: CXX_FEATURE:1cxx_digit_separators
-    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:1cxx_explicit_conversions
-    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:1cxx_extern_templates
-    Feature record: CXX_FEATURE:1cxx_final
-    Feature record: CXX_FEATURE:1cxx_func_identifier
-    Feature record: CXX_FEATURE:1cxx_generalized_initializers
-    Feature record: CXX_FEATURE:1cxx_generic_lambdas
-    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:1cxx_inline_namespaces
-    Feature record: CXX_FEATURE:1cxx_lambdas
-    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:1cxx_local_type_template_args
-    Feature record: CXX_FEATURE:1cxx_long_long_type
-    Feature record: CXX_FEATURE:1cxx_noexcept
-    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:1cxx_nullptr
-    Feature record: CXX_FEATURE:1cxx_override
-    Feature record: CXX_FEATURE:1cxx_range_for
-    Feature record: CXX_FEATURE:1cxx_raw_string_literals
-    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:1cxx_return_type_deduction
-    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:1cxx_rvalue_references
-    Feature record: CXX_FEATURE:1cxx_sizeof_member
-    Feature record: CXX_FEATURE:1cxx_static_assert
-    Feature record: CXX_FEATURE:1cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:1cxx_thread_local
-    Feature record: CXX_FEATURE:1cxx_trailing_return_types
-    Feature record: CXX_FEATURE:1cxx_unicode_literals
-    Feature record: CXX_FEATURE:1cxx_uniform_initialization
-    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:1cxx_user_literals
-    Feature record: CXX_FEATURE:1cxx_variable_templates
-    Feature record: CXX_FEATURE:1cxx_variadic_macros
-    Feature record: CXX_FEATURE:1cxx_variadic_templates
-
-
-Detecting CXX [-std=c++17] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_50c69/fast"
-/usr/bin/make -f CMakeFiles/cmTC_50c69.dir/build.make CMakeFiles/cmTC_50c69.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_50c69.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++17 -o CMakeFiles/cmTC_50c69.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_50c69
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_50c69.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_50c69.dir/feature_tests.cxx.o  -o cmTC_50c69 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:1cxx_alias_templates
-    Feature record: CXX_FEATURE:1cxx_alignas
-    Feature record: CXX_FEATURE:1cxx_alignof
-    Feature record: CXX_FEATURE:1cxx_attributes
-    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:1cxx_auto_type
-    Feature record: CXX_FEATURE:1cxx_binary_literals
-    Feature record: CXX_FEATURE:1cxx_constexpr
-    Feature record: CXX_FEATURE:1cxx_contextual_conversions
-    Feature record: CXX_FEATURE:1cxx_decltype
-    Feature record: CXX_FEATURE:1cxx_decltype_auto
-    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:1cxx_default_function_template_args
-    Feature record: CXX_FEATURE:1cxx_defaulted_functions
-    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:1cxx_delegating_constructors
-    Feature record: CXX_FEATURE:1cxx_deleted_functions
-    Feature record: CXX_FEATURE:1cxx_digit_separators
-    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:1cxx_explicit_conversions
-    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:1cxx_extern_templates
-    Feature record: CXX_FEATURE:1cxx_final
-    Feature record: CXX_FEATURE:1cxx_func_identifier
-    Feature record: CXX_FEATURE:1cxx_generalized_initializers
-    Feature record: CXX_FEATURE:1cxx_generic_lambdas
-    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:1cxx_inline_namespaces
-    Feature record: CXX_FEATURE:1cxx_lambdas
-    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:1cxx_local_type_template_args
-    Feature record: CXX_FEATURE:1cxx_long_long_type
-    Feature record: CXX_FEATURE:1cxx_noexcept
-    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:1cxx_nullptr
-    Feature record: CXX_FEATURE:1cxx_override
-    Feature record: CXX_FEATURE:1cxx_range_for
-    Feature record: CXX_FEATURE:1cxx_raw_string_literals
-    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:1cxx_return_type_deduction
-    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:1cxx_rvalue_references
-    Feature record: CXX_FEATURE:1cxx_sizeof_member
-    Feature record: CXX_FEATURE:1cxx_static_assert
-    Feature record: CXX_FEATURE:1cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:1cxx_thread_local
-    Feature record: CXX_FEATURE:1cxx_trailing_return_types
-    Feature record: CXX_FEATURE:1cxx_unicode_literals
-    Feature record: CXX_FEATURE:1cxx_uniform_initialization
-    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:1cxx_user_literals
-    Feature record: CXX_FEATURE:1cxx_variable_templates
-    Feature record: CXX_FEATURE:1cxx_variadic_macros
-    Feature record: CXX_FEATURE:1cxx_variadic_templates
-
-
-Detecting CXX [-std=c++14] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_b4b13/fast"
-/usr/bin/make -f CMakeFiles/cmTC_b4b13.dir/build.make CMakeFiles/cmTC_b4b13.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_b4b13.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++14 -o CMakeFiles/cmTC_b4b13.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_b4b13
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b4b13.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_b4b13.dir/feature_tests.cxx.o  -o cmTC_b4b13 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:1cxx_alias_templates
-    Feature record: CXX_FEATURE:1cxx_alignas
-    Feature record: CXX_FEATURE:1cxx_alignof
-    Feature record: CXX_FEATURE:1cxx_attributes
-    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:1cxx_auto_type
-    Feature record: CXX_FEATURE:1cxx_binary_literals
-    Feature record: CXX_FEATURE:1cxx_constexpr
-    Feature record: CXX_FEATURE:1cxx_contextual_conversions
-    Feature record: CXX_FEATURE:1cxx_decltype
-    Feature record: CXX_FEATURE:1cxx_decltype_auto
-    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:1cxx_default_function_template_args
-    Feature record: CXX_FEATURE:1cxx_defaulted_functions
-    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:1cxx_delegating_constructors
-    Feature record: CXX_FEATURE:1cxx_deleted_functions
-    Feature record: CXX_FEATURE:1cxx_digit_separators
-    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:1cxx_explicit_conversions
-    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:1cxx_extern_templates
-    Feature record: CXX_FEATURE:1cxx_final
-    Feature record: CXX_FEATURE:1cxx_func_identifier
-    Feature record: CXX_FEATURE:1cxx_generalized_initializers
-    Feature record: CXX_FEATURE:1cxx_generic_lambdas
-    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:1cxx_inline_namespaces
-    Feature record: CXX_FEATURE:1cxx_lambdas
-    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:1cxx_local_type_template_args
-    Feature record: CXX_FEATURE:1cxx_long_long_type
-    Feature record: CXX_FEATURE:1cxx_noexcept
-    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:1cxx_nullptr
-    Feature record: CXX_FEATURE:1cxx_override
-    Feature record: CXX_FEATURE:1cxx_range_for
-    Feature record: CXX_FEATURE:1cxx_raw_string_literals
-    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:1cxx_return_type_deduction
-    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:1cxx_rvalue_references
-    Feature record: CXX_FEATURE:1cxx_sizeof_member
-    Feature record: CXX_FEATURE:1cxx_static_assert
-    Feature record: CXX_FEATURE:1cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:1cxx_thread_local
-    Feature record: CXX_FEATURE:1cxx_trailing_return_types
-    Feature record: CXX_FEATURE:1cxx_unicode_literals
-    Feature record: CXX_FEATURE:1cxx_uniform_initialization
-    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:1cxx_user_literals
-    Feature record: CXX_FEATURE:1cxx_variable_templates
-    Feature record: CXX_FEATURE:1cxx_variadic_macros
-    Feature record: CXX_FEATURE:1cxx_variadic_templates
-
-
-Detecting CXX [-std=c++11] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_537e9/fast"
-/usr/bin/make -f CMakeFiles/cmTC_537e9.dir/build.make CMakeFiles/cmTC_537e9.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_537e9.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++11 -o CMakeFiles/cmTC_537e9.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_537e9
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_537e9.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_537e9.dir/feature_tests.cxx.o  -o cmTC_537e9 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:1cxx_alias_templates
-    Feature record: CXX_FEATURE:1cxx_alignas
-    Feature record: CXX_FEATURE:1cxx_alignof
-    Feature record: CXX_FEATURE:1cxx_attributes
-    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:1cxx_auto_type
-    Feature record: CXX_FEATURE:0cxx_binary_literals
-    Feature record: CXX_FEATURE:1cxx_constexpr
-    Feature record: CXX_FEATURE:0cxx_contextual_conversions
-    Feature record: CXX_FEATURE:1cxx_decltype
-    Feature record: CXX_FEATURE:0cxx_decltype_auto
-    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:1cxx_default_function_template_args
-    Feature record: CXX_FEATURE:1cxx_defaulted_functions
-    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:1cxx_delegating_constructors
-    Feature record: CXX_FEATURE:1cxx_deleted_functions
-    Feature record: CXX_FEATURE:0cxx_digit_separators
-    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:1cxx_explicit_conversions
-    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:1cxx_extern_templates
-    Feature record: CXX_FEATURE:1cxx_final
-    Feature record: CXX_FEATURE:1cxx_func_identifier
-    Feature record: CXX_FEATURE:1cxx_generalized_initializers
-    Feature record: CXX_FEATURE:0cxx_generic_lambdas
-    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:1cxx_inline_namespaces
-    Feature record: CXX_FEATURE:1cxx_lambdas
-    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:1cxx_local_type_template_args
-    Feature record: CXX_FEATURE:1cxx_long_long_type
-    Feature record: CXX_FEATURE:1cxx_noexcept
-    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:1cxx_nullptr
-    Feature record: CXX_FEATURE:1cxx_override
-    Feature record: CXX_FEATURE:1cxx_range_for
-    Feature record: CXX_FEATURE:1cxx_raw_string_literals
-    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:0cxx_return_type_deduction
-    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:1cxx_rvalue_references
-    Feature record: CXX_FEATURE:1cxx_sizeof_member
-    Feature record: CXX_FEATURE:1cxx_static_assert
-    Feature record: CXX_FEATURE:1cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:1cxx_thread_local
-    Feature record: CXX_FEATURE:1cxx_trailing_return_types
-    Feature record: CXX_FEATURE:1cxx_unicode_literals
-    Feature record: CXX_FEATURE:1cxx_uniform_initialization
-    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:1cxx_user_literals
-    Feature record: CXX_FEATURE:0cxx_variable_templates
-    Feature record: CXX_FEATURE:1cxx_variadic_macros
-    Feature record: CXX_FEATURE:1cxx_variadic_templates
-
-
-Detecting CXX [-std=c++98] compiler features compiled with the following output:
-Change Dir: /home/elviras9t/RadX/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_8eb1e/fast"
-/usr/bin/make -f CMakeFiles/cmTC_8eb1e.dir/build.make CMakeFiles/cmTC_8eb1e.dir/build
-make[1]: Entering directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_8eb1e.dir/feature_tests.cxx.o
-/usr/bin/g++-8    -std=c++98 -o CMakeFiles/cmTC_8eb1e.dir/feature_tests.cxx.o -c /home/elviras9t/RadX/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_8eb1e
-/home/elviras9t/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8eb1e.dir/link.txt --verbose=1
-/usr/bin/g++-8       CMakeFiles/cmTC_8eb1e.dir/feature_tests.cxx.o  -o cmTC_8eb1e 
-make[1]: Leaving directory '/home/elviras9t/RadX/build/CMakeFiles/CMakeTmp'
-
-
-    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:0cxx_alias_templates
-    Feature record: CXX_FEATURE:0cxx_alignas
-    Feature record: CXX_FEATURE:0cxx_alignof
-    Feature record: CXX_FEATURE:0cxx_attributes
-    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:0cxx_auto_type
-    Feature record: CXX_FEATURE:0cxx_binary_literals
-    Feature record: CXX_FEATURE:0cxx_constexpr
-    Feature record: CXX_FEATURE:0cxx_contextual_conversions
-    Feature record: CXX_FEATURE:0cxx_decltype
-    Feature record: CXX_FEATURE:0cxx_decltype_auto
-    Feature record: CXX_FEATURE:0cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:0cxx_default_function_template_args
-    Feature record: CXX_FEATURE:0cxx_defaulted_functions
-    Feature record: CXX_FEATURE:0cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:0cxx_delegating_constructors
-    Feature record: CXX_FEATURE:0cxx_deleted_functions
-    Feature record: CXX_FEATURE:0cxx_digit_separators
-    Feature record: CXX_FEATURE:0cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:0cxx_explicit_conversions
-    Feature record: CXX_FEATURE:0cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:0cxx_extern_templates
-    Feature record: CXX_FEATURE:0cxx_final
-    Feature record: CXX_FEATURE:0cxx_func_identifier
-    Feature record: CXX_FEATURE:0cxx_generalized_initializers
-    Feature record: CXX_FEATURE:0cxx_generic_lambdas
-    Feature record: CXX_FEATURE:0cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:0cxx_inline_namespaces
-    Feature record: CXX_FEATURE:0cxx_lambdas
-    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:0cxx_local_type_template_args
-    Feature record: CXX_FEATURE:0cxx_long_long_type
-    Feature record: CXX_FEATURE:0cxx_noexcept
-    Feature record: CXX_FEATURE:0cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:0cxx_nullptr
-    Feature record: CXX_FEATURE:0cxx_override
-    Feature record: CXX_FEATURE:0cxx_range_for
-    Feature record: CXX_FEATURE:0cxx_raw_string_literals
-    Feature record: CXX_FEATURE:0cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:0cxx_return_type_deduction
-    Feature record: CXX_FEATURE:0cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:0cxx_rvalue_references
-    Feature record: CXX_FEATURE:0cxx_sizeof_member
-    Feature record: CXX_FEATURE:0cxx_static_assert
-    Feature record: CXX_FEATURE:0cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:0cxx_thread_local
-    Feature record: CXX_FEATURE:0cxx_trailing_return_types
-    Feature record: CXX_FEATURE:0cxx_unicode_literals
-    Feature record: CXX_FEATURE:0cxx_uniform_initialization
-    Feature record: CXX_FEATURE:0cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:0cxx_user_literals
-    Feature record: CXX_FEATURE:0cxx_variable_templates
-    Feature record: CXX_FEATURE:0cxx_variadic_macros
-    Feature record: CXX_FEATURE:0cxx_variadic_templates

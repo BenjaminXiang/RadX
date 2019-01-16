@@ -17,8 +17,9 @@
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//No help, variable specified on the command line.
-CMAKE_BUILD_TYPE:STRING=Debug
+//Choose the type of build, options are: None Debug Release RelWithDebInfo
+// MinSizeRel ...
+CMAKE_BUILD_TYPE:STRING=
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -90,8 +91,8 @@ CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=
 //Flags used by the linker during RELWITHDEBINFO builds.
 CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
-//No help, variable specified on the command line.
-CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
+//Enable/Disable output of compile commands during generation.
+CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
 
 //Install path prefix, prepended onto install directories.
 CMAKE_INSTALL_PREFIX:PATH=/usr/local
@@ -165,10 +166,10 @@ CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //If set, runtime paths are not added when installing shared libraries,
 // but are added when building.
-CMAKE_SKIP_INSTALL_RPATH:BOOL=OFF
+CMAKE_SKIP_INSTALL_RPATH:BOOL=NO
 
 //If set, runtime paths are not added when using shared libraries.
-CMAKE_SKIP_RPATH:BOOL=OFF
+CMAKE_SKIP_RPATH:BOOL=NO
 
 //Flags used by the linker during the creation of static libraries
 // during all build types.
@@ -197,7 +198,7 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 // .SILENT directive, and all commands will be echoed to the console
 // during the make.  This is useful for debugging only. With Visual
 // Studio IDE projects all commands are done without /nologo.
-CMAKE_VERBOSE_MAKEFILE:BOOL=OFF
+CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Path to a file.
 FONTCONFIG_INCLUDE_DIR:PATH=/usr/include
@@ -255,12 +256,6 @@ X11_XShm_INCLUDE_PATH:PATH=/usr/include
 
 //Path to a file.
 X11_XSync_INCLUDE_PATH:PATH=/usr/include
-
-//Path to a file.
-X11_XTest_INCLUDE_PATH:PATH=/usr/include
-
-//Path to a library.
-X11_XTest_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXtst.so
 
 //Path to a file.
 X11_Xaccessrules_INCLUDE_PATH:PATH=X11_Xaccessrules_INCLUDE_PATH-NOTFOUND
@@ -329,19 +324,7 @@ X11_Xinerama_INCLUDE_PATH:PATH=/usr/include
 X11_Xinerama_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXinerama.so
 
 //Path to a file.
-X11_Xinput_INCLUDE_PATH:PATH=/usr/include
-
-//Path to a library.
-X11_Xinput_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXi.so
-
-//Path to a file.
 X11_Xkb_INCLUDE_PATH:PATH=/usr/include
-
-//Path to a file.
-X11_Xkbfile_INCLUDE_PATH:PATH=X11_Xkbfile_INCLUDE_PATH-NOTFOUND
-
-//Path to a library.
-X11_Xkbfile_LIB:FILEPATH=X11_Xkbfile_LIB-NOTFOUND
 
 //Path to a file.
 X11_Xkblib_INCLUDE_PATH:PATH=/usr/include
@@ -372,12 +355,6 @@ X11_Xrender_INCLUDE_PATH:PATH=/usr/include
 
 //Path to a library.
 X11_Xrender_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXrender.so
-
-//Path to a file.
-X11_Xscreensaver_INCLUDE_PATH:PATH=X11_Xscreensaver_INCLUDE_PATH-NOTFOUND
-
-//Path to a library.
-X11_Xscreensaver_LIB:FILEPATH=X11_Xscreensaver_LIB-NOTFOUND
 
 //Path to a file.
 X11_Xshape_INCLUDE_PATH:PATH=/usr/include
@@ -423,12 +400,6 @@ X11_Xxf86vm_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXxf86vm.so
 
 //Path to a file.
 X11_dpms_INCLUDE_PATH:PATH=/usr/include
-
-//Path to a file.
-X11_xf86misc_INCLUDE_PATH:PATH=X11_xf86misc_INCLUDE_PATH-NOTFOUND
-
-//Path to a file.
-X11_xf86vmode_INCLUDE_PATH:PATH=/usr/include
 
 //Path to a file.
 X11_xkbfile_INCLUDE_PATH:PATH=X11_xkbfile_INCLUDE_PATH-NOTFOUND
@@ -504,7 +475,7 @@ CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_FLAGS_RELWITHDEBINFO
 CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //Path to cache edit program executable.
-CMAKE_EDIT_COMMAND:INTERNAL=/home/elviras9t/bin/cmake-gui
+CMAKE_EDIT_COMMAND:INTERNAL=/home/elviras9t/bin/ccmake
 //Executable file format
 CMAKE_EXECUTABLE_FORMAT:INTERNAL=ELF
 //ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS
@@ -676,10 +647,6 @@ X11_XRes_LIB-ADVANCED:INTERNAL=1
 X11_XShm_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_XSync_INCLUDE_PATH
 X11_XSync_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_XTest_INCLUDE_PATH
-X11_XTest_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_XTest_LIB
-X11_XTest_LIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xaccessrules_INCLUDE_PATH
 X11_Xaccessrules_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xaccessstr_INCLUDE_PATH
@@ -724,16 +691,8 @@ X11_Xi_LIB-ADVANCED:INTERNAL=1
 X11_Xinerama_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xinerama_LIB
 X11_Xinerama_LIB-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xinput_INCLUDE_PATH
-X11_Xinput_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xinput_LIB
-X11_Xinput_LIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xkb_INCLUDE_PATH
 X11_Xkb_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xkbfile_INCLUDE_PATH
-X11_Xkbfile_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xkbfile_LIB
-X11_Xkbfile_LIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xkblib_INCLUDE_PATH
 X11_Xkblib_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xlib_INCLUDE_PATH
@@ -754,10 +713,6 @@ X11_Xrandr_LIB-ADVANCED:INTERNAL=1
 X11_Xrender_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xrender_LIB
 X11_Xrender_LIB-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xscreensaver_INCLUDE_PATH
-X11_Xscreensaver_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_Xscreensaver_LIB
-X11_Xscreensaver_LIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xshape_INCLUDE_PATH
 X11_Xshape_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_Xss_INCLUDE_PATH
@@ -788,10 +743,6 @@ X11_Xxf86vm_INCLUDE_PATH-ADVANCED:INTERNAL=1
 X11_Xxf86vm_LIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_dpms_INCLUDE_PATH
 X11_dpms_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_xf86misc_INCLUDE_PATH
-X11_xf86misc_INCLUDE_PATH-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: X11_xf86vmode_INCLUDE_PATH
-X11_xf86vmode_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_xkbfile_INCLUDE_PATH
 X11_xkbfile_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_xkbfile_LIB
