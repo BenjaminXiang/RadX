@@ -69,7 +69,8 @@ void main() {
         IFALL(all(not(validAddress))) break;
         LGROUP_BARRIER
 
-        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = RadiceCache[addn][Wave_Idx]; };
+        //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = RadiceCache[addn][Wave_Idx]; };
+        [[flatten]] if (Wave_Idx < 1) { key = RadiceCache[addn]; };
         LGROUP_BARRIER
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
