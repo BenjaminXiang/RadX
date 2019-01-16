@@ -7,19 +7,19 @@
 namespace radx {
 
     template <typename T>
-    static inline auto sgn(T val) { return (T(0) < val) - (val < T(0)); }
+    static inline auto sgn(const T& val) { return (T(0) < val) - (val < T(0)); }
 
     template<class T = uint64_t>
-    static inline T tiled(T sz, T gmaxtile) {
+    static inline T tiled(const T& sz, const T& gmaxtile) {
         // return (int32_t)ceil((double)sz / (double)gmaxtile);
         return sz <= 0 ? 0 : (sz / gmaxtile + sgn(sz % gmaxtile));
     }
 
     template <class T>
-    static inline auto strided(size_t sizeo) { return sizeof(T) * sizeo; }
+    static inline auto strided(const size_t& sizeo) { return sizeof(T) * sizeo; }
 
     // read binary (for SPIR-V)
-    static inline auto readBinary( std::string filePath ) {
+    static inline auto readBinary(const std::string& filePath ) {
         std::ifstream file(filePath, std::ios::in | std::ios::binary | std::ios::ate);
         std::vector<uint32_t> data = {};
         if (file.is_open()) {
@@ -35,7 +35,7 @@ namespace radx {
     };
 
     // read source (unused)
-    static inline auto readSource( std::string filePath,  bool lineDirective = false ) {
+    static inline auto readSource(const std::string& filePath, bool lineDirective = false ) {
         std::string content = "";
         std::ifstream fileStream(filePath, std::ios::in);
         if (!fileStream.is_open()) {
@@ -59,16 +59,16 @@ namespace radx {
     };
 
     // create shader module
-    static inline auto createShaderModuleIntrusive(vk::Device device, const std::vector<uint32_t>& code, vk::ShaderModule& hndl) {
+    static inline auto createShaderModuleIntrusive(const vk::Device& device, const std::vector<uint32_t>& code, vk::ShaderModule& hndl) {
         return device.createShaderModule(makeShaderModuleInfo(code));
     };
 
-    static inline auto createShaderModule(vk::Device device, const std::vector<uint32_t>& code) {
+    static inline auto createShaderModule(const vk::Device& device, const std::vector<uint32_t>& code) {
         auto sm = vk::ShaderModule{}; return createShaderModuleIntrusive(device, code, sm); return sm;
     };
 
     // create shader module
-    static inline auto makeComputePipelineStageInfo(vk::Device device, const std::vector<uint32_t>& code, const char * entry = "main") {
+    static inline auto makeComputePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, const char * entry = "main") {
         auto spi = vk::PipelineShaderStageCreateInfo{};
         spi.flags = {};
         createShaderModuleIntrusive(device, code, spi.module);
@@ -79,7 +79,7 @@ namespace radx {
     };
 
     // create compute pipelines
-    static inline auto createCompute(vk::Device device, vk::PipelineShaderStageCreateInfo spi, vk::PipelineLayout layout, vk::PipelineCache cache = {}) {
+    static inline auto createCompute(const vk::Device& device, const vk::PipelineShaderStageCreateInfo& spi, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
         auto cmpi = vk::ComputePipelineCreateInfo{};
         cmpi.flags = {};
         cmpi.layout = layout;
@@ -89,20 +89,17 @@ namespace radx {
     };
 
     // create compute pipelines
-    static inline auto createCompute(vk::Device device, const std::vector<uint32_t>& code, vk::PipelineLayout layout, vk::PipelineCache cache = {}) {
+    static inline auto createCompute(const vk::Device& device, const std::vector<uint32_t>& code, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
         return createCompute(device, makeComputePipelineStageInfo(device, code), layout, cache);
     };
 
     // create compute pipelines
-    static inline auto createCompute(vk::Device device, const std::string& path, vk::PipelineLayout layout, vk::PipelineCache cache = {}) {
+    static inline auto createCompute(const vk::Device& device, const std::string& path, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
         return createCompute(device, readBinary(path), layout, cache);
     };
 
-
-
-
     // general command buffer pipeline barrier
-    static inline void commandBarrier(vk::CommandBuffer cmdBuffer) {
+    static inline void commandBarrier(const vk::CommandBuffer& cmdBuffer) {
         vk::MemoryBarrier memoryBarrier = {};
         memoryBarrier.srcAccessMask = vk::AccessFlagBits::eShaderWrite | vk::AccessFlagBits::eMemoryWrite | vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eColorAttachmentWrite;
         memoryBarrier.dstAccessMask = vk::AccessFlagBits::eShaderRead  | vk::AccessFlagBits::eMemoryRead  | vk::AccessFlagBits::eTransferRead  | vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eUniformRead;
@@ -114,10 +111,12 @@ namespace radx {
     };
 
 
+
     class InternalInterface { // used for connection between algorithms and storage
     protected:
         std::shared_ptr<radx::Device> device = {};
     public:
+        friend Algorithm;
         InternalInterface(){};
         InternalInterface(const std::shared_ptr<radx::Device>& device): device(device) {
             
@@ -143,6 +142,7 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device = {};
     public:
+        friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
 
@@ -161,16 +161,19 @@ namespace radx {
     };
 
 
+    // abstract class for sorting alrgorithm
     class Algorithm : public std::enable_shared_from_this<Algorithm> {
         protected:
             std::shared_ptr<radx::Device> device;
 
         public:
             uint32_t groupX = 1, groupY = 1;
-            vk::Pipeline histogramPipeline, workloadPipeline, permutePipeline, copyPipeline, resolvePipeline;
+            std::vector<vk::Pipeline> pipelines = {};
             vk::PipelineLayout pipelineLayout;
 
             virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
+            virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres);
+            virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024);
 
             // can be used by children 
             virtual operator Algorithm&() { return *this; };
@@ -184,58 +187,33 @@ namespace radx {
             std::shared_ptr<T> algorithm;
             std::shared_ptr<radx::Device> device;
             std::unique_ptr<radx::InternalInterface> internalInterface;
-            std::shared_ptr<radx::InputInterface> inputInterface;
+            //std::shared_ptr<radx::InputInterface> inputInterface;
             
         public:
-            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
-                this->device = device, this->algorithm = algorithm;
-
-                // TODO: create internal interface by algorithm class
-                this->internalInterface = std::make_unique<InternalInterface>();
-                this->internalInterface->maxElementCount = maxElementCount;
-
-                // TODO: create descriptor set with internal buffer
-                //VmaAllocatedBuffer
-                return *this;
-            };
-
             virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<radx::Algorithm>& algorithm) {
                 this->initialize(device, std::dynamic_pointer_cast<T>(algorithm));
                 return *this;
             };
 
-            // 
-            virtual VkResult buildCommand(vk::CommandBuffer& cmdBuf){
-                std::vector<vk::DescriptorSet> descriptors = {this->internalInterface->descriptorSet, this->inputInterface->descriptorSet};
-                cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, algorithm->pipelineLayout, 0, descriptors, {});
-                
-                for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
-                    std::array<uint32_t,4> stageC = {I,0,0,0};
-                    cmdBuf.pushConstants(algorithm->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
+            virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
+                this->device = device, this->algorithm = algorithm;
+                this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
+                return *this;
+            };
 
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->copyPipeline);
-                    cmdBuf.dispatch(algorithm->groupX, 1u, 1u);
-                    commandBarrier(cmdBuf);
-
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->histogramPipeline);
-                    cmdBuf.dispatch(algorithm->groupX, algorithm->groupY, 1u);
-                    commandBarrier(cmdBuf);
-
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->workloadPipeline);
-                    cmdBuf.dispatch(1u, 1u, 1u);
-                    commandBarrier(cmdBuf);
-
-                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, algorithm->permutePipeline);
-                    cmdBuf.dispatch(algorithm->groupX, algorithm->groupY, 1u);
-                    commandBarrier(cmdBuf);
-                }
+            // TODO: add unique ptr support of input interface 
+            virtual Sort<T>& genCommand(const vk::CommandBuffer& cmdBuf, std::shared_ptr<radx::InputInterface>& inputInterface){
+                VkResult vkres = VK_SUCCESS; algorithm->genCommand(cmdBuf, internalInterface, inputInterface, vkres); //return vkres;
+                return *this;
             };
 
     };
 
-    // TODO: pipeline creation and setup for device 
+    // TODO: better vendor-based setup for device 
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
         protected:
+            uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
+
         public:
             virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
                 std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
@@ -255,8 +233,48 @@ namespace radx {
 
                 // create pipeline layout 
                 this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
+                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), this->pipelineLayout));
+                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), this->pipelineLayout));
+                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), this->pipelineLayout));
+                this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
 
                 // return shared_ptr when needed
+                return Algorithm::shared_from_this();
+            };
+
+            virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
+                std::vector<vk::DescriptorSet> descriptors = {internalInterface->descriptorSet, inputInterface->descriptorSet};
+                cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
+                
+                for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
+                    std::array<uint32_t,4> stageC = {I,0,0,0};
+                    cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
+                    cmdBuf.dispatch(this->groupX, 1u, 1u);
+                    commandBarrier(cmdBuf);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
+                    cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                    commandBarrier(cmdBuf);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->workload]);
+                    cmdBuf.dispatch(1u, 1u, 1u);
+                    commandBarrier(cmdBuf);
+
+                    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
+                    cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                    commandBarrier(cmdBuf);
+                }
+
+                return Algorithm::shared_from_this();
+            };
+
+            // TODO: create sorter memory and descriptor set 
+            virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
+                internalInterface->maxElementCount = maxElementCount;
+                
+                
                 return Algorithm::shared_from_this();
             };
     };

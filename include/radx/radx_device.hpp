@@ -53,18 +53,28 @@ namespace radx {
             this->allocator = allocator;
             this->vendor = vendor;
         };
+
+        // getter of vendor name 
+        operator radx::Vendor&() { return vendor; };
+        operator const radx::Vendor&() const { return vendor; };
+
+        // vk::PhysicalDevice caster
+        operator vk::PhysicalDevice&() { return physicalDevice; };
+        operator const vk::PhysicalDevice&() const { return physicalDevice; };
     };
 
     class Device : public std::enable_shared_from_this<Device> {
         protected:
             vk::Device device;
-            std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
             
             // descriptor set layout 
             vk::DescriptorPool descriptorPool = {};
             vk::DescriptorSetLayout sortInputLayout, sortInterfaceLayout;
+            std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
 
         public:
+            
+
             std::vector<vk::DescriptorSetLayout> getDescriptorSetLayoutSupport() const {
                 return {sortInterfaceLayout, sortInputLayout};
             };
@@ -83,6 +93,13 @@ namespace radx {
             // Queue Family indices
             std::vector<uint32_t>& queueFamilyIndices() {return physicalHelper->queueFamilyIndices;};
             const std::vector<uint32_t>& queueFamilyIndices() const {return physicalHelper->queueFamilyIndices;};
+
+            // getter of shared_ptr physical device helper
+            operator std::shared_ptr<radx::PhysicalDeviceHelper>&(){ return physicalHelper; };
+            operator const std::shared_ptr<radx::PhysicalDeviceHelper>&() const { return physicalHelper; };
+
+            std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper(){ return *this; };
+            const std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper() const { return *this; };
 
             // vk::Device caster
             operator vk::Device&() { return device; };
