@@ -59,7 +59,7 @@ void main() {
     // use SIMD lanes for calculate histograms
     // calculate blocks
     const lowp uint w = Wave_Idx;
-    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = w*Wave_Size_RT + blocks.offset + Lane_Idx, addn = blocks.offset + Lane_Idx; };
+    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = w*Wave_Size_RT + blocks.offset + Lane_Idx, addn = blocks.offset1x + Lane_Idx; };
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         LGROUP_BARRIER

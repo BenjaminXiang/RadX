@@ -100,14 +100,20 @@ layout ( binding = 4, set = 0, std430 )  subgroupcoherent buffer PrefixSumB {uin
 layout ( push_constant ) uniform PushBlock { uint NumKeys; int Shift; } push_block;
 
 // division of radix sort
-struct blocks_info { uint count, offset, limit; };
+struct blocks_info { uint count, offset, limit, offset1x; };
 blocks_info get_blocks_info(in uint n) {
     // tiling should be strictly same
-    const uint block_tile = Wave_Size_RT << VEC_SHIF;
-    const uint block_size = tiled(n, gl_NumWorkGroups.x);
-    const uint block_count = tiled(n, block_tile * gl_NumWorkGroups.x);
-    const uint block_offset = gl_WorkGroupID.x * block_tile * block_count;
-    return blocks_info(block_count, block_offset, min(block_offset + tiled(block_size, block_tile)*block_tile, n));
+    const uint block_tile = Wave_Size_RT << VEC_SHIF, block_tile_1x = Wave_Size_RT;
+    const uint block_size = tiled(n, block_tile * gl_NumWorkGroups.x), block_size_1x = tiled(n, block_tile_1x * gl_NumWorkGroups.x);
+    const uint block_offset = block_size * gl_WorkGroupID.x, block_offset_1x = block_size_1x * gl_WorkGroupID.x;
+    const uint block_count = tiled(n, block_size), block_limit = block_offset + block_size;
+    return blocks_info(block_count, block_offset, block_limit, block_offset_1x);
+
+    //const uint block_tile = Wave_Size_RT << VEC_SHIF;
+    //const uint block_size = tiled(n, gl_NumWorkGroups.x);
+    //const uint block_count = tiled(n, block_tile * gl_NumWorkGroups.x);
+    //const uint block_offset = gl_WorkGroupID.x * block_tile * block_count;
+    //return blocks_info(block_count, block_offset, min(block_offset + tiled(block_size, block_tile)*block_tile, n));
 };
 
 #ifdef PREFER_UNPACKED
