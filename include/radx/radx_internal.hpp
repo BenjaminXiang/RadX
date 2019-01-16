@@ -115,6 +115,14 @@ namespace radx {
     class InternalInterface { // used for connection between algorithms and storage
     protected:
         std::shared_ptr<radx::Device> device = {};
+        std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
+
+        vk::DescriptorBufferInfo keysCacheBufferInfo = {}, referencesBufferInfo = {},
+                                 keysStoreBufferInfo = {}, valuesStoreBufferInfo = {},
+                                 histogramBufferInfo = {}, prefixScansBufferInfo = {};
+        vk::DescriptorSet descriptorSet = {};
+        size_t maxElementCount = 1024*1024;
+
     public:
         friend Algorithm;
         InternalInterface(){};
@@ -122,42 +130,101 @@ namespace radx {
             
         };
 
-        size_t maxElementCount = 1024*1024;
-        std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
-        vk::DescriptorBufferInfo extraKeysBufferInfo, referencesBufferInfo;
-        vk::DescriptorBufferInfo keysStoreBufferInfo, valuesStoreBufferInfo;
-        vk::DescriptorSet descriptorSet = {};
-
-        virtual InternalInterface& setExtraKeys(const vk::DescriptorBufferInfo& extraKeys = {}){ this->extraKeysBufferInfo = extraKeys; return *this; };
-        virtual InternalInterface& setReferences(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
+        virtual InternalInterface& setKeysCacheBufferInfo(const vk::DescriptorBufferInfo& keysCache = {}){ this->keysCacheBufferInfo = keysCache; return *this; };
+        virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
+        virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}){ this->keysStoreBufferInfo = keysStore; return *this; };
+        virtual InternalInterface& setValuesStoreBufferInfo(const vk::DescriptorBufferInfo& valuesStore = {}){ this->valuesStoreBufferInfo = valuesStore; return *this; };
+        virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
+        virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
         virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; };
         
-        virtual InternalInterface& buildDescriptorSet(){
-            
+        virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize){
+            this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize); // TODO: merge into internal interface processing
         };
+        
+        virtual InternalInterface& buildDescriptorSet(){
+            std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(0) };
+            this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
+
+            // if no has buffer, set it!
+            if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = *bufferMemory;
+            if (!this->valuesStoreBufferInfo.buffer) this->valuesStoreBufferInfo.buffer = *bufferMemory;
+            if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = *bufferMemory;
+            if (!this->histogramBufferInfo.buffer) this->histogramBufferInfo.buffer = *bufferMemory;
+            if (!this->prefixScansBufferInfo.buffer) this->prefixScansBufferInfo.buffer = *bufferMemory;
+
+            // write into descriptor set
+            const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
+            std::vector<vk::WriteDescriptorSet> writes = {
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysStoreBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesStoreBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setPBufferInfo(&this->keysCacheBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
+            };
+
+            // inline descriptor 
+            {
+                vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
+                std::array<uint32_t,4> sizeF = {maxElementCount,0,0,0};
+                inlineDescriptorData.dataSize = sizeof(sizeF);
+                inlineDescriptorData.pData = &sizeF[0];
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+            };
+
+            vk::Device(*this->device).updateDescriptorSets(writes, {});
+        };
+        
+        // vk::DescriptorSet caster
+        operator vk::DescriptorSet&() { return descriptorSet; };
+        operator const vk::DescriptorSet&() const { return descriptorSet; };
     };
 
 
     class InputInterface {
     protected:
         std::shared_ptr<radx::Device> device = {};
+
+        vk::DescriptorBufferInfo keysBufferInfo = {}, valuesBufferInfo = {};
+        vk::DescriptorSet descriptorSet;
+        size_t elementCount = 0;
+
     public:
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
 
-        size_t elementCount = 0;
-        vk::DescriptorBufferInfo keysBufferInfo, valuesBufferInfo;
-        vk::DescriptorSet descriptorSet;
-
         // for building arguments 
-        virtual InputInterface& setKeys(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
-        virtual InputInterface& setValues(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
+        virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
+        virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
         virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; };
 
         virtual InputInterface& buildDescriptorSet(){
-            
+            std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(1) };
+            this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
+
+            // input data 
+            const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
+            std::vector<vk::WriteDescriptorSet> writes = {
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesBufferInfo),
+            };
+
+            // inline descriptor 
+            {
+                vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
+                std::array<uint32_t,4> sizeF = {elementCount,0,0,0};
+                inlineDescriptorData.dataSize = sizeof(sizeF);
+                inlineDescriptorData.pData = &sizeF[0];
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+            };
+
+            vk::Device(*this->device).updateDescriptorSets(writes, {});
         };
+
+        // vk::DescriptorSet caster
+        operator vk::DescriptorSet&() { return descriptorSet; };
+        operator const vk::DescriptorSet&() const { return descriptorSet; };
     };
 
 
@@ -193,6 +260,8 @@ namespace radx {
         //std::shared_ptr<radx::InputInterface> inputInterface;
         
     public:
+
+        // 
         virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
             this->device = device, this->algorithm = algorithm;
             this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
@@ -222,6 +291,7 @@ namespace radx {
     public:
         friend Sort<Radix>;
         virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
+            this->device = device, this->groupX = 64u;
             std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
             // push constant ranges
@@ -249,7 +319,7 @@ namespace radx {
         };
 
         virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
-            std::vector<vk::DescriptorSet> descriptors = {internalInterface->descriptorSet, inputInterface->descriptorSet};
+            std::vector<vk::DescriptorSet> descriptors = {*internalInterface, *inputInterface};
             cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
             
             for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
@@ -271,16 +341,52 @@ namespace radx {
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
                 cmdBuf.dispatch(this->groupX, this->groupY, 1u);
                 commandBarrier(cmdBuf);
-            }
+            };
 
             return Algorithm::shared_from_this();
         };
 
-        // TODO: create sorter memory and descriptor set 
+        // 
         virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
-            internalInterface->maxElementCount = maxElementCount;
             
-            
+            vk::DeviceSize 
+                inlineSize = sizeof(uint32_t) * 4ull, 
+                keysSize = maxElementCount * sizeof(uint32_t), 
+                valuesSize = maxElementCount * sizeof(uint32_t), 
+                referencesSize = maxElementCount * sizeof(uint32_t), 
+                keyCacheSize = maxElementCount * sizeof(uint16_t), //sizeof(uint32_t);
+                histogramsSize = 256ull * sizeof(uint32_t) * this->groupX,
+                prefixScanSize = histogramsSize
+                ;
+
+            vk::DeviceSize 
+                keysOffset = inlineSize,
+                valuesOffset = keysOffset + keysSize,
+                referencesOffset = valuesOffset + valuesSize,
+                keyCacheOffset = referencesOffset + referencesSize,
+                histogramsOffset = keyCacheOffset + keyCacheSize,
+                prefixScanOffset = histogramsOffset + histogramsSize
+                ;
+
+            // get memory size and set max element count
+            vk::DeviceSize memorySize = prefixScanOffset + prefixScanSize;
+            internalInterface->setMaxElementCount(maxElementCount);
+
+            // on deprecation 
+            internalInterface->setKeysStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, keysOffset, keysSize));
+            internalInterface->setValuesStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, valuesOffset, valuesSize));
+
+            // next-gen featured buffers
+            internalInterface->setKeysCacheBufferInfo(vk::DescriptorBufferInfo(nullptr, keyCacheOffset, keyCacheSize));
+            internalInterface->setReferencesBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize));
+
+            // still required for effective sorting 
+            internalInterface->setHistogramBufferInfo(vk::DescriptorBufferInfo(nullptr, histogramsOffset, histogramsSize));
+            internalInterface->setPrefixScansBufferInfo(vk::DescriptorBufferInfo(nullptr, prefixScanOffset, prefixScanSize));
+
+            // command for build descriptor set
+            internalInterface->buildMemory(memorySize).buildDescriptorSet();
+
             return Algorithm::shared_from_this();
         };
     };

@@ -230,6 +230,10 @@ namespace radx {
         std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper(){ return *this; };
         const std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper() const { return *this; };
 
+        // vk::DescriptorPool caster
+        operator vk::DescriptorPool&() { return descriptorPool; };
+        operator const vk::DescriptorPool&() const { return descriptorPool; };
+
         // vk::PipelineCache caster
         operator vk::PipelineCache&() { return pipelineCache; };
         operator const vk::PipelineCache&() const { return pipelineCache; };
