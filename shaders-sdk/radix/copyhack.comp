@@ -8,29 +8,40 @@
 #define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
+//layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
+layout (local_size_x = 1024u) in; // without key cache support 
 
-shared m8pq utype_v keyLocal[Wave_Size];
-layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint32_t[Wave_Size] RadiceCache[]; };
+//shared m8pq utype_v _data[Wave_Size];
+//#define key _data[Lane_Idx]
 
 void main() {
     #define wsize NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
+    //key[Wave_Idx] = utype_t(0xFFu);
+    
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
-        const bool validAddress = lessThan(globalID, wsize);
-
-        [[flatten]] if (Wave_Idx < VEC_SIZE) 
-#ifdef READ_U8
-            { keyLocal[Lane_Idx][Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
-#else
-            { keyLocal[Lane_Idx][Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
-#endif
-        LGROUP_BARRIER
-        [[flatten]] if (Wave_Idx < 1u) RadiceCache[w + gl_WorkGroupID.x][Lane_Idx] = pack32(u8vec4(keyLocal[Lane_Idx])); // pack two 8-bit values into one 16-bit 
-        LGROUP_BARRIER
+        const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
         // currently only copying support
         [[flatten]] if (validAddress) { KeyTmp[globalID] = KeyIn[globalID], ValueTmp[globalID] = ValueIn[globalID]; };
+
+/*
+        [[flatten]] if (Wave_Idx < VEC_SIZE) 
+#ifdef READ_U8
+            { key[Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
+#else
+            { key[Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
+#endif
+
+        LGROUP_BARRIER
+
+        [[flatten]] if (Wave_Idx == 0u) {
+            const m8pq utype_v keym = key;
+            RadiceCache[w + gl_WorkGroupID.x][Lane_Idx] = pack32(keym);
+        };
+
+        LGROUP_BARRIER
+*/
     };
 };

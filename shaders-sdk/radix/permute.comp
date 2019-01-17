@@ -39,8 +39,6 @@ const uint BSIZE = min(Wc,Wave_Size);
 #endif
 
 
-layout ( binding = 2, set = 0, scalar ) readonly workgroupcoherent buffer RadiceCacheB { u8vec4[Wave_Size] RadiceCache[]; };
-
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
     const lowp uint Wr = Wc * Wave_Idx;
@@ -57,7 +55,7 @@ void main() {
 
     // calculate blocks
     const lowp uint w = Wave_Idx;
-    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset   + Wave_Idx*Wave_Size_RT + Lane_Idx; };
+    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         LGROUP_BARRIER
@@ -66,16 +64,13 @@ void main() {
         
         IFALL(all(not(validAddress))) break;
         LGROUP_BARRIER
-
-//        [[flatten]] if (Wave_Idx == 0) { _data[Lane_Idx] = utype_v(RadiceCache[blocks.wkoffset+wk][Lane_Idx]); };
-
+        
         [[flatten]] if (Wave_Idx < VEC_SIZE) 
 #ifdef READ_U8
             { key[Wave_Idx] = validAddress ? Key8n[addrW][push_block.Shift] : utype_t(0xFFu); };
 #else
             { key[Wave_Idx] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
 #endif
-
         LGROUP_BARRIER
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET

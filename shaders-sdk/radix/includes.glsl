@@ -84,20 +84,28 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
+//layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
+layout ( binding = 0, set = 0, scalar )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
+
 layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
 layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
 
 layout ( binding = 0, set = OUTDIR, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
 layout ( binding = 1, set = OUTDIR, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
 
+#ifdef COPY_HACK_IDENTIFY
+layout ( binding = 2, set = 0, scalar ) nonprivate buffer RadiceCacheB { uint32_t RadiceCache[][Wave_Size]; };
+#else
+layout ( binding = 2, set = 0, scalar ) readonly nonprivate buffer RadiceCacheB { uint32_t RadiceCache[][Wave_Size]; };
+#endif
+
 layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[]; };
 layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;
-layout ( binding = 5, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
-layout ( binding = 2, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
+layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
+layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
 #define NumElements inline_block[0].data
 
@@ -112,7 +120,7 @@ blocks_info get_blocks_info(in uint n) {
         block_limit = block_offset + block_size,
         block_count = tiled(block_size, block_tile);
 
-    return blocks_info(block_count, block_offset, min(block_limit, n), block_offset>>block_tile);
+    return blocks_info(block_count, block_offset, min(block_limit, n), tiled(n, block_size)*gl_WorkGroupID.x);
 };
 
 #ifdef PREFER_UNPACKED

@@ -153,6 +153,7 @@ namespace radx {
             if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = *bufferMemory;
             if (!this->histogramBufferInfo.buffer) this->histogramBufferInfo.buffer = *bufferMemory;
             if (!this->prefixScansBufferInfo.buffer) this->prefixScansBufferInfo.buffer = *bufferMemory;
+            if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
 
             // write into descriptor set
             const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
@@ -162,6 +163,7 @@ namespace radx {
                 vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setPBufferInfo(&this->keysCacheBufferInfo),
                 vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
                 vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
+                vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
             };
 
             // inline descriptor 
@@ -169,7 +171,7 @@ namespace radx {
             {
                 inlineDescriptorData.dataSize = sizeof(uint32_t);
                 inlineDescriptorData.pData = &this->maxElementCount;
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(6).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
@@ -217,7 +219,7 @@ namespace radx {
             {
                 inlineDescriptorData.dataSize = sizeof(uint32_t);
                 inlineDescriptorData.pData = &this->elementCount;
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(6).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
