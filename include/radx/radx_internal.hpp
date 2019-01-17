@@ -343,9 +343,9 @@ namespace radx {
                 cmdBuf.dispatch(this->groupX, 1u, 1u);
                 commandBarrier(cmdBuf);
 
-                //cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
-                //cmdBuf.dispatch(this->groupX, 1u, 1u);
-                //commandBarrier(cmdBuf);
+                cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
+                cmdBuf.dispatch(this->groupX, 1u, 1u);
+                commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
                 cmdBuf.dispatch(this->groupX, 1u, 1u);

@@ -10,7 +10,7 @@
 
 layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
 
-shared m8pq utype_v[4] _data[Wave_Size];
+shared m8pq utype_v _data[Wave_Size];
 #define key _data[Lane_Idx]
 
 layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
@@ -25,5 +25,10 @@ void main() {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
+        // repack all extracted keys into one address
+        { key[Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
+        LGROUP_BARRIER
+        Key8t[globalID] = pack32(key);
+        LGROUP_BARRIER
     };
 };
