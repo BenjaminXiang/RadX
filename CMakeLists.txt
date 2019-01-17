@@ -11,6 +11,7 @@ endif()
 set (DEP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${DEP_DIR}" "${DEP_DIR}/lib/cmake/")
 find_package (Vulkan QUIET)
+find_package (CUDA QUIET)
 
 # Set source directories
 set(SOURCES_LIST 
@@ -56,6 +57,21 @@ if (Vulkan_INCLUDE_DIR)
     set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
 endif()
 
+# set CUDA compiling options
+set(CUDA_SEPARABLE_COMPILATION ON)
+set(CUDA_ARCH -gencode arch=compute_75,code=sm_75)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G --std=c++17)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
+
+# find package Thrust 
+find_package (Thrust QUIET)
+
+if (CUDA_INCLUDE_DIRS) 
+    set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
+    set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
+endif()
+
+# 
 if (Vulkan_LIBRARY)
     set (LIBS ${LIBS} ${Vulkan_LIBRARY})
 endif()

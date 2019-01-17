@@ -3,9 +3,21 @@
 #include <algorithm>
 #include <cmath>
 
+//#define EMANLE_THRUST_BENCHMARK
+#ifdef EMANLE_THRUST_BENCHMARK
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include <thrust/generate.h>
+#include <thrust/sort.h>
+#include <thrust/copy.h>
+#include <algorithm>
+#include <cstdlib>
+#endif
+
 #define VKU_NO_GLFW
 #define VMA_IMPLEMENTATION
 #include "radx/radx.hpp"
+
 
 namespace rad {
 
@@ -285,7 +297,7 @@ namespace rad {
         std::unique_ptr<radx::VmaAllocatedBuffer> vmaToHostBuffer;
 
         // 
-        const size_t elementCount = 256;
+        const size_t elementCount = 8192 * 1024;
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
 
@@ -318,11 +330,25 @@ namespace rad {
             
             // build descriptor set
             inputInterface->buildDescriptorSet();
-            
+
+
             // generate random numbers and copy to buffer
+#ifdef EMANLE_THRUST_BENCHMARK
+            thrust::host_vector<uint32_t> randNumbers(elementCount);
+#else
             std::vector<uint32_t> randNumbers(elementCount);
+#endif
+            std::vector<uint32_t> sortedNumbers(elementCount);
+
+
             for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
             memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
+
+            // copy random numbers into CUDA (Thrust)
+#ifdef EMANLE_THRUST_BENCHMARK
+            thrust::host_vector<uint32_t> sortedNumbersThrust(elementCount);
+            thrust::device_vector<uint32_t> randNumbersThrust(elementCount);
+#endif
 
             // command allocation 
             vk::CommandBufferAllocateInfo cci{};
@@ -337,6 +363,13 @@ namespace rad {
             cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host 
             cmdBuf.end();
 
+            //
+#ifdef EMANLE_THRUST_BENCHMARK
+            thrust::copy(randNumbers.begin(), randNumbers.end(), randNumbersThrust.begin());
+            thrust::sort(randNumbersThrust.begin(), randNumbersThrust.end());
+            thrust::copy(randNumbersThrust.begin(), randNumbersThrust.end(), sortedNumbersThrust.begin());
+#endif
+
             // submit command 
             vk::SubmitInfo sbmi = {};
             sbmi.pCommandBuffers = &cmdBuf;
@@ -346,7 +379,6 @@ namespace rad {
             vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
             
             // get sorted numbers
-            std::vector<uint32_t> sortedNumbers(elementCount);
             memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
             // 
