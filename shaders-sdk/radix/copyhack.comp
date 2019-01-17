@@ -11,7 +11,7 @@
 layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
 
 shared m8pq utype_v keyLocal[Wave_Size];
-layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint16_t[Wave_Size] RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint32_t[Wave_Size] RadiceCache[]; };
 
 void main() {
     #define wsize NumElements
@@ -27,7 +27,7 @@ void main() {
             { keyLocal[Lane_Idx][Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
 #endif
         LGROUP_BARRIER
-        [[flatten]] if (Wave_Idx < 1u) RadiceCache[w + gl_WorkGroupID.x][Lane_Idx] = pack16(u8vec2(keyLocal[Lane_Idx])); // pack two 8-bit values into one 16-bit 
+        [[flatten]] if (Wave_Idx < 1u) RadiceCache[w + gl_WorkGroupID.x][Lane_Idx] = pack32(u8vec4(keyLocal[Lane_Idx])); // pack two 8-bit values into one 16-bit 
         LGROUP_BARRIER
 
         // currently only copying support

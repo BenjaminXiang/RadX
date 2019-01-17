@@ -14,7 +14,7 @@ shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_v _data[Wave_Size];
-shared uvec2 addrL[Wave_Size];
+shared ATYPE addrL[Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 
 shared blocks_info blocks;
@@ -33,11 +33,11 @@ const uint BSIZE = min(Wc,Wave_Size);
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 #define validAddress validAddressW
 #else
-#define validAddress lessThan(addr,uvec2(blocks.limit))
+#define validAddress lessThan(addr,ATYPE(blocks.limit))
 #endif
 
 
-layout ( binding = 2, set = 0, scalar ) readonly workgroupcoherent buffer RadiceCacheB { u8vec2[Wave_Size] RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar ) readonly workgroupcoherent buffer RadiceCacheB { u8vec4[Wave_Size] RadiceCache[]; };
 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);

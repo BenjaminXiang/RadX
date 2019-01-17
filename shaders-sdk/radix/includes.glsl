@@ -32,11 +32,12 @@
 
 
 //#if defined(ENABLE_TURING_INSTRUCTION_SET)
-    #define VEC_SIZE 2u
+    #define VEC_SIZE 4u
     #define VEC_MULT VEC_SIZE
-    #define VEC_SHIF 1u
+    #define VEC_SHIF 2u
     #define VEC_SEQU WPTRX(Wave_Idx) // yes, yes!
     #define KTYPE utype_v//utype_t[VEC_SIZE]
+    #define ATYPE uvec4
 
     #define WPTRX uint
     #define BOOLX bool
@@ -60,7 +61,7 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
-#define utype_v u8x2_t
+#define utype_v u8x4_t
 
 #ifdef USE_MORTON_32
 #define KEYTYPE uint32_t
