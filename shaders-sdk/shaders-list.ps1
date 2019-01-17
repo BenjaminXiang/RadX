@@ -8,7 +8,7 @@ $HRDDIR="../prebuilt/intrusive/$VNDR/"
 $RDXI="radix/"
 
 $CMPPROF="-S comp"
-$OPTFLAGS=" --inline-entry-points-exhaustive --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
+$OPTFLAGS="-O --inline-entry-points-exhaustive --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
 
 function Pause ($Message = "Press any key to continue . . . ") {
 #    if ((Test-Path variable:psISE) -and $psISE) {
@@ -38,6 +38,14 @@ function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName =
     $process.Close()
 }
 
+function OptimizeMainline($Pfx = "") {
+    # optimize radix sort
+    Optimize "permute.comp"   "$HRDDIR$RDXI"
+    Optimize "histogram.comp" "$HRDDIR$RDXI"
+    Optimize "pfx-work.comp"  "$HRDDIR$RDXI"
+    Optimize "copyhack.comp"  "$HRDDIR$RDXI"
+}
+
 
 function BuildAllShaders($Pfx = "") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
@@ -52,15 +60,9 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "copyhack.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
 
     # optimize built shaders
-    #OptimizeMainline
+    OptimizeMainline
 }
 
-function OptimizeMainline($Pfx = "") {
-    # optimize radix sort
-    Optimize "permute.comp"   "$HRDDIR$RDXI"
-    Optimize "histogram.comp" "$HRDDIR$RDXI"
-    Optimize "pfx-work.comp"  "$HRDDIR$RDXI"
-    Optimize "copyhack.comp"  "$HRDDIR$RDXI"
-}
+
 
 
