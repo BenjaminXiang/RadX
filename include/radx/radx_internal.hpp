@@ -240,12 +240,12 @@ namespace radx {
         vk::PipelineLayout pipelineLayout;
 
         // internal methods (for devs)
-        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres);
-        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024);
+        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) { return shared_from_this(); };
+        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return shared_from_this(); };
 
     public:
         friend Sort<Algorithm>;
-        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device);
+        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) { return shared_from_this(); };
 
         // can be used by children 
         virtual operator Algorithm&() { return *this; };
@@ -266,7 +266,7 @@ namespace radx {
         // 
         virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, const std::shared_ptr<T>& algorithm, const size_t& maxElementCount = 1024 * 1024) {
             this->device = device, this->algorithm = algorithm;
-            this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(), maxElementCount);
+            this->algorithm->createInternalMemory(this->internalInterface = std::make_unique<InternalInterface>(this->device), maxElementCount);
             return *this;
         };
 

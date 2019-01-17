@@ -24,7 +24,7 @@ namespace radx {
 
             // 
             VmaAllocationCreateInfo aci{};
-            aci.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            if (vmaUsage != VMA_MEMORY_USAGE_GPU_ONLY) aci.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
             aci.usage = vmaUsage;
 
             //

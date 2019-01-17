@@ -109,12 +109,12 @@ namespace radx {
             return descriptorLayouts;
         };
 
-        std::shared_ptr<Device> setDescriptorPool(vk::DescriptorPool& descriptorPool){
+        std::shared_ptr<Device> setDescriptorPool(const vk::DescriptorPool& descriptorPool){
             this->descriptorPool = descriptorPool;
             return shared_from_this();
         };
 
-        std::shared_ptr<Device> initialize(vk::Device& device, std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper){
+        std::shared_ptr<Device> initialize(const vk::Device& device, std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper){
             this->physicalHelper = physicalHelper;
             this->device = device;
 
