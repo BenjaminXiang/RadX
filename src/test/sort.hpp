@@ -3,21 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
-//#define EMANLE_THRUST_BENCHMARK
-#ifdef EMANLE_THRUST_BENCHMARK
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <thrust/generate.h>
-#include <thrust/sort.h>
-#include <thrust/copy.h>
-#include <algorithm>
-#include <cstdlib>
-#endif
-
 #define VKU_NO_GLFW
-#define VMA_IMPLEMENTATION
-#include "radx/radx.hpp"
+#include <radx/radx.hpp>
 
+#ifdef THRUST_TESTABLE
+//#define ENABLE_THRUST_BENCHMARK
+#endif
 
 namespace rad {
 
@@ -31,6 +22,7 @@ namespace rad {
         vk::Fence fence = {};
         vk::CommandPool commandPool = {};
 
+        
         std::vector<vk::PhysicalDevice> physicalDevices = {};
         std::vector<uint32_t> queueFamilyIndices = {};
 
@@ -122,159 +114,12 @@ namespace rad {
         };
 
     public:
-        ComputeFramework(){
+        ComputeFramework(){};
 
-        };
+        vk::Instance createInstance();
+        vk::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
 
-        vk::Instance createInstance() {
-
-#ifdef VOLK_H_
-            volkInitialize();
-#endif
-
-            auto supportedVkApiVersion = 0u;
-            auto apiResult = vkEnumerateInstanceVersion(&supportedVkApiVersion);
-            if (supportedVkApiVersion < VK_MAKE_VERSION(1, 1, 0)) return instance;
-
-            // get our needed extensions
-            auto installedExtensions = vk::enumerateInstanceExtensionProperties();
-            auto extensions = std::vector<const char *>();
-            for (auto w : wantedExtensions) {
-                for (auto i : installedExtensions)
-                {
-                    if (std::string(i.extensionName).compare(w) == 0)
-                    {
-                        extensions.emplace_back(w);
-                        break;
-                    }
-                }
-            }
-
-            // get validation layers
-            auto installedLayers = vk::enumerateInstanceLayerProperties();
-            auto layers = std::vector<const char *>();
-            for (auto w : wantedLayers) {
-                for (auto i : installedLayers)
-                {
-                    if (std::string(i.layerName).compare(w) == 0)
-                    {
-                        layers.emplace_back(w);
-                        break;
-                    }
-                }
-            }
-
-            // app info
-            auto appinfo = vk::ApplicationInfo{};
-            appinfo.pNext = nullptr;
-            appinfo.pApplicationName = "VKTest";
-#ifndef VRT_ENABLE_VEZ_INTEROP
-            appinfo.apiVersion = VK_MAKE_VERSION(1, 1, 92);
-#endif
-
-            // create instance info
-            auto cinstanceinfo = vk::InstanceCreateInfo{};
-            cinstanceinfo.pApplicationInfo = &appinfo;
-            cinstanceinfo.enabledExtensionCount = extensions.size();
-            cinstanceinfo.ppEnabledExtensionNames = extensions.data();
-            cinstanceinfo.enabledLayerCount = layers.size();
-            cinstanceinfo.ppEnabledLayerNames = layers.data();
-
-            instance = vk::createInstance(cinstanceinfo);
-#ifdef VOLK_H_
-            volkLoadInstance(instance);
-#endif
-
-            // enumerate physical devices
-            physicalDevices = instance.enumeratePhysicalDevices();
-            physicalDevice = physicalDevices[0];
-
-            // get physical device for application
-            return instance;
-        };
-
-
-        inline const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) {
-            return (physicalDevice = physicalDevices[gpuID]);
-        };
-
-
-        inline vk::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true) {
-            // use extensions
-            auto deviceExtensions = std::vector<const char *>();
-            auto gpuExtensions = physicalDevice.enumerateDeviceExtensionProperties();
-            for (auto w : wantedDeviceExtensions) {
-                for (auto i : gpuExtensions) {
-                    if (std::string(i.extensionName).compare(w) == 0) {
-                        deviceExtensions.emplace_back(w); break;
-                    };
-                };
-            };
-
-            // use layers
-            auto layers = std::vector<const char *>();
-            auto deviceValidationLayers = std::vector<const char *>();
-            auto gpuLayers = physicalDevice.enumerateDeviceLayerProperties();
-            for (auto w : wantedLayers) {
-                for (auto i : gpuLayers) {
-                    if (std::string(i.layerName).compare(w) == 0) {
-                        layers.emplace_back(w); break;
-                    };
-                };
-            };
-
-            // minimal features
-            auto gStorage16 = vk::PhysicalDevice16BitStorageFeatures{};
-            auto gStorage8 = vk::PhysicalDevice8BitStorageFeaturesKHR{};
-            auto gDescIndexing = vk::PhysicalDeviceDescriptorIndexingFeaturesEXT{};
-            gStorage16.pNext = &gStorage8;
-            gStorage8.pNext = &gDescIndexing;
-
-            auto gFeatures = vk::PhysicalDeviceFeatures2{};
-            gFeatures.pNext = &gStorage16;
-            gFeatures.features.shaderInt16 = true;
-            gFeatures.features.shaderInt64 = true;
-            gFeatures.features.shaderUniformBufferArrayDynamicIndexing = true;
-            physicalDevice.getFeatures2(&gFeatures);
-
-            // get features and queue family properties
-            //auto gpuFeatures = gpu.getFeatures();
-            auto gpuQueueProps = physicalDevice.getQueueFamilyProperties();
-
-            // queue family initial
-            float priority = 1.0f;
-            uint32_t computeFamilyIndex = -1, graphicsFamilyIndex = -1;
-            auto queueCreateInfos = std::vector<vk::DeviceQueueCreateInfo>();
-
-            // compute/graphics queue family
-            for (auto queuefamily : gpuQueueProps) {
-                computeFamilyIndex++;
-                if (queuefamily.queueFlags & (vk::QueueFlagBits::eCompute)) {
-                    queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags()).setQueueFamilyIndex(computeFamilyIndex).setQueueCount(1).setPQueuePriorities(&priority));
-                    queueFamilyIndices.push_back(computeFamilyIndex);
-                    break;
-                };
-            };
-
-            // if have supported queue family, then use this device
-            if (queueCreateInfos.size() > 0) {
-                // create device
-                this->physicalDevice = physicalDevice;
-                this->device = physicalDevice.createDevice(vk::DeviceCreateInfo().setFlags(vk::DeviceCreateFlags())
-                    .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
-                    .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
-                    .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
-                    .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()));
-            };
-
-            // return device with queue pointer
-            this->fence = this->device.createFence(vk::FenceCreateInfo().setFlags({}));
-            this->commandPool = this->device.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndices[0]));
-            this->queue = this->device.getQueue(queueFamilyIndices[0], 0); // deferred getting of queue
-
-            // 
-            return this->device;
-        };
+        const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { return (physicalDevice = physicalDevices[gpuID]); };
 
         const vk::PhysicalDevice& getPhysicalDevice() const {return this->physicalDevice;};
         const vk::Device& getDevice() const {return this->device;};
@@ -298,92 +143,17 @@ namespace rad {
 
         // 
         const size_t elementCount = 8192 * 1024;
+        std::vector<uint32_t> sortedNumbersThrust;
+
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
 
     public:
-        TestSort(){
-            fw = std::make_shared<ComputeFramework>();
-            fw->createInstance();
-
-            // create radix sort application (RadX C++)
-            physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
-            device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
-            program = std::make_shared<radx::Radix>(), program->initialize(device);
-            radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program, elementCount);
-            inputInterface = std::make_shared<radx::InputInterface>(device);
-            
-            { // sizes of offsets
-                keysSize = elementCount * sizeof(uint32_t), valuesSize = elementCount * sizeof(uint32_t);
-                keysOffset = 0, valuesOffset = keysOffset + keysSize;
-            };
-
-            // get memory size and set max element count
-            vk::DeviceSize memorySize = valuesOffset + valuesSize;
-            vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            vmaToHostBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
-
-            // on deprecation 
-            inputInterface->setElementCount(elementCount);
-            inputInterface->setKeysBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, keysOffset, keysSize));
-            inputInterface->setValuesBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, valuesOffset, valuesSize));
-            
-            // build descriptor set
-            inputInterface->buildDescriptorSet();
-
-
-            // generate random numbers and copy to buffer
-#ifdef EMANLE_THRUST_BENCHMARK
-            thrust::host_vector<uint32_t> randNumbers(elementCount);
-#else
-            std::vector<uint32_t> randNumbers(elementCount);
+#ifdef ENABLE_THRUST_BENCHMARK
+        void testSortingThrust();
 #endif
-            std::vector<uint32_t> sortedNumbers(elementCount);
-
-
-            for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
-            memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
-
-            // copy random numbers into CUDA (Thrust)
-#ifdef EMANLE_THRUST_BENCHMARK
-            thrust::host_vector<uint32_t> sortedNumbersThrust(elementCount);
-            thrust::device_vector<uint32_t> randNumbersThrust(elementCount);
-#endif
-
-            // command allocation 
-            vk::CommandBufferAllocateInfo cci{};
-            cci.commandPool = fw->getCommandPool();
-            cci.commandBufferCount = 1;
-            cci.level = vk::CommandBufferLevel::ePrimary;
-
-            // generate command 
-            auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
-            cmdBuf.begin(vk::CommandBufferBeginInfo());
-            radixSort->genCommand(cmdBuf, inputInterface);
-            cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host 
-            cmdBuf.end();
-
-            //
-#ifdef EMANLE_THRUST_BENCHMARK
-            thrust::copy(randNumbers.begin(), randNumbers.end(), randNumbersThrust.begin());
-            thrust::sort(randNumbersThrust.begin(), randNumbersThrust.end());
-            thrust::copy(randNumbersThrust.begin(), randNumbersThrust.end(), sortedNumbersThrust.begin());
-#endif
-
-            // submit command 
-            vk::SubmitInfo sbmi = {};
-            sbmi.pCommandBuffers = &cmdBuf;
-            sbmi.commandBufferCount = 1;
-            auto fence = fw->getFence();
-            fw->getQueue().submit(sbmi, fence);
-            vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
-            
-            // get sorted numbers
-            memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
-
-            // 
-            std::cout << "Sorting Finished" << std::endl;
-        };
+        TestSort::TestSort();
+        
     };
 
 };

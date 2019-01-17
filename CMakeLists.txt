@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 set (PROJECT_NAME RadX)
-project (${PROJECT_NAME})
+project (${PROJECT_NAME} C CXX)
 
 # Architecture specific
 if (COMPILER_ID MATCHES "MSVC")
@@ -11,7 +11,7 @@ endif()
 set (DEP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${DEP_DIR}" "${DEP_DIR}/lib/cmake/")
 find_package (Vulkan QUIET)
-find_package (CUDA QUIET)
+find_package (CUDA REQUIRED)
 
 # Set source directories
 set(SOURCES_LIST 
@@ -59,16 +59,17 @@ endif()
 
 # set CUDA compiling options
 set(CUDA_SEPARABLE_COMPILATION ON)
-set(CUDA_ARCH -gencode arch=compute_75,code=sm_75)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G --std=c++17)
+set(CUDA_ARCH -gencode=arch=compute_70,code=sm_70)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G --std=c++14)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
+set(CMAKE_CUDA_FLAGS ”-arch=sm_70”)
 
 # find package Thrust 
 find_package (Thrust QUIET)
 
 if (CUDA_INCLUDE_DIRS) 
-    set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
-    set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
+    #set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
+    #set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
 endif()
 
 # 
@@ -99,6 +100,9 @@ if (MSVC) # Clang in Visual Studio 2017
 else()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++17 -march=skylake -mtune=skylake -fpermissive -w -Ofast")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast")
+    if (CUDA_INCLUDE_DIRS)
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    endif()
     if (WIN32)
         set (CMAKE_CXX_FLAGS "${CMAK_CXX_FLAGS} -Wa,-mbig-obj")
         set (CMAKE_C_FLAGS "${CMAK_C_FLAGS} -Wa,-mbig-obj")
@@ -110,15 +114,27 @@ set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 
 # set default compiler options
-add_definitions(${DEFINES})
 link_directories(${LIB_DIR})
 include_directories(${INC_DIR})
 file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 
 # make gltfPBR
 set (APPLICATION_NAME sort-test)
+
+if (CUDA_INCLUDE_DIRS)
+add_library(sort-test-cuda STATIC src/test/sort.cu)
+set_target_properties(sort-test-cuda PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_features(sort-test-cuda PUBLIC cxx_std_14)
+set_target_properties(sort-test-cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set(LIBS ${LIBS} sort-test-cuda)
+set(DEFINES ${DEFINES} -DTHRUST_TESTABLE)
+endif()
+
+# sort test
+add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/test/sort.cpp src/test/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} ${LIBS})
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS})
+
 
 # add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
