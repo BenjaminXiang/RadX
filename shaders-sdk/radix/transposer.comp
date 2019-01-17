@@ -26,6 +26,7 @@ void main() {
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
         // repack all extracted keys into one address
+        LGROUP_BARRIER
         { key[Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
         LGROUP_BARRIER
         Key8t[globalID] = pack32(key);
