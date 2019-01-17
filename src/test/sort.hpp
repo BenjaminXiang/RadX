@@ -297,9 +297,8 @@ namespace rad {
             // create radix sort application (RadX C++)
             physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
             device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
-            program = std::make_shared<radx::Radix>();
-            radixSort = std::make_shared<radx::Sort<radx::Radix>>();
-            radixSort->initialize(device, program->initialize(device));
+            program = std::make_shared<radx::Radix>(), program->initialize(device);
+            radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program);
             inputInterface = std::make_shared<radx::InputInterface>(device);
             
             { // sizes of offsets

@@ -248,7 +248,7 @@ namespace radx {
         operator const vk::Device&() const { return device; };
 
         // VmaAllocator caster
-        operator VmaAllocator&() { return physicalHelper->allocator; };
-        operator const VmaAllocator&() const { return physicalHelper->allocator; };
+        operator VmaAllocator&() { return allocator; };
+        operator const VmaAllocator&() const { return allocator; };
     };
 };

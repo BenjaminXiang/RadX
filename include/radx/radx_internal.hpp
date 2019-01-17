@@ -137,10 +137,10 @@ namespace radx {
         virtual InternalInterface& setValuesStoreBufferInfo(const vk::DescriptorBufferInfo& valuesStore = {}){ this->valuesStoreBufferInfo = valuesStore; return *this; };
         virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
         virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
-        virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; };
+        virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; return *this; };
         
         virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize){
-            this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize); // TODO: merge into internal interface processing
+            this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize); return *this;
         };
         
         virtual InternalInterface& buildDescriptorSet(){
@@ -165,15 +165,16 @@ namespace radx {
             };
 
             // inline descriptor 
+            vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
             {
-                vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
                 std::array<uint32_t,4> sizeF = {maxElementCount,0,0,0};
-                inlineDescriptorData.dataSize = sizeof(sizeF);
+                inlineDescriptorData.dataSize = 4;
                 inlineDescriptorData.pData = &sizeF[0];
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(1).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(4).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
+            return *this;
         };
         
         // vk::DescriptorSet caster
@@ -199,7 +200,7 @@ namespace radx {
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
         virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
-        virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; };
+        virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; return *this; };
 
         virtual InputInterface& buildDescriptorSet(){
             std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(1) };
@@ -213,15 +214,16 @@ namespace radx {
             };
 
             // inline descriptor 
+            vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
             {
-                vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
                 std::array<uint32_t,4> sizeF = {elementCount,0,0,0};
-                inlineDescriptorData.dataSize = sizeof(sizeF);
+                inlineDescriptorData.dataSize = 4;
                 inlineDescriptorData.pData = &sizeF[0];
                 writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorCount(4).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
+            return *this;
         };
 
         // vk::DescriptorSet caster
@@ -240,12 +242,12 @@ namespace radx {
         vk::PipelineLayout pipelineLayout;
 
         // internal methods (for devs)
-        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) { return shared_from_this(); };
-        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return shared_from_this(); };
+        virtual VkResult genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) { return VK_SUCCESS; };
+        virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return VK_SUCCESS; };
 
     public:
         friend Sort<Algorithm>;
-        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) { return shared_from_this(); };
+        virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) { return VK_SUCCESS; };
 
         // can be used by children 
         virtual operator Algorithm&() { return *this; };
@@ -272,7 +274,7 @@ namespace radx {
 
         // accepts only right-based links 
         virtual Sort<T>& initialize(const std::shared_ptr<radx::Device>& device, std::shared_ptr<radx::Algorithm>&& algorithm, const size_t& maxElementCount = 1024 * 1024) {
-            this->initialize(device, std::dynamic_pointer_cast<T>(algorithm), maxElementCount);
+            this->initialize(device, std::move(std::dynamic_pointer_cast<T>(std::move(algorithm))), maxElementCount);
             return *this;
         };
 
@@ -292,7 +294,7 @@ namespace radx {
 
     public:
         friend Sort<Radix>;
-        virtual std::shared_ptr<Algorithm> initialize(const std::shared_ptr<radx::Device>& device) override {
+        virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override {
             this->device = device, this->groupX = 64u;
             std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
@@ -317,10 +319,10 @@ namespace radx {
             this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
 
             // return shared_ptr when needed
-            return Algorithm::shared_from_this();
+            return VK_SUCCESS;
         };
 
-        virtual std::shared_ptr<Algorithm> genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
+        virtual VkResult genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
             std::vector<vk::DescriptorSet> descriptors = {*internalInterface, *inputInterface};
             cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
             
@@ -345,14 +347,14 @@ namespace radx {
                 commandBarrier(cmdBuf);
             };
 
-            return Algorithm::shared_from_this();
+            return VK_SUCCESS;
         };
 
         // 
-        virtual std::shared_ptr<Algorithm> createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
+        virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
             
             vk::DeviceSize 
-                inlineSize = sizeof(uint32_t) * 4ull, 
+                inlineSize = 0,//sizeof(uint32_t) * 4ull, 
                 keysSize = maxElementCount * sizeof(uint32_t), 
                 valuesSize = maxElementCount * sizeof(uint32_t), 
                 referencesSize = maxElementCount * sizeof(uint32_t), 
@@ -389,7 +391,7 @@ namespace radx {
             // command for build descriptor set
             internalInterface->buildMemory(memorySize).buildDescriptorSet();
 
-            return Algorithm::shared_from_this();
+            return VK_SUCCESS;
         };
     };
 

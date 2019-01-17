@@ -41,7 +41,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 #endif
 
 
-layout ( binding = 2, set = 0, std430 ) readonly subgroupcoherent buffer RadiceCacheB { u8vec2 RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheB { u8vec2 RadiceCache[]; };
 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
@@ -53,7 +53,7 @@ void main() {
         const lowp uint radice = rk + Lane_Idx;
         [[flatten]] if (radice < RADICES) localHistogram[radice+0u] = PrefixSum[gl_WorkGroupID.x * RADICES + radice];
     };
-    [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(inline_block.NumElements), bcount = min(blocks.count, 1048576u);
+    [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER
     [[flatten]] IFANY (bcount <= 0) return;
 
