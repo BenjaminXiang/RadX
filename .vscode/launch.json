@@ -8,8 +8,8 @@
             "name": "Debug",
             "type": "gdb",
             "request": "launch",
-            "target": "./build/sort-test",
-            "cwd": "${workspaceRoot}"
+            "target": "./sort-test",
+            "cwd": "${workspaceRoot}/build"
         }
     ]
 }
