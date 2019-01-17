@@ -170,7 +170,7 @@ namespace radx {
                 std::array<uint32_t,4> sizeF = {maxElementCount,0,0,0};
                 inlineDescriptorData.dataSize = sizeof(sizeF);
                 inlineDescriptorData.pData = &sizeF[0];
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(1).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
@@ -218,7 +218,7 @@ namespace radx {
                 std::array<uint32_t,4> sizeF = {elementCount,0,0,0};
                 inlineDescriptorData.dataSize = sizeof(sizeF);
                 inlineDescriptorData.pData = &sizeF[0];
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorCount(4).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});

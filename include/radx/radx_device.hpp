@@ -200,18 +200,23 @@ namespace radx {
                         vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // radice cache
                         vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // histogram of radices (every work group)
                         vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // prefix-sum of radices (every work group)
-                        vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eInlineUniformBlockEXT, 1, vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
+                        vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eInlineUniformBlockEXT, 4, vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
                     };
-                    descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
+
+                    const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, {}, {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                    const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
+                    descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
                 };
 
                 {
                     const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
                         vk::DescriptorSetLayoutBinding(0 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys in
                         vk::DescriptorSetLayoutBinding(1 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
-                        vk::DescriptorSetLayoutBinding(2 , vk::DescriptorType::eInlineUniformBlockEXT, 1, vk::ShaderStageFlagBits::eCompute)
+                        vk::DescriptorSetLayoutBinding(2 , vk::DescriptorType::eInlineUniformBlockEXT, 4, vk::ShaderStageFlagBits::eCompute)
                     };
-                    descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
+                    const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                    const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
+                    descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
                 };
             };
 

@@ -42,6 +42,7 @@ namespace rad {
             "VK_EXT_sampler_filter_minmax",
             "VK_EXT_descriptor_indexing",
             "VK_EXT_scalar_block_layout",
+            "VK_EXT_inline_uniform_block",
 
             "VK_AMD_gpu_shader_int16",
             "VK_AMD_gpu_shader_half_float",
