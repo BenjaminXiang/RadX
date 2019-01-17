@@ -25,7 +25,7 @@ function Pause ($Message = "Press any key to continue . . . ") {
 function Optimize($Name, $Dir = "", $AddArg = "") {
     $ARGS = "$OPTFLAGS $Dir$Name.spv -o $Dir$Name.spv $AddArg"
     $process = start-process -NoNewWindow -Filepath "spirv-opt" -ArgumentList "$ARGS" -PassThru
-    $process.PriorityClass = 'BelowNormal'
+    #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
     $process.Close()
 }
@@ -33,7 +33,7 @@ function Optimize($Name, $Dir = "", $AddArg = "") {
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
     $ARGS = "$CFLAGSV $CMPPROF $InDir$Name -o $OutDir$AltName.spv $AddArg"
     $process = start-process -NoNewWindow -Filepath "glslangValidator" -ArgumentList "$ARGS" -PassThru
-    $process.PriorityClass = 'BelowNormal'
+    #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
     $process.Close()
 }
@@ -41,7 +41,7 @@ function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName =
 
 function BuildAllShaders($Pfx = "") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
-    [System.Threading.Thread]::CurrentThread.Priority = 'Highest'
+    #[System.Threading.Thread]::CurrentThread.Priority = 'Highest'
 
     new-item -Name $HRDDIR$RDXI -itemtype directory  -Force | Out-Null
 

@@ -60,7 +60,7 @@ namespace radx {
 
     // create shader module
     static inline auto createShaderModuleIntrusive(const vk::Device& device, const std::vector<uint32_t>& code, vk::ShaderModule& hndl) {
-        return device.createShaderModule(makeShaderModuleInfo(code));
+        return (hndl = device.createShaderModule(makeShaderModuleInfo(code)));
     };
 
     static inline auto createShaderModule(const vk::Device& device, const std::vector<uint32_t>& code) {
