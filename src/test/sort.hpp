@@ -285,7 +285,7 @@ namespace rad {
         std::unique_ptr<radx::VmaAllocatedBuffer> vmaToHostBuffer;
 
         // 
-        const size_t elementCount = 1024;
+        const size_t elementCount = 256;
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
 
@@ -298,7 +298,7 @@ namespace rad {
             physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
             device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
             program = std::make_shared<radx::Radix>(), program->initialize(device);
-            radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program);
+            radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program, elementCount);
             inputInterface = std::make_shared<radx::InputInterface>(device);
             
             { // sizes of offsets

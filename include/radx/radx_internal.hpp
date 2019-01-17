@@ -236,7 +236,7 @@ namespace radx {
         std::shared_ptr<radx::Device> device;
 
         uint32_t
-            groupX = 64, 
+            groupX = 1,//64,
             groupY = 1;
         std::vector<vk::Pipeline> pipelines = {};
         vk::PipelineLayout pipelineLayout;
@@ -246,6 +246,8 @@ namespace radx {
         virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return VK_SUCCESS; };
 
     public:
+        Algorithm(): groupX(1){};
+
         friend Sort<Algorithm>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) { return VK_SUCCESS; };
 
@@ -293,6 +295,8 @@ namespace radx {
         uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
 
     public:
+        Radix() { this->groupX = 64; };
+
         friend Sort<Radix>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override {
             this->device = device;//, this->groupX = 64u;
@@ -337,7 +341,7 @@ namespace radx {
                 commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
-                cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                cmdBuf.dispatch(this->groupX, 1u, 1u);
                 commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->workload]);
@@ -345,7 +349,7 @@ namespace radx {
                 commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
-                cmdBuf.dispatch(this->groupX, this->groupY, 1u);
+                cmdBuf.dispatch(this->groupX, 1u, 1u);
                 commandBarrier(cmdBuf);
 
             };
@@ -362,7 +366,7 @@ namespace radx {
                 valuesSize = maxElementCount * sizeof(uint32_t), 
                 referencesSize = maxElementCount * sizeof(uint32_t), 
                 keyCacheSize = maxElementCount * sizeof(uint32_t), //sizeof(uint32_t);
-                histogramsSize = 256ull * this->groupX * sizeof(uint32_t),
+                histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;
 

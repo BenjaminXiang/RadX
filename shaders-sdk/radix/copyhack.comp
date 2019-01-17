@@ -11,15 +11,13 @@
 layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
 
 shared m8pq utype_v keyLocal[Wave_Size];
-//layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint16_t RadiceCache[]; };
-layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { m8pq utype_v RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint16_t[Wave_Size] RadiceCache[]; };
 
 void main() {
     #define wsize NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
-        const uint inlaneID = (w + gl_WorkGroupID.x) * Wave_Size_RT + Lane_Idx;
         const bool validAddress = lessThan(globalID, wsize);
 
         [[flatten]] if (Wave_Idx < VEC_SIZE) 
@@ -28,14 +26,11 @@ void main() {
 #else
             { keyLocal[Lane_Idx][Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
 #endif
+        LGROUP_BARRIER
+        [[flatten]] if (Wave_Idx < 1u) RadiceCache[w + gl_WorkGroupID.x][Lane_Idx] = pack16(u8vec2(keyLocal[Lane_Idx])); // pack two 8-bit values into one 16-bit 
+        LGROUP_BARRIER
 
         // currently only copying support
         [[flatten]] if (validAddress) { KeyTmp[globalID] = KeyIn[globalID], ValueTmp[globalID] = ValueIn[globalID]; };
-        
-        // pack two 8-bit values into one 16-bit 
-        // TODO: fix addressing corruption
-        LGROUP_BARRIER
-        [[flatten]] if (Wave_Idx < 1u) RadiceCache[inlaneID] = keyLocal[Lane_Idx];//u8x2pack(keyLocal[Lane_Idx]);
-        LGROUP_BARRIER
     };
 };

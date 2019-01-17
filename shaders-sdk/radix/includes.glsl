@@ -101,7 +101,7 @@ layout ( binding = 2, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 #define NumElements inline_block[0].data
 
 // division of radix sort (TODO: fix corruptions)
-struct blocks_info { uint count, offset, limit, offset1x; };
+struct blocks_info { uint count, offset, limit, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
         block_tile = Wave_Size_RT << VEC_SHIF, 
@@ -111,7 +111,7 @@ blocks_info get_blocks_info(in uint n) {
         block_limit = block_offset + block_size,
         block_count = tiled(block_size, block_tile);
 
-    return blocks_info(block_count, block_offset, min(block_limit, n), (block_size>>VEC_SHIF) * gl_WorkGroupID.x);
+    return blocks_info(block_count, block_offset, min(block_limit, n), block_offset>>block_tile);
 };
 
 #ifdef PREFER_UNPACKED

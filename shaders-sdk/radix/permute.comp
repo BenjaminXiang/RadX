@@ -39,7 +39,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 #endif
 
 
-layout ( binding = 2, set = 0, scalar ) readonly workgroupcoherent buffer RadiceCacheB { m8pq utype_v RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar ) readonly workgroupcoherent buffer RadiceCacheB { u8vec2[Wave_Size] RadiceCache[]; };
 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
@@ -67,9 +67,7 @@ void main() {
         IFALL(all(not(validAddress))) break;
         LGROUP_BARRIER
 
-        //[[flatten]] if (Wave_Idx < 1) { key = RadiceCache[blocks.offset1x + (wk*Wave_Size_RT) + Lane_Idx]; };
-        //LGROUP_BARRIER
-        //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? key[Wave_Idx] : utype_t(0xFFu); };
+//        [[flatten]] if (Wave_Idx == 0) { _data[Lane_Idx] = utype_v(RadiceCache[blocks.wkoffset+wk][Lane_Idx]); };
 
         [[flatten]] if (Wave_Idx < VEC_SIZE) 
 #ifdef READ_U8
