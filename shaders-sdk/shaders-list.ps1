@@ -44,6 +44,7 @@ function OptimizeMainline($Pfx = "") {
     Optimize "histogram.comp" "$HRDDIR$RDXI"
     Optimize "pfx-work.comp"  "$HRDDIR$RDXI"
     Optimize "copyhack.comp"  "$HRDDIR$RDXI"
+    Optimize "transposer.comp"  "$HRDDIR$RDXI"
 }
 
 
@@ -58,6 +59,7 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "histogram.comp"  "$INDIR$RDXI" "$HRDDIR$RDXI"
     BuildCompute "pfx-work.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
     BuildCompute "copyhack.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "transposer.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
 
     # optimize built shaders
     OptimizeMainline

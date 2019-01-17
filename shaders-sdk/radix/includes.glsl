@@ -84,21 +84,12 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-//layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
-layout ( binding = 0, set = 0, scalar )  readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
-
 layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
 layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-
 layout ( binding = 0, set = OUTDIR, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
 layout ( binding = 1, set = OUTDIR, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
 
-#ifdef COPY_HACK_IDENTIFY
-layout ( binding = 2, set = 0, scalar ) nonprivate buffer RadiceCacheB { uint32_t RadiceCache[][Wave_Size]; };
-#else
-layout ( binding = 2, set = 0, scalar ) readonly nonprivate buffer RadiceCacheB { uint32_t RadiceCache[][Wave_Size]; };
-#endif
-
+// 
 layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[]; };
 layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
 

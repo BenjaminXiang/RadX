@@ -10,6 +10,7 @@ namespace radx {
         static inline constexpr const auto workload = "radix/pfx-work.comp";
         static inline constexpr const auto histogram = "radix/histogram.comp";
         static inline constexpr const auto copyhack = "radix/copyhack.comp";
+        static inline constexpr const auto transposer = "radix/transposer.comp";
 
         static inline const auto getCorrectPath(const std::string& fpath = "", const radx::Vendor& vendor = radx::Vendor::NV_TURING, const std::string& directory = "./intrusive") {
             return (directory + "/" + pathNames[vendor] + "/" + fpath + ".spv");

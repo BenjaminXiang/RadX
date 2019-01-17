@@ -294,7 +294,7 @@ namespace radx {
     // TODO: better vendor-based setup for device 
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
     protected:
-        uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, resolve = 4;
+        uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, transposer = 4, resolve = 5;
 
     public:
         Radix() { this->groupX = 64; };
@@ -323,6 +323,7 @@ namespace radx {
             this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), this->pipelineLayout));
             this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), this->pipelineLayout));
             this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
+            this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::transposer, *device->getPhysicalHelper()), this->pipelineLayout));
 
             // return shared_ptr when needed
             return VK_SUCCESS;
@@ -341,6 +342,10 @@ namespace radx {
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
                 cmdBuf.dispatch(this->groupX, 1u, 1u);
                 commandBarrier(cmdBuf);
+
+                //cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
+                //cmdBuf.dispatch(this->groupX, 1u, 1u);
+                //commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
                 cmdBuf.dispatch(this->groupX, 1u, 1u);

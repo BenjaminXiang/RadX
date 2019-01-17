@@ -26,6 +26,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 #define addr addrL[Lane_Idx]
 #define addrW addr[w]
+#define addrS addr[push_block.Shift]
 
 #define validAddressW subgroupInverseBallot(validAddressL[w])
 //#define validAddress bvec4(subgroupInverseBallot(validAddressL[0]),subgroupInverseBallot(validAddressL[1]),subgroupInverseBallot(validAddressL[2]),subgroupInverseBallot(validAddressL[3]))
@@ -36,7 +37,10 @@ const uint BSIZE = min(Wc,Wave_Size);
 #define validAddress lessThan(addr,ATYPE(blocks.limit))
 #endif
 
+// 
+layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
 
+// 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
     const lowp uint Wr = Wc * Wave_Idx;

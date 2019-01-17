@@ -5,21 +5,25 @@
 #include "../include/mathlib.glsl"
 #include "../include/ballotlib.glsl"
 
-#define COPY_HACK_IDENTIFY // buffer names was swapped
+//#define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-layout (local_size_x = 1024u) in; // without key cache support 
+layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
 
-void main() {
+shared m8pq utype_v[4] _data[Wave_Size];
+#define key _data[Lane_Idx]
+
+layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
+layout ( binding = 2, set = 0, scalar ) buffer RadiceCacheOutB { uint32_t Key8t[]; };
+
+// TODO: transpose keys for faster access 
+void main() { 
     #define wsize NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
-    //key[Wave_Idx] = utype_t(0xFFu);
-    
+
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
-        // currently only copying support
-        [[flatten]] if (validAddress) { KeyTmp[globalID] = KeyIn[globalID], ValueTmp[globalID] = ValueIn[globalID]; };
     };
 };
