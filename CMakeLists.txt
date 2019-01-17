@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-set (PROJECT_NAME vRt)
+set (PROJECT_NAME RadX)
 project (${PROJECT_NAME})
 
 # Architecture specific
@@ -100,7 +100,7 @@ include_directories(${INC_DIR})
 file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 
 # make gltfPBR
-set (APPLICATION_NAME gltfPBR)
+set (APPLICATION_NAME sort-test)
 add_executable(${APPLICATION_NAME} src/test/sort.cpp src/test/main.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} ${LIBS})
 
