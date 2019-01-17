@@ -285,7 +285,7 @@ namespace rad {
         std::unique_ptr<radx::VmaAllocatedBuffer> vmaToHostBuffer;
 
         // 
-        const size_t elementCount = 1024 * 1024;
+        const size_t elementCount = 1024;
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
 
@@ -320,9 +320,9 @@ namespace rad {
             inputInterface->buildDescriptorSet();
             
             // generate random numbers and copy to buffer
-            std::vector<uint32_t> randNumbers(1024 * 1024);
-            for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = mrand48(); };
-            memcpy(vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy 
+            std::vector<uint32_t> randNumbers(elementCount);
+            for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
+            memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
 
             // command allocation 
             vk::CommandBufferAllocateInfo cci{};
@@ -346,8 +346,8 @@ namespace rad {
             vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
             
             // get sorted numbers
-            std::vector<uint32_t> sortedNumbers(1024 * 1024);
-            memcpy(sortedNumbers.data(), vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy 
+            std::vector<uint32_t> sortedNumbers(elementCount);
+            memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
             // 
             std::cout << "Sorting Finished" << std::endl;

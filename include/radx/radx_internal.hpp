@@ -167,10 +167,9 @@ namespace radx {
             // inline descriptor 
             vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
             {
-                std::array<uint32_t,4> sizeF = {maxElementCount,0,0,0};
-                inlineDescriptorData.dataSize = 4;
-                inlineDescriptorData.pData = &sizeF[0];
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(4).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                inlineDescriptorData.dataSize = sizeof(uint32_t);
+                inlineDescriptorData.pData = &this->maxElementCount;
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
@@ -216,10 +215,9 @@ namespace radx {
             // inline descriptor 
             vk::WriteDescriptorSetInlineUniformBlockEXT inlineDescriptorData{};
             {
-                std::array<uint32_t,4> sizeF = {elementCount,0,0,0};
-                inlineDescriptorData.dataSize = 4;
-                inlineDescriptorData.pData = &sizeF[0];
-                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorCount(4).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
+                inlineDescriptorData.dataSize = sizeof(uint32_t);
+                inlineDescriptorData.pData = &this->elementCount;
+                writes.push_back(vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setDescriptorCount(inlineDescriptorData.dataSize).setDescriptorType(vk::DescriptorType::eInlineUniformBlockEXT).setPNext(&inlineDescriptorData));
             };
 
             vk::Device(*this->device).updateDescriptorSets(writes, {});
@@ -237,7 +235,9 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device;
 
-        uint32_t groupX = 1, groupY = 1;
+        uint32_t
+            groupX = 64, 
+            groupY = 1;
         std::vector<vk::Pipeline> pipelines = {};
         vk::PipelineLayout pipelineLayout;
 
@@ -295,7 +295,7 @@ namespace radx {
     public:
         friend Sort<Radix>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override {
-            this->device = device, this->groupX = 64u;
+            this->device = device;//, this->groupX = 64u;
             std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
             // push constant ranges
@@ -327,8 +327,10 @@ namespace radx {
             cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
             
             for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
+
                 std::array<uint32_t,4> stageC = {I,0,0,0};
                 cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
+                commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
                 cmdBuf.dispatch(this->groupX, 1u, 1u);
@@ -345,6 +347,7 @@ namespace radx {
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
                 cmdBuf.dispatch(this->groupX, this->groupY, 1u);
                 commandBarrier(cmdBuf);
+
             };
 
             return VK_SUCCESS;
@@ -358,8 +361,8 @@ namespace radx {
                 keysSize = maxElementCount * sizeof(uint32_t), 
                 valuesSize = maxElementCount * sizeof(uint32_t), 
                 referencesSize = maxElementCount * sizeof(uint32_t), 
-                keyCacheSize = maxElementCount * sizeof(uint16_t), //sizeof(uint32_t);
-                histogramsSize = 256ull * sizeof(uint32_t) * this->groupX,
+                keyCacheSize = maxElementCount * sizeof(uint32_t), //sizeof(uint32_t);
+                histogramsSize = 256ull * this->groupX * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;
 

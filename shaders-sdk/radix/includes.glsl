@@ -28,8 +28,7 @@
 
 // general work groups
 #define Wave_Size_RX Wave_Size_RT
-#define Wave_Count_RX Wave_Count_RT //(gl_WorkGroupSize.x / Wave_Size_RT.x)
-//#define BLOCK_SIZE (Wave_Size * RADICES / AFFINITION) // how bigger block size, then more priority going to radices (i.e. BLOCK_SIZE / Wave_Size)
+#define Wave_Count_RX Wave_Count_RT 
 
 
 //#if defined(ENABLE_TURING_INSTRUCTION_SET)
@@ -101,30 +100,26 @@ layout ( binding = 2, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 
 #define NumElements inline_block[0].data
 
-// division of radix sort
+// division of radix sort (TODO: fix corruptions)
 struct blocks_info { uint count, offset, limit, offset1x; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
         block_tile = Wave_Size_RT << VEC_SHIF, 
-        block_count_simd = tiled(n, block_tile), 
-        block_count = tiled(block_count_simd, gl_NumWorkGroups.x), 
-        block_size = tiled(n, block_count * block_tile) * block_tile, 
+        block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
+        block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,
-        block_limit = block_offset + block_size;
+        block_limit = block_offset + block_size,
+        block_count = tiled(block_size, block_tile);
 
-    const uint n_1x = tiled(n, VEC_SIZE), 
-        block_tile_1x = Wave_Size_RT, 
-        block_count_simd_1x = tiled(n_1x, block_tile_1x), 
-        block_count_1x = tiled(block_count_simd_1x, gl_NumWorkGroups.x), 
-        block_size_1x = tiled(n_1x, block_count_1x * block_tile_1x) * block_tile_1x, 
-        block_offset_1x = block_size_1x * gl_WorkGroupID.x,
-        block_limit_1x = block_offset_1x + block_size_1x;
-
-    return blocks_info(block_count, block_offset, min(block_limit, n), block_offset_1x);
+    return blocks_info(block_count, block_offset, min(block_limit, n), (block_size>>VEC_SHIF) * gl_WorkGroupID.x);
 };
 
 #ifdef PREFER_UNPACKED
 #define upfunc(x) (x)
 #else
 #define upfunc(x) up2x_8(x)
+#endif
+
+#ifndef WORK_SIZE
+#define WORK_SIZE BLOCK_SIZE
 #endif

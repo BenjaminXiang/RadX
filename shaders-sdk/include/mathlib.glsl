@@ -308,8 +308,8 @@ uint BFE_HW(in uint base, in  int offset , in int bits) { return bitfieldExtract
 uint BFI_HW(in uint base, in uint inserts, in int offset, in int bits) { return bitfieldInsert(base, inserts, offset, bits); }
 
 // int operations
- int tiled(in  int x, in  int y) {return x/y + int(x%y != 0); }
-uint tiled(in uint x, in uint y) {return x/y + int(x%y != 0); }
+ int tiled(in  int x, in  int y) {return (x / y) +  int((x % y) != 0 ); }
+uint tiled(in uint x, in uint y) {return (x / y) + uint((x % y) != 0u); }
 
 // color space utils
 const float HDR_GAMMA = 2.2f;

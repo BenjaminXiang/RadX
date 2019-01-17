@@ -1,39 +1,41 @@
 #version 460 core
 #extension GL_GOOGLE_include_directive : enable
 
-#define EXTEND_LOCAL_GROUPS
 #include "../include/driver.glsl"
 #include "../include/mathlib.glsl"
 #include "../include/ballotlib.glsl"
 
-#define BLOCK_SIZE (Wave_Size*2u)
 #define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-LOCAL_SIZE_LAYOUT;
+layout (local_size_x = (Wave_Size*VEC_SIZE)) in;
 
-shared u8x2_t RadicesL[Wave_Size];
-layout ( binding = 2, set = 0, scalar )  subgroupcoherent buffer RadiceCacheB { uint16_t RadiceCache[]; };
+shared m8pq utype_v keyLocal[Wave_Size];
+//layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { uint16_t RadiceCache[]; };
+layout ( binding = 2, set = 0, scalar )  workgroupcoherent buffer RadiceCacheB { m8pq utype_v RadiceCache[]; };
 
 void main() {
     #define wsize NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
+        const uint inlaneID = (w + gl_WorkGroupID.x) * Wave_Size_RT + Lane_Idx;
         const bool validAddress = lessThan(globalID, wsize);
 
+        [[flatten]] if (Wave_Idx < VEC_SIZE) 
 #ifdef READ_U8
-        { RadicesL[Lane_Idx][Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
+            { keyLocal[Lane_Idx][Wave_Idx] = validAddress ? Key8n[globalID][push_block.Shift] : utype_t(0xFFu); };
 #else
-        { RadicesL[Lane_Idx][Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
+            { keyLocal[Lane_Idx][Wave_Idx] = utype_t(BFE(validAddress ? Key8n[globalID][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
 #endif
 
         // currently only copying support
         [[flatten]] if (validAddress) { KeyTmp[globalID] = KeyIn[globalID], ValueTmp[globalID] = ValueIn[globalID]; };
         
-        LGROUP_BARRIER
-        
         // pack two 8-bit values into one 16-bit 
-        if (Wave_Idx == 0u) RadiceCache[(w + gl_WorkGroupID.x) * Wave_Size_RT + Lane_Idx] = u8x2pack(RadicesL[Lane_Idx]);
+        // TODO: fix addressing corruption
+        LGROUP_BARRIER
+        [[flatten]] if (Wave_Idx < 1u) RadiceCache[inlaneID] = keyLocal[Lane_Idx];//u8x2pack(keyLocal[Lane_Idx]);
+        LGROUP_BARRIER
     };
 };

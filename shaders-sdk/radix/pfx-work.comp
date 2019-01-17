@@ -7,11 +7,6 @@
 #include "../include/ballotlib.glsl"
 
 // default values
-#ifndef BLOCK_SIZE
-#define BLOCK_SIZE (Wave_Size*16u)
-#endif
-
-
 #include "./includes.glsl"
 
 // current work group size
@@ -20,9 +15,7 @@ const uint WG_COUNT = 64u;
 
 // shared memory of...
 shared uint localHistogram[RADICES];
-
-//layout (local_size_x = Wave_Size, local_size_y = 16) in;
-layout (local_size_x = BLOCK_SIZE) in; // use many as possible
+layout (local_size_x = Wave_Size*16u) in; // use many as possible
 
 // X axis is workgroup count, Y is radices
 void main() {
