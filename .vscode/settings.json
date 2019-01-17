@@ -49,7 +49,9 @@
         "thread": "cpp",
         "*.hpp11": "cpp",
         "functional": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp"
     },
     "glsllint.glslangValidatorArgs": " --target-env spirv1.3 -H  --relaxed-errors -o \"GLSLANG.spv\"  -DNVIDIA_PLATFORM -DENABLE_TURING_INSTRUCTION_SET  -DUSE_MORTON_32 -DUSE_F32_BVH-V",
     "C_Cpp.configurationWarnings": "Disabled"
