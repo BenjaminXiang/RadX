@@ -11,7 +11,7 @@ endif()
 set (DEP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${DEP_DIR}" "${DEP_DIR}/lib/cmake/")
 find_package (Vulkan QUIET)
-find_package (CUDA REQUIRED)
+find_package (CUDA QUIET)
 
 # Set source directories
 set(SOURCES_LIST 
