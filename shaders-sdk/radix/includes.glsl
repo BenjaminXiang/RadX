@@ -74,11 +74,11 @@ lowp uint BFE(in u32vec2 ua, in int o, in int n) { return uint(o >= 32 ? BFE_HW(
 struct RadicePropStruct { uint Descending, IsSigned; };
 
 #ifdef COPY_HACK_IDENTIFY
-#define INDIR 0
-#define OUTDIR 1
-#else
 #define INDIR 1
 #define OUTDIR 0
+#else
+#define INDIR 0
+#define OUTDIR 1
 #endif
 
 // used when filling
