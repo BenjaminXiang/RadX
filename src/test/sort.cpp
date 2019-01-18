@@ -1,6 +1,22 @@
 #define VMA_IMPLEMENTATION
 #include "sort.hpp"
 
+//#define RENDERDOC_DEBUGGABLE_GLFW3
+#ifdef RENDERDOC_DEBUGGABLE_GLFW3
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#endif
+
+#define RENDERDOC_DEBUG
+#ifdef RENDERDOC_DEBUG
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+#include <renderdoc.h>
+#endif
+
 namespace rad {
 
     vk::Instance ComputeFramework::createInstance() {
@@ -149,74 +165,163 @@ namespace rad {
 
 
 
-    TestSort::TestSort(){
-            fw = std::make_shared<ComputeFramework>();
-            fw->createInstance();
-
-            // create radix sort application (RadX C++)
-            physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
-            device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
-            program = std::make_shared<radx::Radix>(), program->initialize(device);
-            radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program, elementCount);
-            inputInterface = std::make_shared<radx::InputInterface>(device);
-            
-            { // sizes of offsets
-                keysSize = elementCount * sizeof(uint32_t), valuesSize = elementCount * sizeof(uint32_t);
-                keysOffset = 0, valuesOffset = keysOffset + keysSize;
-            };
-
-            // get memory size and set max element count
-            vk::DeviceSize memorySize = valuesOffset + valuesSize;
-            vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            vmaToHostBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
-
-            // on deprecation 
-            inputInterface->setElementCount(elementCount);
-            inputInterface->setKeysBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, keysOffset, keysSize));
-            inputInterface->setValuesBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, valuesOffset, valuesSize));
-            
-            // build descriptor set
-            inputInterface->buildDescriptorSet();
-
-
-            // generate random numbers and copy to buffer
-            std::vector<uint32_t> randNumbers(elementCount);
-            std::vector<uint32_t> sortedNumbers(elementCount);
-
-
-            for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
-            memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
-
-            // command allocation 
-            vk::CommandBufferAllocateInfo cci{};
-            cci.commandPool = fw->getCommandPool();
-            cci.commandBufferCount = 1;
-            cci.level = vk::CommandBufferLevel::ePrimary;
-
-            // generate command 
-            auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
-            cmdBuf.begin(vk::CommandBufferBeginInfo());
-            radixSort->genCommand(cmdBuf, inputInterface);
-            cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host 
-            cmdBuf.end();
-
-            //
-#ifdef ENABLE_THRUST_BENCHMARK
-            this->testSortingThrust();
+#ifdef RENDERDOC_DEBUGGABLE
+    static void error_callback(int error, const char* description)
+    {
+        fprintf(stderr, "Error: %s\n", description);
+    }
+    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
 #endif
 
-            // submit command 
-            vk::SubmitInfo sbmi = {};
-            sbmi.pCommandBuffers = &cmdBuf;
-            sbmi.commandBufferCount = 1;
-            auto fence = fw->getFence();
-            fw->getQueue().submit(sbmi, fence);
-            vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
-            
-            // get sorted numbers
-            memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
-            // 
-            std::cout << "Sorting Finished" << std::endl;
+    TestSort::TestSort(){
+
+#ifdef RENDERDOC_DEBUGGABLE
+        GLFWwindow* window = {};
+
+        {
+            // init GLFW fast
+            glfwSetErrorCallback(error_callback);
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            if (!glfwInit()) exit(EXIT_FAILURE);
+
+            window = glfwCreateWindow(640, 480, "RenderDoc Debuggable", NULL, NULL);
+            if (!window) {
+                glfwTerminate();
+                exit(EXIT_FAILURE);
+            }
+            glfwSetKeyCallback(window, key_callback);
+            glfwMakeContextCurrent(window);
+            glfwSwapInterval(1);
         };
+#endif
+
+        fw = std::make_shared<ComputeFramework>();
+        fw->createInstance();
+
+#if defined(RENDERDOC_DEBUG)
+        RENDERDOC_API_1_1_2* rdoc_api = {};
+
+        pRENDERDOC_GetAPI RENDERDOC_GetAPI{};
+            #if defined(_WIN32)
+                if (HMODULE mod = GetModuleHandleA("renderdoc.dll"))
+                {
+                    RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
+                }
+            #else
+                if (void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD))
+                {
+                    RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+                }
+            #endif
+            RENDERDOC_DevicePointer rdoc_device{};
+            RENDERDOC_WindowHandle rdoc_window{};
+            if (RENDERDOC_GetAPI)
+            {
+                if (RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api))
+                {
+                    int major = 0, minor = 0, patch = 0;
+                    rdoc_api->GetAPIVersion(&major, &minor, &patch);
+                    std::cout << ("Detected RenderDoc API " + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch)) << std::endl;
+                }
+                else
+                {
+                    std::cout << ("Failed to load RenderDoc API") << std::endl;
+                }
+            }
+#endif
+
+        // create radix sort application (RadX C++)
+        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
+        device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
+
+
+        program = std::make_shared<radx::Radix>(), program->initialize(device);
+        radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program, elementCount);
+        inputInterface = std::make_shared<radx::InputInterface>(device);
+
+        { // sizes of offsets
+            keysSize = elementCount * sizeof(uint32_t), valuesSize = elementCount * sizeof(uint32_t);
+            keysOffset = 0, valuesOffset = keysOffset + keysSize;
+        };
+
+        // get memory size and set max element count
+        vk::DeviceSize memorySize = valuesOffset + valuesSize;
+        vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
+        vmaToHostBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+
+        // on deprecation
+        inputInterface->setElementCount(elementCount);
+        inputInterface->setKeysBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, keysOffset, keysSize));
+        inputInterface->setValuesBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, valuesOffset, valuesSize));
+
+        // build descriptor set
+        inputInterface->buildDescriptorSet();
+
+
+        // generate random numbers and copy to buffer
+        std::vector<uint32_t> randNumbers(elementCount);
+        std::vector<uint32_t> sortedNumbers(elementCount);
+
+
+        for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
+        memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
+
+        // command allocation
+        vk::CommandBufferAllocateInfo cci{};
+        cci.commandPool = fw->getCommandPool();
+        cci.commandBufferCount = 1;
+        cci.level = vk::CommandBufferLevel::ePrimary;
+
+        // generate command
+        auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
+        cmdBuf.begin(vk::CommandBufferBeginInfo());
+        radixSort->genCommand(cmdBuf, inputInterface);
+        cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
+        cmdBuf.end();
+
+        //
+#ifdef ENABLE_THRUST_BENCHMARK
+        this->testSortingThrust();
+#endif
+
+#ifdef RENDERDOC_DEBUG
+        if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
+#endif
+
+        // submit command
+        vk::SubmitInfo sbmi = {};
+        sbmi.pCommandBuffers = &cmdBuf;
+        sbmi.commandBufferCount = 1;
+        auto fence = fw->getFence();
+        fw->getQueue().submit(sbmi, fence);
+        vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
+
+#ifdef RENDERDOC_DEBUG
+        if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
+#endif
+
+        // get sorted numbers
+        memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
+
+        //
+        std::cout << "Sorting Finished" << std::endl;
+
+
+
+#ifdef RENDERDOC_DEBUGGABLE
+        // debug processing
+        while (!glfwWindowShouldClose(window))
+        {
+            //glfwSwapBuffers(window);
+            glfwPollEvents();
+        };
+        glfwDestroyWindow(window);
+        glfwTerminate();
+#endif
+
+    };
 };

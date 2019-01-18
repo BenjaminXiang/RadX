@@ -15,7 +15,10 @@ const uint WG_COUNT = 64u;
 
 // shared memory of...
 shared uint localHistogram[RADICES];
-layout (local_size_x = Wave_Size*16u) in; // use many as possible
+
+// local size 
+const uint local_size_def = Wave_Size*16u;
+layout (local_size_x = local_size_def) in; // use many as possible
 
 // X axis is workgroup count, Y is radices
 void main() {

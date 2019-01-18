@@ -15,6 +15,8 @@ find_package (CUDA QUIET)
 
 # Set source directories
 set(SOURCES_LIST 
+    "./include/*.h"
+    "./include/*.hpp"
     "./include/vulkan/*"
     "./include/vma/*"
     "./include/vku/*"
@@ -66,6 +68,9 @@ set(CMAKE_CUDA_FLAGS ”-arch=sm_70”)
 
 # find package Thrust 
 find_package (Thrust QUIET)
+find_package(PkgConfig QUIET)
+pkg_search_module(GLFW QUIET glfw3)
+pkg_search_module(GLFW QUIET renderdoc)
 
 if (CUDA_INCLUDE_DIRS) 
     #set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
@@ -76,6 +81,12 @@ endif()
 if (Vulkan_LIBRARY)
     set (LIBS ${LIBS} ${Vulkan_LIBRARY})
 endif()
+
+if (GLFW_LIBRARIES)
+    set (LIBS ${LIBS} ${GLFW_LIBRARIES})
+    set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+endif()
+
 
 # set GCC8 (Linux) libs
 # MingW-W64 TODO

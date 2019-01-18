@@ -8,7 +8,8 @@
 #define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-layout (local_size_x = 1024u) in; // without key cache support 
+const uint local_size_def = Wave_Size*16u;
+layout (local_size_x = local_size_def) in; // use many as possible
 
 void main() {
     #define wsize NumElements

@@ -332,11 +332,12 @@ namespace radx {
         virtual VkResult genCommand(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override {
             std::vector<vk::DescriptorSet> descriptors = {*internalInterface, *inputInterface};
             cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
-            
+            commandBarrier(cmdBuf);
+
             for (uint32_t I=0;I<4;I++) { // TODO: add support variable stage length
 
                 std::array<uint32_t,4> stageC = {I,0,0,0};
-                cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(stageC), &stageC[0]);
+                cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t)*4, &stageC[0]);
                 commandBarrier(cmdBuf);
 
                 cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
@@ -366,13 +367,15 @@ namespace radx {
 
         // 
         virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override {
-            
+
+            vk::DeviceSize tileFix = sizeof(uint32_t)*4u*this->groupX;
+
             vk::DeviceSize 
-                inlineSize = 0,//sizeof(uint32_t) * 4ull, 
-                keysSize = maxElementCount * sizeof(uint32_t), 
-                valuesSize = maxElementCount * sizeof(uint32_t), 
-                referencesSize = maxElementCount * sizeof(uint32_t), 
-                keyCacheSize = maxElementCount * sizeof(uint32_t), //sizeof(uint32_t);
+                inlineSize = 0,//sizeof(uint32_t) * 4ull,
+                keysSize = maxElementCount * sizeof(uint32_t),
+                valuesSize = maxElementCount * sizeof(uint32_t),
+                referencesSize = maxElementCount * sizeof(uint32_t),
+                keyCacheSize = tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
                 histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;
