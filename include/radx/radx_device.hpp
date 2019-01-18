@@ -105,9 +105,8 @@ namespace radx {
         VmaAllocator allocator = {};
 
     public:
-        const std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() const {
-            return descriptorLayouts;
-        };
+        const std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() const { return descriptorLayouts; };
+        std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() { return descriptorLayouts; };
 
         std::shared_ptr<Device> setDescriptorPool(const vk::DescriptorPool& descriptorPool){
             this->descriptorPool = descriptorPool;
@@ -207,8 +206,8 @@ namespace radx {
                         vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
                     };
 
-                    const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, {}, {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
-                    const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
+                    //const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, {}, {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                    //const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
                     descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
                 };
 
@@ -218,8 +217,8 @@ namespace radx {
                         vk::DescriptorSetLayoutBinding(1 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
                         vk::DescriptorSetLayoutBinding(6 , vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute)
                     };
-                    const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
-                    const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
+                    //const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                    //const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
                     descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
                 };
             };

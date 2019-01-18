@@ -8,32 +8,35 @@
 //#define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-const uint local_size_def = Wave_Size*VEC_SIZE;
-layout (local_size_x = local_size_def) in;
+//const uint local_size_def = Wave_Size*VEC_SIZE;
+//layout (local_size_x = local_size_def) in;
 
-shared m8pq utype_v _data[Wave_Size];
-#define key _data[Lane_Idx]
+const uint local_size_def = Wave_Size*16u;
+layout (local_size_x = local_size_def) in; // use many as possible
 
-layout ( binding = 0, set = 1, std430, scalar ) readonly subgroupcoherent buffer KeyInU8B {uint8_t[4] Key8n[]; };
-layout ( binding = 2, set = 0, std430, scalar ) buffer RadiceCacheOutB { uint32_t Key8t[]; };
+//shared m8pq utype_v _data[Wave_Size];
+//#define key _data[Lane_Idx]
+
+layout ( binding = 0, set = 1, std430, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
+layout ( binding = 2, set = 0, std430, scalar ) buffer RadiceCacheOutB { uint8_t Key8t[]; };
 
 // TODO: transpose keys for faster access 
 void main() { 
     #define wsize NumElements
     IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
-    key[Wave_Idx] = utype_t(0xFFu);
     [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
-        LGROUP_BARRIER
-        key[Wave_Idx] = utype_t(0xFFu);
-        LGROUP_BARRIER
+        //LGROUP_BARRIER
+        //key[Wave_Idx] = utype_t(0xFFu);
+        //LGROUP_BARRIER
         
         // store keys into 
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
-        const bool validAddress = lessThan(globalID, wsize); IFALL (!validAddress) break;
-        [[flatten]] if (validAddress) { key[Wave_Idx] = utype_t(Key8n[globalID][push_block.Shift]); };
+        const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
+        Key8t[globalID] = validAddress ? utype_t(Key8n[globalID][push_block.Shift]) : utype_t(0xFFu);
+        //[[flatten]] if (validAddress) { key[Wave_Idx] = utype_t(Key8n[globalID][push_block.Shift]); };
 
         // repack all extracted keys into one address
-        LGROUP_BARRIER
-        Key8t[globalID] = pack32(key);
+        //LGROUP_BARRIER
+        //Key8t[globalID] = pack32(key);
     };
 };

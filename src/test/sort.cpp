@@ -235,7 +235,7 @@ namespace rad {
 #endif
 
         // create radix sort application (RadX C++)
-        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
+        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(1));
         device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
 
 
