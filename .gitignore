@@ -41,4 +41,6 @@ GLSLANG.spv
 build/
 build/*
 build*/
+cmake-build*/
+cmake-build*/*
 
