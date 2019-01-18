@@ -375,8 +375,8 @@ namespace radx {
                 inlineSize = 0,//sizeof(uint32_t) * 4ull,
                 keysSize = maxElementCount * sizeof(uint32_t),
                 valuesSize = maxElementCount * sizeof(uint32_t),
-                referencesSize = maxElementCount * sizeof(uint32_t),
                 keyCacheSize = tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
+                referencesSize = maxElementCount * sizeof(uint32_t),
                 histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;
@@ -384,9 +384,9 @@ namespace radx {
             vk::DeviceSize 
                 keysOffset = inlineSize,
                 valuesOffset = keysOffset + keysSize,
-                referencesOffset = valuesOffset + valuesSize,
-                keyCacheOffset = referencesOffset + referencesSize,
-                histogramsOffset = keyCacheOffset + keyCacheSize,
+                keyCacheOffset = valuesOffset + valuesSize,
+                referencesOffset = keyCacheOffset + keyCacheSize,
+                histogramsOffset = referencesOffset + referencesSize,
                 prefixScanOffset = histogramsOffset + histogramsSize
                 ;
 
