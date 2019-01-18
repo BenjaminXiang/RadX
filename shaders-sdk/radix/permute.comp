@@ -44,8 +44,8 @@ const uint BSIZE = min(Wc,Wave_Size);
 #endif
 
 // old method
-layout ( binding = 0, set = 0, std430, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
-layout ( binding = 2, set = 0, std430, scalar ) readonly buffer RadiceCacheOutB { u8vec4 Key8t[]; };
+layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
+layout ( binding = 2, set = 0, scalar ) readonly buffer RadiceCacheOutB { u8vec4 Key8t[]; };
 
 // 
 void main() {

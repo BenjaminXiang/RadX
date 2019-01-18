@@ -17,8 +17,8 @@ layout (local_size_x = local_size_def) in; // use many as possible
 //shared m8pq utype_v _data[Wave_Size];
 //#define key _data[Lane_Idx]
 
-layout ( binding = 0, set = 1, std430, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
-layout ( binding = 2, set = 0, std430, scalar ) buffer RadiceCacheOutB { uint8_t Key8t[]; };
+layout ( binding = 0, set = 1, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
+layout ( binding = 2, set = 0, scalar ) buffer RadiceCacheOutB { uint8_t Key8t[]; };
 
 // TODO: transpose keys for faster access 
 void main() { 
