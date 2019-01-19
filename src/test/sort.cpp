@@ -307,6 +307,9 @@ namespace rad {
         // get sorted numbers
         memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
+        // do std sort for comparsion
+        std::sort(randNumbers.begin(), randNumbers.end());
+
         //
         std::cout << "Sorting Finished" << std::endl;
 
