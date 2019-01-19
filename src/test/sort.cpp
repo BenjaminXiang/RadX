@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #endif
 
-#define RENDERDOC_DEBUG
+//#define RENDERDOC_DEBUG
 #ifdef RENDERDOC_DEBUG
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
@@ -235,7 +235,7 @@ namespace rad {
 #endif
 
         // create radix sort application (RadX C++)
-        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(1));
+        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
         device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
 
 

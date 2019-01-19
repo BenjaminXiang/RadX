@@ -152,7 +152,7 @@ namespace rad {
 #ifdef ENABLE_THRUST_BENCHMARK
         void testSortingThrust();
 #endif
-        TestSort::TestSort();
+        TestSort();
         
     };
 

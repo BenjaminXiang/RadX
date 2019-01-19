@@ -11,12 +11,13 @@ endif()
 set (DEP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${DEP_DIR}" "${DEP_DIR}/lib/cmake/")
 find_package (Vulkan QUIET)
-find_package (CUDA QUIET)
+#find_package (CUDA QUIET)
 
 # Set source directories
 set(SOURCES_LIST 
     "./include/*.h"
     "./include/*.hpp"
+    "./include/radx/*"
     "./include/vulkan/*"
     "./include/vma/*"
     "./include/vku/*"
@@ -67,10 +68,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
 set(CMAKE_CUDA_FLAGS ”-arch=sm_70”)
 
 # find package Thrust 
-find_package (Thrust QUIET)
-find_package(PkgConfig QUIET)
-pkg_search_module(GLFW QUIET glfw3)
-pkg_search_module(GLFW QUIET renderdoc)
+#find_package (Thrust QUIET)
+#find_package (PkgConfig QUIET)
+#pkg_search_module(GLFW QUIET glfw3)
+#pkg_search_module(GLFW QUIET renderdoc)
 
 if (CUDA_INCLUDE_DIRS) 
     #set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
@@ -108,6 +109,8 @@ set (CMAKE_C_STANDARD 11)
 if (MSVC) # Clang in Visual Studio 2017
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
+    # fix MSVC 2019 winprt lib 
+    set (LIB_DIR ${LIB_DIR} "C://Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.20.27027/lib/x64") 
 else()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++17 -march=skylake -mtune=skylake -fpermissive -w -Ofast")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast")
