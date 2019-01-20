@@ -68,7 +68,10 @@ void main() {
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         
         IFALL(all(not(validAddress))) break;
+        
+#ifndef ENABLE_TURING_INSTRUCTION_SET
         LGROUP_BARRIER
+#endif
         
 #ifdef READ_U8
         //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
@@ -109,7 +112,9 @@ void main() {
 #endif
 #endif
         };
+
         LGROUP_BARRIER
+
             [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
             //[[flatten]] if (Wave_Idx < 1u) { addrWt += Wave_Size_RT; };
     };
