@@ -297,7 +297,7 @@ namespace radx {
         uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, transposer = 4, resolve = 5;
 
     public:
-        Radix() { this->groupX = 64; };
+        Radix() { this->groupX = 32; };
 
         friend Sort<Radix>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override {
