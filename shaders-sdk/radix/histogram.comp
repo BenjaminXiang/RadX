@@ -45,23 +45,22 @@ void main() {
     const lowp uint Wr = Wc * Wave_Idx;
 
     // clear histogram of block (planned distribute threads)
-    [[flatten]] if (Wave_Idx == 0u) 
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RT) {
-        const lowp uint radice = rk + Lane_Idx;
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) {
+        const lowp uint radice = rk + Local_Idx;
         [[flatten]] if (radice < RADICES) localHistogram[radice+0u] = 0u;
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER
     [[flatten]] IFANY (bcount <= 0) return;
 
-    // use SIMD lanes for calculate histograms
     // calculate blocks
     const lowp uint w = Wave_Idx;
     [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
+    //LGROUP_BARRIER
     //[[flatten]] if (Wave_Idx < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + Wave_Idx; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        LGROUP_BARRIER
+        //LGROUP_BARRIER
         [[flatten]] if (Wave_Idx < VEC_SIZE) 
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         
@@ -111,6 +110,7 @@ void main() {
 #endif
         };
 
+        LGROUP_BARRIER
             [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
             //[[flatten]] if (Wave_Idx < 1u) { addrWt += Wave_Size_RT; };
     };
