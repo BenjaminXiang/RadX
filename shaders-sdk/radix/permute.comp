@@ -59,19 +59,13 @@ void main() {
     // calculate blocks
     const lowp uint w = Wave_Idx;
     [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
-    //LGROUP_BARRIER
     //[[flatten]] if (Wave_Idx < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + Wave_Idx; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        //LGROUP_BARRIER
         [[flatten]] if (Wave_Idx < VEC_SIZE) 
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         
         IFALL(all(not(validAddress))) break;
-        
-#ifndef ENABLE_TURING_INSTRUCTION_SET
-        LGROUP_BARRIER
-#endif
         
 #ifdef READ_U8
         //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
@@ -82,6 +76,7 @@ void main() {
 
         LGROUP_BARRIER
 
+        // TODO: par_unseq version support 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
         [[flatten]] if (Wave_Idx == 0u) 
 #endif
