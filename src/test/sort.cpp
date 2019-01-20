@@ -6,6 +6,7 @@
 #include <execution>
 #include <algorithm>
 #include <random>
+#include <chrono>
 
 
 //#define RENDERDOC_DEBUGGABLE_GLFW3
@@ -290,10 +291,32 @@ namespace rad {
         cci.commandBufferCount = 1;
         cci.level = vk::CommandBufferLevel::ePrimary;
 
+        // query pool
+        vk::QueryPoolCreateInfo qpi{};
+        qpi.queryType = vk::QueryType::eTimestamp;
+        qpi.queryCount = 2;
+        qpi.pipelineStatistics = vk::QueryPipelineStatisticFlagBits::eComputeShaderInvocations;
+
+        // query pool
+        auto queryPool = vk::Device(*device).createQueryPool(qpi);
+
+
         // generate command
         auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
+
         cmdBuf.begin(vk::CommandBufferBeginInfo());
+        cmdBuf.resetQueryPool(queryPool, 0, 2);
+
+        cmdBuf.beginQuery(queryPool, 0, vk::QueryControlFlagBits::ePrecise);
+        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
+        cmdBuf.endQuery(queryPool, 0);
+
         radixSort->genCommand(cmdBuf, inputInterface);
+
+        cmdBuf.beginQuery(queryPool, 1, vk::QueryControlFlagBits::ePrecise);
+        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+        cmdBuf.endQuery(queryPool, 1);
+
         cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.end();
 
@@ -306,6 +329,8 @@ namespace rad {
         if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
+
+
         // submit command
         vk::SubmitInfo sbmi = {};
         sbmi.pCommandBuffers = &cmdBuf;
@@ -313,6 +338,11 @@ namespace rad {
         auto fence = fw->getFence();
         fw->getQueue().submit(sbmi, fence);
         vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
+
+        std::array<uint64_t, 2> stamps{};
+        vk::Device(*device).getQueryPoolResults(queryPool, 0u, 2u, vk::ArrayProxy<uint64_t>{ 2, &stamps[0] }, sizeof(uint64_t), vk::QueryResultFlagBits::e64);
+        double diff = double(stamps[1] - stamps[0])/1e6;
+        std::cout << "GPU sort measured in " << diff << "ms" << std::endl;
 
 #ifdef RENDERDOC_DEBUG
         if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
@@ -322,11 +352,14 @@ namespace rad {
         memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
         // do std sort for comparsion (equalent)
+        auto start = std::chrono::system_clock::now();
         std::sort(std::execution::par, randNumbers.begin(), randNumbers.end());
+        auto end = std::chrono::system_clock::now();
+        std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
         //
         std::cout << "Sorting Finished" << std::endl;
-
+        system("pause");
 
 
 #ifdef RENDERDOC_DEBUGGABLE

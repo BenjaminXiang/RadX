@@ -42,7 +42,7 @@ layout ( binding = 2, set = 0, scalar ) readonly buffer RadiceCacheOutB { u8vec4
 // 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
-    const lowp uint Wr = Wc * Wave_Idx;
+    const lowp uint w = Wave_Idx, Wr = Wc * w;
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) {
@@ -54,25 +54,24 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks
-    const lowp uint w = Wave_Idx;
-    [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
-    //[[flatten]] if (Wave_Idx < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + Wave_Idx; };
+    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
+    //[[flatten]] if (w < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + w; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        [[flatten]] if (Wave_Idx < VEC_SIZE) 
+        [[flatten]] if (w < VEC_SIZE) 
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         
         IFALL(all(not(validAddress))) break;
 
 #ifdef READ_U8
-        //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
-        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW][push_block.Shift]) : utype_t(0xFFu); };
+        //[[flatten]] if (w < VEC_SIZE) { key[w] = validAddress ? utype_t(Key8n[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
+        [[flatten]] if (w < VEC_SIZE) { key[w] = validAddress ? utype_t(Key8n[addrW][push_block.Shift]) : utype_t(0xFFu); };
 #else
-        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
+        [[flatten]] if (w < VEC_SIZE) { key[w] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
 #endif
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-        [[flatten]] if (Wave_Idx < VEC_SIZE) 
+        [[flatten]] if (w < VEC_SIZE) 
 #else
         LGROUP_BARRIER
         [[unroll]] for (lowp uint w=0u;w<VEC_SIZE;w++) 
@@ -102,14 +101,14 @@ void main() {
         };
 
         LGROUP_BARRIER
-            [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
-            //[[flatten]] if (Wave_Idx < 1u) { addrWt += Wave_Size_RT; };
+            [[flatten]] if (w < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
+            //[[flatten]] if (w < 1u) { addrWt += Wave_Size_RT; };
     };
 
     // resolve histograms (planned distribute threads) 
     LGROUP_BARRIER
     
-    [[flatten]] if (Wave_Idx == 0u) 
+    [[flatten]] if (w == 0u) 
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RT) {
         const lowp uint radice = rk + Lane_Idx;
         [[flatten]] if (radice < RADICES) {
