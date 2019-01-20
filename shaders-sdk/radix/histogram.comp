@@ -32,13 +32,8 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 
 #define validAddressW subgroupInverseBallot(validAddressL[w])
-//#define validAddress bvec4(subgroupInverseBallot(validAddressL[0]),subgroupInverseBallot(validAddressL[1]),subgroupInverseBallot(validAddressL[2]),subgroupInverseBallot(validAddressL[3]))
-
-#ifdef ENABLE_TURING_INSTRUCTION_SET
 #define validAddress validAddressW
-#else
-#define validAddress lessThan(addr,ATYPE(blocks.limit))
-#endif
+
 
 // 
 layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
@@ -63,7 +58,7 @@ void main() {
     // calculate blocks
     const lowp uint w = Wave_Idx;
     [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
-    [[flatten]] if (Wave_Idx < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + Wave_Idx; };
+    //[[flatten]] if (Wave_Idx < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + Wave_Idx; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         LGROUP_BARRIER
@@ -77,7 +72,7 @@ void main() {
         //[[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
         [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = validAddress ? utype_t(Key8n[addrW][push_block.Shift]) : utype_t(0xFFu); };
 #else
-        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, (push_block.Shift&1)*BITS_PER_PASS, BITS_PER_PASS)); };
+        [[flatten]] if (Wave_Idx < VEC_SIZE) { key[Wave_Idx] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
 #endif
         LGROUP_BARRIER
 
@@ -93,12 +88,12 @@ void main() {
             [[flatten]] if (fLn == Lane_Idx && validAddressW) { atomicAdd(localHistogram[uint(key[w])], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
 #else
 #ifdef SIMPLER_SORT
-            [[flatten]] if (key[w] == Wr && validAddress[w]) {
+            [[flatten]] if (key[w] == Wr && validAddressW) {
                 const lowp uint btc = subgroupAdd(1u);
                 [[flatten]] if (subgroupElect()) { atomicAdd(localHistogram[uint(key[w])], btc); };
             };
 #else
-            bool found = !validAddress[w] || key[w]<Wr || key[w]>=(Wr+Wc);
+            bool found = !validAddressW || key[w]<Wr || key[w]>=(Wr+Wc);
              for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(key[w])==key[w])) {
                     const lowp uint btc = subgroupAdd(1u);
@@ -111,7 +106,7 @@ void main() {
         };
         LGROUP_BARRIER
             [[flatten]] if (Wave_Idx < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
-            [[flatten]] if (Wave_Idx < 1u) { addrWt += Wave_Size_RT; };
+            //[[flatten]] if (Wave_Idx < 1u) { addrWt += Wave_Size_RT; };
     };
 
     // resolve histograms (planned distribute threads) 

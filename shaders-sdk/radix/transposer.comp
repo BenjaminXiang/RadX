@@ -32,7 +32,7 @@ void main() {
         // store keys into 
         const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
-        Key8t[globalID] = validAddress ? utype_t(Key8n[globalID][push_block.Shift]) : utype_t(0xFFu);
+        Key8t[globalID] = validAddress ? uint8_t(Key8n[globalID][push_block.Shift]) : uint8_t(0xFFu);
         //[[flatten]] if (validAddress) { key[Wave_Idx] = utype_t(Key8n[globalID][push_block.Shift]); };
 
         // repack all extracted keys into one address

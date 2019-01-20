@@ -17,3 +17,10 @@ GPU sorting shaders dedication from vRt project.
 - Make C++ headers for sort
 - Add simple benchmark
 - Backdrop vendor detection
+
+## First Results 
+
+- Tested with 1 million, 8 million and 64 million elements
+- Outperforms `std::sort()` up to 30x in RTX 2070 GPU' in Debug build, and 1-2x in Release builds
+- Tested include fences, and some memory copy
+- Built in least Visual Studio 2019
