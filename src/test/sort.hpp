@@ -138,11 +138,10 @@ namespace rad {
         std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
         std::shared_ptr<radx::InputInterface> inputInterface;
         std::shared_ptr<ComputeFramework> fw;
-        std::unique_ptr<radx::VmaAllocatedBuffer> vmaBuffer;
-        std::unique_ptr<radx::VmaAllocatedBuffer> vmaToHostBuffer;
+        std::unique_ptr<radx::VmaAllocatedBuffer> vmaBuffer, vmaToHostBuffer, vmaToDeviceBuffer;
 
         // 
-        const size_t elementCount = 2048 * 2048 * 1;
+        const size_t elementCount = 1024 * 1024 * 16;
         std::vector<uint32_t> sortedNumbersThrust;
 
         vk::DeviceSize keysSize = 0, valuesSize = 0;

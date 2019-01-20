@@ -297,7 +297,7 @@ namespace radx {
         uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, transposer = 4, resolve = 5;
 
     public:
-        Radix() { this->groupX = 32; };
+        Radix() { this->groupX = 64; };
 
         friend Sort<Radix>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override {
@@ -376,8 +376,8 @@ namespace radx {
                 inlineSize = 0,//sizeof(uint32_t) * 4ull,
                 keysSize = maxElementCount * sizeof(uint32_t),
                 valuesSize = maxElementCount * sizeof(uint32_t),
-                keyCacheSize = tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
-                referencesSize = maxElementCount * sizeof(uint32_t),
+                keyCacheSize = 0ull,//tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
+                referencesSize = 0ull,//maxElementCount * sizeof(uint32_t),
                 histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;

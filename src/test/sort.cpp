@@ -258,8 +258,10 @@ namespace rad {
 
         // get memory size and set max element count
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
-        vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
+        vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
         vmaToHostBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+		vmaToDeviceBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
 
         // on deprecation
         inputInterface->setElementCount(elementCount);
@@ -281,9 +283,9 @@ namespace rad {
         std::mt19937_64 eng(rd());
         std::uniform_int_distribution<uint32_t> distr;
 
-
+		// generate random numbers and copy to buffer
         for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
-        memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
+        memcpy((uint8_t*)vmaToDeviceBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
 
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
@@ -303,17 +305,17 @@ namespace rad {
 
         // generate command
         auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
-
         cmdBuf.begin(vk::CommandBufferBeginInfo());
+		cmdBuf.copyBuffer(*vmaToDeviceBuffer, *vmaBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
+
         cmdBuf.resetQueryPool(queryPool, 0, 2);
 
         cmdBuf.beginQuery(queryPool, 0, vk::QueryControlFlagBits::ePrecise);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
         cmdBuf.endQuery(queryPool, 0);
 
+		cmdBuf.beginQuery(queryPool, 1, vk::QueryControlFlagBits::ePrecise);
         radixSort->genCommand(cmdBuf, inputInterface);
-
-        cmdBuf.beginQuery(queryPool, 1, vk::QueryControlFlagBits::ePrecise);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
         cmdBuf.endQuery(queryPool, 1);
 
@@ -348,7 +350,7 @@ namespace rad {
         if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
 #endif
 
-        // get sorted numbers
+        // get sorted numbers by device
         memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
         // do std sort for comparsion (equalent)

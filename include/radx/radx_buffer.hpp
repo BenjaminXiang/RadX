@@ -12,7 +12,7 @@ namespace radx {
             const std::shared_ptr<radx::Device>& device, 
             vk::DeviceSize dsize = sizeof(uint32_t), 
             vk::BufferUsageFlags bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, 
-            VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
+            VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
         ): device(device) {
 
             // Create the buffer object without memory.
@@ -25,16 +25,30 @@ namespace radx {
 
             // 
             VmaAllocationCreateInfo aci{};
-            if (vmaUsage != VMA_MEMORY_USAGE_GPU_ONLY) aci.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
-            aci.usage = vmaUsage;
+            aci.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            aci.usage = this->usage = vmaUsage;
 
             //
             vmaCreateBuffer(*device, (VkBufferCreateInfo*)&ci, &aci, (VkBuffer*)&buffer, &allocation, &allocationInfo);
         };
 
         // Get mapped memory
-        void* map(){ return allocationInfo.pMappedData; };
-        void unmap(){  }; //unsupported currently
+        void* map(){
+			if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && !allocationInfo.pMappedData) {
+				vmaMapMemory(*device, allocation, &mappedData);
+			}
+			else {
+				mappedData = allocationInfo.pMappedData;
+			};
+			return mappedData;
+		};
+
+		// GPU unmap memory
+        void unmap(){ 
+			if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && mappedData) {
+				vmaUnmapMemory(*device, allocation);
+			};
+		};
 
         // vk::Device caster
         operator vk::Buffer&() { return buffer; };
@@ -49,9 +63,11 @@ namespace radx {
         operator const VmaAllocationInfo&() const { return allocationInfo; };
         
     protected:
+		void * mappedData = {};
         vk::Buffer buffer;
         VmaAllocation allocation;
         VmaAllocationInfo allocationInfo;
+		VmaMemoryUsage usage = VMA_MEMORY_USAGE_GPU_ONLY;
         std::shared_ptr<radx::Device> device;
     };
 
