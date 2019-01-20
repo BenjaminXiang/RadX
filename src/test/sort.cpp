@@ -1,6 +1,13 @@
 #define VMA_IMPLEMENTATION
 #include "sort.hpp"
 
+//#include <stdio.h>
+#include <thread>
+#include <execution>
+#include <algorithm>
+
+
+
 //#define RENDERDOC_DEBUGGABLE_GLFW3
 #ifdef RENDERDOC_DEBUGGABLE_GLFW3
 #define GLFW_INCLUDE_NONE
@@ -307,8 +314,8 @@ namespace rad {
         // get sorted numbers
         memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
 
-        // do std sort for comparsion
-        std::sort(randNumbers.begin(), randNumbers.end());
+        // do std sort for comparsion (equalent)
+        std::sort(std::execution::par, randNumbers.begin(), randNumbers.end());
 
         //
         std::cout << "Sorting Finished" << std::endl;

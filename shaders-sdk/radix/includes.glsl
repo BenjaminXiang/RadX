@@ -112,7 +112,7 @@ blocks_info get_blocks_info(in uint n) {
         block_count = tiled(block_size, block_tile),
         block_offset_single = (block_size>>VEC_SHIF)*gl_WorkGroupID.x;
 
-    return blocks_info(block_count, min(block_limit, n), block_offset_single<<VEC_SHIF, block_offset_single);
+    return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
 };
 
 #ifdef PREFER_UNPACKED

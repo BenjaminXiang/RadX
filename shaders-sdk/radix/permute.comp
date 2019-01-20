@@ -13,7 +13,7 @@ shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_v _data[Wave_Size];
-shared ATYPE addrL[Wave_Size]; shared uint addrT[Wave_Size];
+shared ATYPE addrL[Wave_Size]; //shared uint addrT[Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 #define key _data[Lane_Idx]
