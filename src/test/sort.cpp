@@ -5,7 +5,7 @@
 #include <thread>
 #include <execution>
 #include <algorithm>
-
+#include <random>
 
 
 //#define RENDERDOC_DEBUGGABLE_GLFW3
@@ -274,7 +274,14 @@ namespace rad {
         std::vector<uint32_t> sortedNumbers(elementCount);
 
 
-        for (uint32_t i=0;i<randNumbers.size();i++) { srand(i); randNumbers[i] = rand()%0xFFFFFFFFu; };
+
+        // random engine
+        std::random_device rd;
+        std::mt19937_64 eng(rd());
+        std::uniform_int_distribution<uint32_t> distr;
+
+
+        for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
         memcpy((uint8_t*)vmaBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
 
         // command allocation
