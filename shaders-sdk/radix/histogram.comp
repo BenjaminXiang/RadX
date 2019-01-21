@@ -26,13 +26,10 @@ const uint BSIZE = min(Wc,Wave_Size);
 // getter by lane_idx
 #define addr addrL[Lane_Idx]
 #define addrW addr[w]
+#define validAddress subgroupInverseBallot(validAddressL[w])
 
 // getter by wave_idx
-#define addrWt addrT[Lane_Idx]
-
-
-#define validAddressW subgroupInverseBallot(validAddressL[w])
-#define validAddress validAddressW
+//#define addrWt addrT[Lane_Idx]
 
 
 // 
@@ -80,15 +77,15 @@ void main() {
 #ifdef ENABLE_TURING_INSTRUCTION_SET // subgroup partition supported now 
             const highp uvec4 blt = subgroupPartitionNV(key[w])&validAddressL[w];
             const uint btc = subgroupPartitionedAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-            [[flatten]] if (fLn == Lane_Idx && validAddressW) { atomicAdd(localHistogram[uint(key[w])], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (fLn == Lane_Idx && validAddress) { atomicAdd(localHistogram[uint(key[w])], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
 #else
 #ifdef SIMPLER_SORT
-            [[flatten]] if (key[w] == Wr && validAddressW) {
+            [[flatten]] if (key[w] == Wr && validAddress) {
                 const lowp uint btc = subgroupAdd(1u);
                 [[flatten]] if (subgroupElect()) { atomicAdd(localHistogram[uint(key[w])], btc); };
             };
 #else
-            bool found = !validAddressW || key[w]<Wr || key[w]>=(Wr+Wc);
+            bool found = !validAddress || key[w]<Wr || key[w]>=(Wr+Wc);
              for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(key[w])==key[w])) {
                     const lowp uint btc = subgroupAdd(1u);
