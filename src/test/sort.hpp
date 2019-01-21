@@ -7,7 +7,7 @@
 #include <radx/radx.hpp>
 
 #ifdef THRUST_TESTABLE
-//#define ENABLE_THRUST_BENCHMARK
+#define ENABLE_THRUST_BENCHMARK
 #endif
 
 namespace rad {
@@ -120,7 +120,6 @@ namespace rad {
         vk::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
 
         const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { return (physicalDevice = physicalDevices[gpuID]); };
-
         const vk::PhysicalDevice& getPhysicalDevice() const {return this->physicalDevice;};
         const vk::Device& getDevice() const {return this->device;};
         const vk::Queue& getQueue() const {return this->queue;};
@@ -132,6 +131,8 @@ namespace rad {
 
     class TestSort : public std::enable_shared_from_this<TestSort> {
     protected:
+
+
         std::shared_ptr<radx::Device> device;
         std::shared_ptr<radx::Radix> program;
         std::shared_ptr<radx::Sort<radx::Radix>> radixSort;
@@ -142,15 +143,17 @@ namespace rad {
 
         // 
         const size_t elementCount = (2 << 22);
-        std::vector<uint32_t> sortedNumbersThrust;
+        std::vector<uint32_t> sortedNumbersThrust, randNumbers;
 
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
 
-    public:
 #ifdef ENABLE_THRUST_BENCHMARK
-        void testSortingThrust();
+		void testSortingThrust();
 #endif
+
+    public:
+
         TestSort();
         
     };

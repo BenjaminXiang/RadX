@@ -1,7 +1,6 @@
 #pragma once 
 #include "radx_core.hpp"
 #include "radx_device.hpp"
-#include "radx_shaders.hpp"
 #include "radx_buffer.hpp"
 
 namespace radx {

@@ -57,7 +57,7 @@ if (UNIX OR LINUX)
 endif()
 
 # set libs and include dirs of projects
-set (LIB_DIR "${DEP_DIR}/lib")
+set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
     "${DEP_DIR}/include" 
     "${DEP_DIR}/src/" 
@@ -76,14 +76,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
 set(CMAKE_CUDA_FLAGS ”-arch=sm_70”)
 
 # find package Thrust 
-#find_package (Thrust QUIET)
+find_package (Thrust QUIET)
 #find_package (PkgConfig QUIET)
 #pkg_search_module(GLFW QUIET glfw3)
 #pkg_search_module(GLFW QUIET renderdoc)
 
 if (CUDA_INCLUDE_DIRS) 
-    #set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
-    #set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
+    set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
+    set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
+    set (LIBS ${LIBS} ${CUDART_LIBRARY} ${CUDA_LIBRARY})
 endif()
 
 # 
@@ -118,7 +119,7 @@ if (MSVC) # Clang in Visual Studio 2017
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
     # fix MSVC 2019 winprt lib 
-    set (LIB_DIR ${LIB_DIR} "C://Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.20.27027/lib/x64") 
+    #set (LIB_DIR ${LIB_DIR} "C://Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.20.27027/lib/x64") 
 else()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++17 -march=skylake -mtune=skylake -fpermissive -w -Ofast")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast")
@@ -144,11 +145,12 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME sort-test)
 
 if (CUDA_INCLUDE_DIRS)
-add_library(sort-test-cuda STATIC src/test/sort.cu)
-set_target_properties(sort-test-cuda PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_features(sort-test-cuda PUBLIC cxx_std_14)
-set_target_properties(sort-test-cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set(LIBS ${LIBS} sort-test-cuda)
+add_library(sort-thrust STATIC src/test/sort-thrust.cu src/test/sort-thrust.cpp)
+set_target_properties(sort-thrust PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_features(sort-thrust PUBLIC cxx_std_14)
+set_target_properties(sort-thrust PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(sort-thrust PRIVATE ${LIBS})
+set(LIBS ${LIBS} sort-thrust)
 set(DEFINES ${DEFINES} -DTHRUST_TESTABLE)
 endif()
 

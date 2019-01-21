@@ -274,7 +274,7 @@ namespace rad {
 
 
         // generate random numbers and copy to buffer
-        std::vector<uint32_t> randNumbers(elementCount);
+		randNumbers.resize(elementCount);
         std::vector<uint32_t> sortedNumbers(elementCount);
 
 
@@ -315,11 +315,6 @@ namespace rad {
         cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.end();
 
-        //
-#ifdef ENABLE_THRUST_BENCHMARK
-        this->testSortingThrust();
-#endif
-
 #ifdef RENDERDOC_DEBUG
         if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
@@ -352,6 +347,11 @@ namespace rad {
         std::sort(std::execution::par, randNumbers.begin(), randNumbers.end());
         auto end = std::chrono::system_clock::now();
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+
+		// thrust sorting
+#ifdef ENABLE_THRUST_BENCHMARK
+		this->testSortingThrust();
+#endif
 
         //
         std::cout << "Sorting Finished" << std::endl;

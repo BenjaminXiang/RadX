@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "radx_internal.hpp"
+#include "radx_shaders.hpp"
 #include "radx_utils.hpp"
 
 namespace radx {
