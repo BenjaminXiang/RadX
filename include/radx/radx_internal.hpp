@@ -100,7 +100,9 @@ namespace radx {
 
     // general command buffer pipeline barrier
     static inline void commandBarrier(const vk::CommandBuffer& cmdBuffer) {
-        VkMemoryBarrier memoryBarrier{};
+		VkMemoryBarrier memoryBarrier = {};
+		memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		memoryBarrier.pNext = nullptr;
         memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
         cmdBuffer.pipelineBarrier(
@@ -376,8 +378,8 @@ namespace radx {
                 inlineSize = 0,//sizeof(uint32_t) * 4ull,
                 keysSize = maxElementCount * sizeof(uint32_t),
                 valuesSize = maxElementCount * sizeof(uint32_t),
-                keyCacheSize = 0ull,//tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
-                referencesSize = 0ull,//maxElementCount * sizeof(uint32_t),
+                keyCacheSize = 16ull * sizeof(uint32_t),//tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
+                referencesSize = 16ull * sizeof(uint32_t),//maxElementCount * sizeof(uint32_t),
                 histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
                 prefixScanSize = histogramsSize
                 ;

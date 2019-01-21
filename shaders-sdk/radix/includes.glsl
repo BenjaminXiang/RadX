@@ -39,6 +39,15 @@
     #define KTYPE utype_v//utype_t[VEC_SIZE]
     #define ATYPE uvec4
 
+/*
+    #define VEC_SIZE 2u
+    #define VEC_MULT VEC_SIZE
+    #define VEC_SHIF 1u
+    #define VEC_SEQU WPTRX(Wave_Idx) // yes, yes!
+    #define KTYPE utype_v//utype_t[VEC_SIZE]
+    #define ATYPE uvec2
+*/
+
     #define WPTRX uint
     #define BOOLX bool
 

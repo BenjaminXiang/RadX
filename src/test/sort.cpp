@@ -307,18 +307,10 @@ namespace rad {
         auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
         cmdBuf.begin(vk::CommandBufferBeginInfo());
 		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
-
         cmdBuf.resetQueryPool(queryPool, 0, 2);
-
-        cmdBuf.beginQuery(queryPool, 0, vk::QueryControlFlagBits::ePrecise);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
-        cmdBuf.endQuery(queryPool, 0);
-
-		cmdBuf.beginQuery(queryPool, 1, vk::QueryControlFlagBits::ePrecise);
         radixSort->genCommand(cmdBuf, inputInterface);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
-        cmdBuf.endQuery(queryPool, 1);
-
         cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.end();
 
@@ -341,6 +333,7 @@ namespace rad {
         fw->getQueue().submit(sbmi, fence);
         vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
 
+		// get Vulkan API timestamp measure result
         std::array<uint64_t, 2> stamps{};
         vk::Device(*device).getQueryPoolResults(queryPool, 0u, 2u, vk::ArrayProxy<uint64_t>{ 2, &stamps[0] }, sizeof(uint64_t), vk::QueryResultFlagBits::e64);
         double diff = double(stamps[1] - stamps[0])/1e6;

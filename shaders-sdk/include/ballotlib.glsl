@@ -48,9 +48,9 @@ const uint UONE = 1u;
 //lowp uvec2 bPrefixSum() { return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); };
 
 lowp uvec2 bPrefixSum() {
-    const highp uvec4 ballot = subgroupBallot(true);
-    return uvec2(subgroupBallotBitCount(ballot), subgroupBallotExclusiveBitCount(ballot));
-    //return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); 
+    //const highp uvec4 ballot = subgroupBallot(true);
+    //return uvec2(subgroupBallotBitCount(ballot), subgroupBallotExclusiveBitCount(ballot));
+    return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); 
 };
 
 #define initAtomicSubgroupIncFunction(mem, fname, by, T)\
