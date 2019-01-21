@@ -95,10 +95,10 @@ namespace rad {
 
         // instance layers
         std::vector<const char *> wantedLayers = {
-            "VK_LAYER_LUNARG_assistant_layer",
-            "VK_LAYER_LUNARG_standard_validation",
-            "VK_LAYER_LUNARG_parameter_validation",
-            "VK_LAYER_LUNARG_core_validation",
+            //"VK_LAYER_LUNARG_assistant_layer",
+            //"VK_LAYER_LUNARG_standard_validation",
+            //"VK_LAYER_LUNARG_parameter_validation",
+            //"VK_LAYER_LUNARG_core_validation",
 
             //"VK_LAYER_LUNARG_api_dump",
             //"VK_LAYER_LUNARG_object_tracker",
@@ -141,7 +141,7 @@ namespace rad {
         std::unique_ptr<radx::VmaAllocatedBuffer> vmaBuffer, vmaToHostBuffer;//, vmaToDeviceBuffer;
 
         // 
-        const size_t elementCount = (2 << 23);
+        const size_t elementCount = (2 << 22);
         std::vector<uint32_t> sortedNumbersThrust;
 
         vk::DeviceSize keysSize = 0, valuesSize = 0;
