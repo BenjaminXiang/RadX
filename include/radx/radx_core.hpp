@@ -1,11 +1,4 @@
 #pragma once 
-#include <vector>
-#include <memory>
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <future>
-#include <fstream>
 
 // include vulkan API 
 //#include <intrin.h>

@@ -69,22 +69,22 @@ if (Vulkan_INCLUDE_DIR)
 endif()
 
 # set CUDA compiling options
-set(CUDA_SEPARABLE_COMPILATION ON)
+if (CUDA_FOUND) 
 set(CUDA_ARCH -gencode=arch=compute_70,code=sm_70)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G --std=c++14)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
-set(CMAKE_CUDA_FLAGS ”-arch=sm_70”)
+set(CMAKE_CUDA_FLAGS ”-arch=sm_70 -std=c++14”)
+endif()
 
 # find package Thrust 
-find_package (Thrust QUIET)
 #find_package (PkgConfig QUIET)
 #pkg_search_module(GLFW QUIET glfw3)
 #pkg_search_module(GLFW QUIET renderdoc)
 
-if (CUDA_INCLUDE_DIRS) 
+if (CUDA_FOUND) 
     set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
     set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
-    set (LIBS ${LIBS} ${CUDART_LIBRARY} ${CUDA_LIBRARY})
+    #set (LIBS ${LIBS} ${CUDART_LIBRARY} ${CUDA_LIBRARY})
 endif()
 
 # 
@@ -123,7 +123,7 @@ if (MSVC) # Clang in Visual Studio 2017
 else()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++17 -march=skylake -mtune=skylake -fpermissive -w -Ofast")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast")
-    if (CUDA_INCLUDE_DIRS)
+    if (CUDA_FOUND)
         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     endif()
     if (WIN32)
@@ -144,14 +144,13 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # make gltfPBR
 set (APPLICATION_NAME sort-test)
 
-if (CUDA_INCLUDE_DIRS)
-add_library(sort-thrust STATIC src/test/sort-thrust.cu src/test/sort-thrust.cpp)
-set_target_properties(sort-thrust PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_features(sort-thrust PUBLIC cxx_std_14)
-set_target_properties(sort-thrust PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(sort-thrust PRIVATE ${LIBS})
-set(LIBS ${LIBS} sort-thrust)
+if (CUDA_FOUND)
 set(DEFINES ${DEFINES} -DTHRUST_TESTABLE)
+add_definitions(${DEFINES})
+cuda_add_library(sort-thrust STATIC src/test/sort-thrust.cu)
+set_target_properties(sort-thrust PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(sort-thrust PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set(LIBS ${LIBS} sort-thrust)
 endif()
 
 # sort test

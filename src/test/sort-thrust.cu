@@ -6,14 +6,12 @@
 #include <thrust/generate.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
-#include <algorithm>
-#include <cstdlib>
 #endif
 
 namespace rad {
 
+    void TestSort::testSortingThrust()(){
 #ifdef ENABLE_THRUST_BENCHMARK
-    void TestSort::testSortingThrust(){
         sortedNumbersThrust.resize(elementCount);
         thrust::device_vector<uint32_t> randNumbersThrust(elementCount);  
         thrust::copy(randNumbers.begin(), randNumbers.end(), randNumbersThrust.begin());
@@ -25,7 +23,7 @@ namespace rad {
 		std::cout << "Thrust sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
         thrust::copy(randNumbersThrust.begin(), randNumbersThrust.end(), sortedNumbersThrust.begin());
-    };
 #endif
+    };
 
 };
