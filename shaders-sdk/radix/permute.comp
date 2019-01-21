@@ -19,7 +19,7 @@ shared blocks_info blocks;
 #define key _data[Lane_Idx]
 #define bcount blocks.count
 
-#ifndef ENABLE_TURING_INSTRUCTION_SET
+#ifndef ENABLE_SUBGROUP_PARTITION_SORT
 initSubgroupIncFunctionTarget(localHistogram[WHERE], countOffset, 1, uint)
 #endif
 
@@ -74,12 +74,12 @@ void main() {
         LGROUP_BARRIER
 
         // TODO: par_unseq version support 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
         [[flatten]] if (w == 0u) 
 #endif
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) 
         {
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
             const highp uvec4 blt = subgroupPartitionNV(key[w])&validAddressL[w];
             const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
             uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = add(localHistogram[uint(key[w])], btc); };

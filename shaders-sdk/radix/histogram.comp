@@ -67,14 +67,14 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { key[w] = utype_t(BFE(validAddress ? Key8n[addrW][push_block.Shift>>1u] : OutOfRange, int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
 #endif
 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
         [[flatten]] if (w < VEC_SIZE) 
 #else
         LGROUP_BARRIER
         [[unroll]] for (lowp uint w=0u;w<VEC_SIZE;w++) 
 #endif
         {
-#ifdef ENABLE_TURING_INSTRUCTION_SET // subgroup partition supported now 
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
             const highp uvec4 blt = subgroupPartitionNV(key[w])&validAddressL[w];
             const uint btc = subgroupPartitionedAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
             [[flatten]] if (fLn == Lane_Idx && validAddress) { atomicAdd(localHistogram[uint(key[w])], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };

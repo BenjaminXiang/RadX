@@ -13,6 +13,7 @@
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 // 8-bit (risen again, but Turing only)
+#define ENABLE_SUBGROUP_PARTITION_SORT
 #define BITS_PER_PASS 8
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
@@ -52,7 +53,7 @@
     #define BOOLX bool
 
 // 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
 #define Wave_Count VEC_SIZE
 #else
 #define Wave_Count 16u

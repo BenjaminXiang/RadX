@@ -269,7 +269,7 @@ namespace radx {
         cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
         commandBarrier(cmdBuf);
 
-        const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 8u;
+		const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 8u;
         for (auto I=0u;I<stageCount;I++) { // TODO: add support variable stage length
 
             std::array<uint32_t,4> stageC = {I,0,0,0};

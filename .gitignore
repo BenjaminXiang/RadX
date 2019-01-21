@@ -49,3 +49,12 @@ build*/
 cmake-build*/
 cmake-build*/*
 
+# 
+/RelWithDebInfo
+/Debug
+/Release
+/x64
+*/RelWithDebInfo
+*/Debug
+*/Release
+*/x64
