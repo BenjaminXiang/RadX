@@ -17,7 +17,12 @@ const uint WG_COUNT = 64u;
 shared uint localHistogram[RADICES];
 
 // local size 
-const uint local_size_def = Wave_Size*16u;
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+const uint local_size_def = 1024u;
+#else
+const uint local_size_def = Wave_Size * RADICES;
+#endif
+
 layout (local_size_x = local_size_def) in; // use many as possible
 
 // X axis is workgroup count, Y is radices
@@ -25,7 +30,11 @@ void main() {
     [[flatten]] if (Local_Idx < RADICES) localHistogram[Local_Idx] = 0u;
     LGROUP_BARRIER
 
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+    [[unroll, dependency_length(8)]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
+#else
+    { lowp uint rk = 0u;
+#endif
         const lowp uint radice = rk + Wave_Idx;
 
         // calculate prefix-sums by work-groups for every radice
