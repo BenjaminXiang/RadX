@@ -8,7 +8,7 @@ $HRDDIR="../prebuilt/intrusive/$VNDR/"
 $RDXI="radix/"
 
 $CMPPROF="-S comp"
-$OPTFLAGS="-O --inline-entry-points-exhaustive --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
+$OPTFLAGS="-O --skip-validation --strip-debug --inline-entry-points-exhaustive --strength-reduction --vector-dce --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
 
 function Pause ($Message = "Press any key to continue . . . ") {
 #    if ((Test-Path variable:psISE) -and $psISE) {
