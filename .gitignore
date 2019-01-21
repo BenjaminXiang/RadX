@@ -49,21 +49,26 @@ build*/
 cmake-build*/
 cmake-build*/*
 
-# 
+# ignore these directories
 RelWithDebInfo/
 Debug/
 Release/
 x64/
+.vs/
 */RelWithDebInfo/
 */Debug/
 */Release/
 */x64/
+*/.vs/
 
+# ignore containement
 RelWithDebInfo/*
 Debug/*
 Release/*
 x64/*
+.vs/
 */RelWithDebInfo/*
 */Debug/*
 */Release/*
 */x64/*
+*/.vs/*
