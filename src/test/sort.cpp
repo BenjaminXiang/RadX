@@ -1,4 +1,5 @@
 #define VMA_IMPLEMENTATION
+#define RADX_IMPLEMENTATION
 #include "sort.hpp"
 
 //#include <stdio.h>
@@ -309,7 +310,7 @@ namespace rad {
 		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.resetQueryPool(queryPool, 0, 2);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
-        radixSort->genCommand(cmdBuf, inputInterface);
+        radixSort->command(cmdBuf, inputInterface);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
         cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.end();

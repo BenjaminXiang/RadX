@@ -24,6 +24,14 @@ set(SOURCES_LIST
     "./include/volk/*"
     "./include/spirv/*"
     "./include/spirv/*/*"
+    "./src/*.hpp"
+    "./src/*.h"
+    "./src/*/*.hpp"
+    "./src/*/*.h"
+    "./src/include/*.hpp"
+    "./src/include/*.h"
+    "./src/include/*/*.hpp"
+    "./src/include/*/*.h"
 )
 
 # Set definition
