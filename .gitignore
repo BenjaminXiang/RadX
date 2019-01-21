@@ -58,3 +58,11 @@ cmake-build*/*
 */Debug
 */Release
 */x64
+
+/Debug/*
+/Release/*
+/x64/*
+*/RelWithDebInfo/*
+*/Debug/*
+*/Release/*
+*/x64/*
