@@ -244,7 +244,7 @@ namespace rad {
 #endif
 
         // create radix sort application (RadX C++)
-        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
+        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(1));
         device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
 
 
@@ -297,8 +297,9 @@ namespace rad {
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
         cci.commandPool = fw->getCommandPool();
-        cci.commandBufferCount = 1;
+        cci.commandBufferCount = 3;
         cci.level = vk::CommandBufferLevel::ePrimary;
+		std::vector<vk::CommandBuffer> cmdBuffers = vk::Device(*device).allocateCommandBuffers(cci);
 
         // query pool
         vk::QueryPoolCreateInfo qpi{};
@@ -311,29 +312,38 @@ namespace rad {
 
 
         // generate command
-        auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
-        cmdBuf.begin(vk::CommandBufferBeginInfo());
-		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysVector.offset(), keysOffset, keysSize) }); // copy buffer to host
-        cmdBuf.resetQueryPool(queryPool, 0, 2);
-        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, queryPool, 0);
-        radixSort->command(cmdBuf, inputInterface);
-        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, queryPool, 1);
-        cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysVector.offset(), keysSize) }); // copy buffer to host
-        cmdBuf.end();
+		auto& uploadCmdBuf = cmdBuffers.at(0);
+		uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
+		uploadCmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysVector.offset(), keysOffset, keysSize) }); // copy buffer to host
+		uploadCmdBuf.end();
+
+        auto& sortCmdBuf = cmdBuffers.at(1);
+		sortCmdBuf.begin(vk::CommandBufferBeginInfo());
+		sortCmdBuf.resetQueryPool(queryPool, 0, 2);
+		sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
+        radixSort->command(sortCmdBuf, inputInterface);
+		sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+		sortCmdBuf.end();
+
+		auto& downloadCmdBuf = cmdBuffers.at(2);
+		downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
+		downloadCmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysVector.offset(), keysSize) }); // copy buffer to host
+		downloadCmdBuf.end();
 
 #ifdef RENDERDOC_DEBUG
         if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
-
-
         // submit command
         vk::SubmitInfo sbmi = {};
-        sbmi.pCommandBuffers = &cmdBuf;
-        sbmi.commandBufferCount = 1;
+        sbmi.commandBufferCount = cmdBuffers.size();
+		sbmi.pCommandBuffers = cmdBuffers.data();
+
+		// submit commands
         auto fence = fw->getFence();
-        fw->getQueue().submit(sbmi, fence);
-        vk::Device(*device).waitForFences({fence}, true, INT32_MAX);
+		fw->getQueue().submit(sbmi, fence);
+		vk::Device(*device).waitForFences({ fence }, true, INT32_MAX);
+		vk::Device(*device).resetFences({ 1, &fence });
 
 		// get Vulkan API timestamp measure result
         std::array<uint64_t, 2> stamps{};
@@ -352,7 +362,7 @@ namespace rad {
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
 		// get sorted numbers by device (for debug only)
-		memcpy(keysVector.data(), randNumbers.data(), keysVector.size() * sizeof(uint32_t)); // copy
+		memcpy(randNumbers.data(), keysVector.data(), keysVector.size() * sizeof(uint32_t)); // copy
 
 		// thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK
