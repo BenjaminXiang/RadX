@@ -315,9 +315,9 @@ namespace rad {
         cmdBuf.begin(vk::CommandBufferBeginInfo());
 		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysVector.offset(), keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.resetQueryPool(queryPool, 0, 2);
-        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
+        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, queryPool, 0);
         radixSort->command(cmdBuf, inputInterface);
-        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+        cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, queryPool, 1);
         cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysVector.offset(), keysSize) }); // copy buffer to host
         cmdBuf.end();
 

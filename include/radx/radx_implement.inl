@@ -238,7 +238,7 @@ namespace radx {
 
 
     VkResult Radix::initialize(const std::shared_ptr<radx::Device>& device) {
-        this->device = device;//, this->groupX = 64u;
+        this->device = device;
         std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
         // push constant ranges
@@ -256,11 +256,11 @@ namespace radx {
 
         // create pipeline layout 
         this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), this->pipelineLayout));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), this->pipelineLayout));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), this->pipelineLayout));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), this->pipelineLayout));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::transposer, *device->getPhysicalHelper()), this->pipelineLayout));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::transposer, *device->getPhysicalHelper()), pipelineLayout, *device));
 
         // return shared_ptr when needed
         return VK_SUCCESS;

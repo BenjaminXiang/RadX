@@ -50,7 +50,7 @@ void main() {
 
     LGROUP_BARRIER
 
-    [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
+    [[unroll, dependency_length(2)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
         
         // calculate prefix-sums of every radice
