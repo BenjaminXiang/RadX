@@ -259,10 +259,14 @@ namespace rad {
 
         // get memory size and set max element count
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
-        vmaBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
-        vmaToHostBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+        vmaBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
+        vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
 		//vmaToDeviceBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
+		// 
+		std::vector<uint32_t> randNumbers(elementCount);
+		radx::Vector<uint32_t> keysVector(vmaToHostBuffer, elementCount, keysOffset);
+		radx::Vector<uint32_t> valuesVector(vmaToHostBuffer, elementCount, valuesOffset);
 
         // on deprecation
         inputInterface->setElementCount(elementCount);
@@ -274,8 +278,7 @@ namespace rad {
 
 
         // generate random numbers and copy to buffer
-		randNumbers.resize(elementCount);
-        std::vector<uint32_t> sortedNumbers(elementCount);
+        //std::vector<uint32_t> sortedNumbers(elementCount);
 
 
 
@@ -285,8 +288,11 @@ namespace rad {
         std::uniform_int_distribution<uint32_t> distr;
 
 		// generate random numbers and copy to buffer
+		//sortedNumbers.map(); // map by that vector
         for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
-        memcpy((uint8_t*)vmaToHostBuffer->map()+keysOffset, randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy
+
+		keysVector.map(); // map that vector 
+        memcpy(keysVector.data(), randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy from std::vector
 
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
@@ -307,12 +313,12 @@ namespace rad {
         // generate command
         auto cmdBuf = vk::Device(*device).allocateCommandBuffers(cci).at(0);
         cmdBuf.begin(vk::CommandBufferBeginInfo());
-		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
+		cmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysVector.offset(), keysOffset, keysSize) }); // copy buffer to host
         cmdBuf.resetQueryPool(queryPool, 0, 2);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
         radixSort->command(cmdBuf, inputInterface);
         cmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
-        cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysOffset, keysSize) }); // copy buffer to host
+        cmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysVector.offset(), keysSize) }); // copy buffer to host
         cmdBuf.end();
 
 #ifdef RENDERDOC_DEBUG
@@ -339,14 +345,14 @@ namespace rad {
         if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
 #endif
 
-        // get sorted numbers by device
-        memcpy(sortedNumbers.data(), (uint8_t*)vmaToHostBuffer->map()+keysOffset, sortedNumbers.size()*sizeof(uint32_t)); // copy
-
         // do std sort for comparsion (equalent)
         auto start = std::chrono::system_clock::now();
         std::sort(std::execution::par, randNumbers.begin(), randNumbers.end());
         auto end = std::chrono::system_clock::now();
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+
+		// get sorted numbers by device (for debug only)
+		memcpy(keysVector.data(), randNumbers.data(), keysVector.size() * sizeof(uint32_t)); // copy
 
 		// thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK

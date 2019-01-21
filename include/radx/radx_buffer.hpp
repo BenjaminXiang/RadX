@@ -33,6 +33,9 @@ namespace radx {
         operator VmaAllocationInfo&() { return allocationInfo; };
         operator const VmaAllocationInfo&() const { return allocationInfo; };
         
+		// 
+		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
+
     protected:
 		void * mappedData = {};
         vk::Buffer buffer;
@@ -40,6 +43,36 @@ namespace radx {
         VmaAllocationInfo allocationInfo;
 		VmaMemoryUsage usage = VMA_MEMORY_USAGE_GPU_ONLY;
         std::shared_ptr<radx::Device> device;
+		vk::DescriptorBufferInfo bufInfo = {};
     };
+
+	// TODO: buffer copying data and zero-initializer
+	template<class T>
+	class Vector {
+	public:
+		Vector(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
+			bufInfo.buffer = *buffer;
+			bufInfo.offset = offset;
+			bufInfo.range = size * sizeof(T);
+			//this->map();
+		};
+
+		T* map() { mapped = (T*)((uint8_t*)buffer->map() + bufInfo.offset); return mapped; };
+		void unmap() { buffer->unmap(); };
+
+		T* data() { this->map(); return mapped; };
+		T* data() const { return mapped; };
+		size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
+		const T& operator [] (const uintptr_t& i) const { return mapped[i]; };
+		T& operator [] (const uintptr_t& i) { return mapped[i]; };
+		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
+		const vk::DeviceSize& offset() const { return bufInfo.offset; };
+
+	protected:
+		T* mapped = {};
+		std::shared_ptr<VmaAllocatedBuffer> buffer = {};
+		vk::DescriptorBufferInfo bufInfo = {};
+	};
+
 
 };

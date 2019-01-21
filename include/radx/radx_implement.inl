@@ -37,6 +37,9 @@ namespace radx {
 
         //
         vmaCreateBuffer(*device, (VkBufferCreateInfo*)&ci, &aci, (VkBuffer*)&buffer, &allocation, &allocationInfo);
+
+		// 
+		bufInfo = { buffer, 0, VK_WHOLE_SIZE };
     };
 
     // Get mapped memory
