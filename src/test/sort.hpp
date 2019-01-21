@@ -141,7 +141,7 @@ namespace rad {
         std::unique_ptr<radx::VmaAllocatedBuffer> vmaBuffer, vmaToHostBuffer;//, vmaToDeviceBuffer;
 
         // 
-        const size_t elementCount = 1024 * 1024 * 4;
+        const size_t elementCount = (2 << 24);
         std::vector<uint32_t> sortedNumbersThrust;
 
         vk::DeviceSize keysSize = 0, valuesSize = 0;
