@@ -9,20 +9,22 @@
 #include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
-shared uint localHistogram[RADICES];
+shared uint localPrefix[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
 shared uint addrL[VEC_SIZE][Wave_Size];
+shared lowp uint prefixL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 #define addrW addrL[w][Lane_Idx]
 #define keyW _data[w][Lane_Idx]
+#define prefixW prefixL[w][Lane_Idx]
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
-initSubgroupIncFunctionTarget(localHistogram[WHERE], countOffset, 1, uint)
+initSubgroupIncFunctionTarget(localPrefix[WHERE], countOffset, 1, uint)
 #endif
 
 const uint Wc = RADICES/Wave_Count;
@@ -38,9 +40,8 @@ void main() {
     const lowp uint w = Wave_Idx, Wr = Wc * w;
 
     // clear histogram of block (planned distribute threads)
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) {
-        const lowp uint radice = rk + Local_Idx;
-        [[flatten]] if (radice < RADICES) localHistogram[radice+0u] = PrefixSum[gl_WorkGroupID.x * RADICES + radice];
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
+        [[flatten]] if (radice < RADICES) { localPrefix[radice+0u] = PrefixSum[gl_WorkGroupID.x * RADICES + radice]; };
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER
@@ -69,16 +70,12 @@ void main() {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
         [[flatten]] if (w == 0u) 
 #endif
-        [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) 
-        {
+        {[[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
             const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-            uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = add(localHistogram[uint(keyW)], btc); };
-            {
-                const uint offset = subgroupShuffle(cntl,fLn) + btl;
-                [[flatten]] if (validAddress) { ValueTmp[offset] = ValueIn[addrW], KeyTmp[offset] = KeyIn[addrW]; };
-            };
+            uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], btc); };
+            { prefixW = subgroupShuffle(cntl,fLn) + btl; };
 #else
 #ifdef SIMPLER_SORT
             [[flatten]] if (keyW == Wr && validAddress) {
@@ -87,7 +84,7 @@ void main() {
             };
 #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
-             for (lowp uint t=0;t<BSIZE;t+=1u) {
+            for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const uint offset = countOffset(keyW);
                     ValueTmp[offset] = ValueIn[addrW], KeyTmp[offset] = KeyIn[addrW];
@@ -96,10 +93,17 @@ void main() {
             };
 #endif
 #endif
+        }};
+
+        LGROUP_BARRIER
+
+        // prefer shuffle after calculation
+        [[flatten]] if (w < VEC_SIZE && validAddress) {
+            ValueTmp[prefixW] = ValueIn[addrW], KeyTmp[prefixW] = KeyIn[addrW]; 
         };
 
         LGROUP_BARRIER
-            [[flatten]] if (w < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
-            //[[flatten]] if (w < 1u) { addrWt += Wave_Size_RT; };
+        [[flatten]] if (w < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
+        //[[flatten]] if (w < 1u) { addrWt += Wave_Size_RT; };
     };
 };
