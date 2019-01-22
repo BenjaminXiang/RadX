@@ -246,8 +246,6 @@ namespace rad {
         // create radix sort application (RadX C++)
         physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(fw->getPhysicalDevice(0));
         device = std::make_shared<radx::Device>()->initialize(fw->createDevice(), physicalHelper);
-
-
         program = std::make_shared<radx::Radix>(), program->initialize(device);
         radixSort = std::make_shared<radx::Sort<radx::Radix>>(), radixSort->initialize(device, program, elementCount);
         inputInterface = std::make_shared<radx::InputInterface>(device);
@@ -259,27 +257,25 @@ namespace rad {
 
         // get memory size and set max element count
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
-        vmaBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
-        vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
-		//vmaToDeviceBuffer = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		{
+			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
+			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+		};
 
 		// 
-		std::vector<uint32_t> randNumbers(elementCount);
-		radx::Vector<uint32_t> keysVector(vmaToHostBuffer, elementCount, keysOffset);
-		radx::Vector<uint32_t> valuesVector(vmaToHostBuffer, elementCount, valuesOffset);
+		std::shared_ptr<radx::Vector<uint32_t>> 
+			keysHostVector = std::make_shared<radx::Vector<uint32_t>>(vmaHostBuffer, elementCount, keysOffset),
+			keysDeviceVector = std::make_shared<radx::Vector<uint32_t>>(vmaDeviceBuffer, elementCount, keysOffset),
+			valuesDeviceVector = std::make_shared<radx::Vector<uint32_t>>(vmaDeviceBuffer, elementCount, valuesOffset)
+			;
 
         // on deprecation
-        inputInterface->setElementCount(elementCount);
-        inputInterface->setKeysBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, keysOffset, keysSize));
-        inputInterface->setValuesBufferInfo(vk::DescriptorBufferInfo(*vmaBuffer, valuesOffset, valuesSize));
+        inputInterface->setElementCount(keysDeviceVector->size());
+        inputInterface->setKeysBufferInfo(*keysDeviceVector);
+        inputInterface->setValuesBufferInfo(*valuesDeviceVector);
 
         // build descriptor set
-        inputInterface->buildDescriptorSet();
-
-
-        // generate random numbers and copy to buffer
-        //std::vector<uint32_t> sortedNumbers(elementCount);
-
+		inputInterface->buildDescriptorSet();
 
 
         // random engine
@@ -288,11 +284,9 @@ namespace rad {
         std::uniform_int_distribution<uint32_t> distr;
 
 		// generate random numbers and copy to buffer
-		//sortedNumbers.map(); // map by that vector
+		std::vector<uint32_t> randNumbers(elementCount);
         for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
-
-		keysVector.map(); // map that vector 
-        memcpy(keysVector.data(), randNumbers.data(), randNumbers.size()*sizeof(uint32_t)); // copy from std::vector
+        memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
@@ -306,29 +300,35 @@ namespace rad {
         qpi.queryType = vk::QueryType::eTimestamp;
         qpi.queryCount = 2;
         qpi.pipelineStatistics = vk::QueryPipelineStatisticFlagBits::eComputeShaderInvocations;
-
-        // query pool
-        auto queryPool = vk::Device(*device).createQueryPool(qpi);
-
+		auto queryPool = vk::Device(*device).createQueryPool(qpi);
 
         // generate command
-		auto& uploadCmdBuf = cmdBuffers.at(0);
-		uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-		uploadCmdBuf.copyBuffer(*vmaToHostBuffer, *vmaBuffer, { vk::BufferCopy(keysVector.offset(), keysOffset, keysSize) }); // copy buffer to host
-		uploadCmdBuf.end();
+		{
+			auto& uploadCmdBuf = cmdBuffers.at(0);
+			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
+			uploadCmdBuf.copyBuffer(*keysHostVector, *keysDeviceVector, { vk::BufferCopy(keysHostVector->offset(), keysDeviceVector->offset(), keysHostVector->range()) }); // copy buffer to host
+			commandTransferBarrier(uploadCmdBuf);
+			uploadCmdBuf.end();
+		};
 
-        auto& sortCmdBuf = cmdBuffers.at(1);
-		sortCmdBuf.begin(vk::CommandBufferBeginInfo());
-		sortCmdBuf.resetQueryPool(queryPool, 0, 2);
-		sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
-        radixSort->command(sortCmdBuf, inputInterface);
-		sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
-		sortCmdBuf.end();
+		{
+			auto& sortCmdBuf = cmdBuffers.at(1);
+			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
+			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
+			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
+			radixSort->command(sortCmdBuf, inputInterface);
+			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+			commandTransferBarrier(sortCmdBuf);
+			sortCmdBuf.end();
+		};
 
-		auto& downloadCmdBuf = cmdBuffers.at(2);
-		downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-		downloadCmdBuf.copyBuffer(*vmaBuffer, *vmaToHostBuffer, { vk::BufferCopy(keysOffset, keysVector.offset(), keysSize) }); // copy buffer to host
-		downloadCmdBuf.end();
+		{
+			auto& downloadCmdBuf = cmdBuffers.at(2);
+			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
+			downloadCmdBuf.copyBuffer(*keysDeviceVector, *keysHostVector, { vk::BufferCopy(keysDeviceVector->offset(), keysHostVector->offset(), keysDeviceVector->range()) }); // copy buffer to host
+			commandTransferBarrier(downloadCmdBuf);
+			downloadCmdBuf.end();
+		};
 
 #ifdef RENDERDOC_DEBUG
         if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
@@ -362,7 +362,7 @@ namespace rad {
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
 		// get sorted numbers by device (for debug only)
-		memcpy(randNumbers.data(), keysVector.data(), keysVector.size() * sizeof(uint32_t)); // copy
+		memcpy(randNumbers.data(), keysHostVector->data(), keysHostVector->range()); // copy
 
 		// thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK

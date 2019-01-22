@@ -12,6 +12,18 @@
 
 namespace rad {
 
+	// general command buffer pipeline barrier
+	static inline void commandTransferBarrier(const vk::CommandBuffer& cmdBuffer) {
+		VkMemoryBarrier memoryBarrier = {};
+		memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		memoryBarrier.pNext = nullptr;
+		memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+		memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT;
+		cmdBuffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader,
+			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader, {}, { memoryBarrier }, {}, {});
+	};
+
     class ComputeFramework {
     protected:
         vk::Queue queue = {};
@@ -95,10 +107,10 @@ namespace rad {
 
         // instance layers
         std::vector<const char *> wantedLayers = {
-            //"VK_LAYER_LUNARG_assistant_layer",
-            //"VK_LAYER_LUNARG_standard_validation",
-            //"VK_LAYER_LUNARG_parameter_validation",
-            //"VK_LAYER_LUNARG_core_validation",
+            "VK_LAYER_LUNARG_assistant_layer",
+            "VK_LAYER_LUNARG_standard_validation",
+            "VK_LAYER_LUNARG_parameter_validation",
+            "VK_LAYER_LUNARG_core_validation",
 
             //"VK_LAYER_LUNARG_api_dump",
             //"VK_LAYER_LUNARG_object_tracker",
@@ -139,7 +151,8 @@ namespace rad {
         std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
         std::shared_ptr<radx::InputInterface> inputInterface;
         std::shared_ptr<ComputeFramework> fw;
-        std::shared_ptr<radx::VmaAllocatedBuffer> vmaBuffer, vmaToHostBuffer;//, vmaToDeviceBuffer;
+        std::shared_ptr<radx::VmaAllocatedBuffer> vmaDeviceBuffer, vmaHostBuffer;//, vmaToDeviceBuffer;
+		
 
         // 
         const size_t elementCount = (2 << 22);

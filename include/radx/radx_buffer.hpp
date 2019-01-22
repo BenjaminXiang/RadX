@@ -22,15 +22,15 @@ namespace radx {
         void unmap();
 
         // vk::Device caster
-        operator vk::Buffer&() { return buffer; };
+        //operator vk::Buffer&() { return buffer; };
         operator const vk::Buffer&() const { return buffer; };
 
         // Allocation
-        operator VmaAllocation&() { return allocation; };
+        //operator VmaAllocation&() { return allocation; };
         operator const VmaAllocation&() const { return allocation; };
 
         // AllocationInfo
-        operator VmaAllocationInfo&() { return allocationInfo; };
+        //operator VmaAllocationInfo&() { return allocationInfo; };
         operator const VmaAllocationInfo&() const { return allocationInfo; };
         
 		// 
@@ -63,10 +63,13 @@ namespace radx {
 		T* data() { this->map(); return mapped; };
 		T* data() const { return mapped; };
 		size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
+		const vk::DeviceSize& range() const { return bufInfo.range; };
 		const T& operator [] (const uintptr_t& i) const { return mapped[i]; };
 		T& operator [] (const uintptr_t& i) { return mapped[i]; };
 		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
 		const vk::DeviceSize& offset() const { return bufInfo.offset; };
+		operator const vk::Buffer&() const { return *buffer; };
+		//operator vk::Buffer&() { return *buffer; };
 
 	protected:
 		T* mapped = {};
