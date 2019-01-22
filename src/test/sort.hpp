@@ -155,7 +155,7 @@ namespace rad {
 		
 
         // 
-        const size_t elementCount = (2 << 22);
+        const size_t elementCount = (2 << 20);
 
         vk::DeviceSize keysSize = 0, valuesSize = 0;
         vk::DeviceSize keysOffset = 0, valuesOffset = 0;
