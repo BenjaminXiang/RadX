@@ -151,7 +151,7 @@ namespace rad {
         std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
         std::shared_ptr<radx::InputInterface> inputInterface;
         std::shared_ptr<ComputeFramework> fw;
-        std::shared_ptr<radx::VmaAllocatedBuffer> vmaDeviceBuffer, vmaHostBuffer;//, vmaToDeviceBuffer;
+        std::shared_ptr<radx::VmaAllocatedBuffer> vmaDeviceBuffer, vmaToHostBuffer, vmaFromHostBuffer;//, vmaToDeviceBuffer;
 		
 
         // 

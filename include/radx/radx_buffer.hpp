@@ -48,9 +48,9 @@ namespace radx {
 
 	// TODO: buffer copying data and zero-initializer
 	template<class T>
-	class Vector {
+	class BufferRegion {
 	public:
-		Vector(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
+		BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
 			bufInfo.buffer = *buffer;
 			bufInfo.offset = offset;
 			bufInfo.range = size * sizeof(T);
@@ -64,17 +64,77 @@ namespace radx {
 		T* data() const { return mapped; };
 		size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
 		const vk::DeviceSize& range() const { return bufInfo.range; };
-		const T& operator [] (const uintptr_t& i) const { return mapped[i]; };
-		T& operator [] (const uintptr_t& i) { return mapped[i]; };
+
+		// at function 
+		const T& at(const uintptr_t& i) const { return mapped[i]; };
+		T& at(const uintptr_t& i) { return mapped[i]; };
+
+		// array operator 
+		const T& operator [] (const uintptr_t& i) const { return at(i); };
+		T& operator [] (const uintptr_t& i) { return at(i); };
+
 		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
 		const vk::DeviceSize& offset() const { return bufInfo.offset; };
 		operator const vk::Buffer&() const { return *buffer; };
 		//operator vk::Buffer&() { return *buffer; };
 
+		// begin ptr
+		const T* begin() const { return &at(0); };
+		T* begin() { return &at(0); };
+
+		// end ptr
+		const T* end() const { return &at(size() - 1ul); };
+		T* end() { return &at(size() - 1ul); };
+
 	protected:
 		T* mapped = {};
 		std::shared_ptr<VmaAllocatedBuffer> buffer = {};
 		vk::DescriptorBufferInfo bufInfo = {};
+	};
+
+	template<class T>
+	class Vector {
+	public:
+		Vector() {}
+		Vector(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) {
+			region = std::make_shared<BufferRegion<T>>(buffer, size, offset);
+		};
+		Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
+
+		// map through
+		T* map() { return region->map(); };
+		void unmap() { return region->unmap(); };
+
+		T* data() { return region->data(); };
+		T* data() const { return region->data(); };
+
+		// sizing 
+		size_t size() const { return region->size(); };
+		const vk::DeviceSize& range() const { return region->range(); };
+
+		// at function 
+		const T& at(const uintptr_t& i) const { return region->at(i); };
+		T& at(const uintptr_t& i) { return region->at(i); };
+
+		// array operator 
+		const T& operator [] (const uintptr_t& i) const { at(i); };
+		T& operator [] (const uintptr_t& i) { return at(i); };
+
+		// begin ptr
+		const T* begin() const { region->begin(); };
+		T* begin() { return region->begin(); };
+
+		// end ptr
+		const T* end() const { return region->end(); };
+		T* end() { return region->end(); };
+
+		// 
+		operator const vk::DescriptorBufferInfo&() const { return *region; };
+		operator const vk::Buffer&() const { return *region; };
+		const vk::DeviceSize& offset() const { return region->offset(); };
+
+	protected:
+		std::shared_ptr<BufferRegion<T>> region = {};
 	};
 
 

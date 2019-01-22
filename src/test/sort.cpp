@@ -259,20 +259,22 @@ namespace rad {
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
 		{
 			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
-			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+			vmaFromHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU );
+			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_CPU_TO_GPU);
 		};
 
 		// 
-		std::shared_ptr<radx::Vector<uint32_t>> 
-			keysHostVector = std::make_shared<radx::Vector<uint32_t>>(vmaHostBuffer, elementCount, keysOffset),
-			keysDeviceVector = std::make_shared<radx::Vector<uint32_t>>(vmaDeviceBuffer, elementCount, keysOffset),
-			valuesDeviceVector = std::make_shared<radx::Vector<uint32_t>>(vmaDeviceBuffer, elementCount, valuesOffset)
+		radx::Vector<uint32_t> 
+			keysHostVector = radx::Vector<uint32_t>(vmaFromHostBuffer, elementCount, keysOffset),
+			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
+			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
+			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset)
 			;
 
         // on deprecation
-        inputInterface->setElementCount(keysDeviceVector->size());
-        inputInterface->setKeysBufferInfo(*keysDeviceVector);
-        inputInterface->setValuesBufferInfo(*valuesDeviceVector);
+        inputInterface->setElementCount(keysDeviceVector.size());
+        inputInterface->setKeysBufferInfo(keysDeviceVector);
+        inputInterface->setValuesBufferInfo(valuesDeviceVector);
 
         // build descriptor set
 		inputInterface->buildDescriptorSet();
@@ -283,10 +285,11 @@ namespace rad {
         std::mt19937_64 eng(rd());
         std::uniform_int_distribution<uint32_t> distr;
 
+		
 		// generate random numbers and copy to buffer
-		std::vector<uint32_t> randNumbers(elementCount);
-        for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
-        memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
+		keysHostVector.map();
+        for (uint32_t i=0;i< keysHostVector.size();i++) { keysHostVector[i] = distr(eng); };
+        //memcpy(keysHostVector->map(), sortedNumbers.data(), keysHostVector->range()); // copy from std::vector
 
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
@@ -306,7 +309,7 @@ namespace rad {
 		{
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(*keysHostVector, *keysDeviceVector, { vk::BufferCopy(keysHostVector->offset(), keysDeviceVector->offset(), keysHostVector->range()) }); // copy buffer to host
+			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
 			commandTransferBarrier(uploadCmdBuf);
 			uploadCmdBuf.end();
 		};
@@ -322,10 +325,10 @@ namespace rad {
 			sortCmdBuf.end();
 		};
 
-		{
+		{ // copy to host into dedicated buffer (for debug only)
 			auto& downloadCmdBuf = cmdBuffers.at(2);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			downloadCmdBuf.copyBuffer(*keysDeviceVector, *keysHostVector, { vk::BufferCopy(keysDeviceVector->offset(), keysHostVector->offset(), keysDeviceVector->range()) }); // copy buffer to host
+			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			commandTransferBarrier(downloadCmdBuf);
 			downloadCmdBuf.end();
 		};
@@ -357,12 +360,13 @@ namespace rad {
 
         // do std sort for comparsion (equalent)
         auto start = std::chrono::system_clock::now();
-        std::sort(std::execution::par, randNumbers.begin(), randNumbers.end());
+        std::sort(std::execution::par, keysHostVector.map(), keysHostVector.end());
         auto end = std::chrono::system_clock::now();
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
 		// get sorted numbers by device (for debug only)
-		memcpy(randNumbers.data(), keysHostVector->data(), keysHostVector->range()); // copy
+		std::vector<uint32_t> sortedNumbers(elementCount);
+		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 
 		// thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK
