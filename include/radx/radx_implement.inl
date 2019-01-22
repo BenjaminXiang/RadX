@@ -307,13 +307,13 @@ namespace radx {
 
 
     VkResult Radix::createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount) {
-        vk::DeviceSize tileFix = sizeof(uint32_t)*4u*this->groupX;
+        vk::DeviceSize tileFix = 4u*this->groupX;
 
         vk::DeviceSize 
             inlineSize = 0,//sizeof(uint32_t) * 4ull,
             keysSize = maxElementCount * sizeof(uint32_t),
             valuesSize = maxElementCount * sizeof(uint32_t),
-            keyCacheSize = 16ull * sizeof(uint32_t),//tiled(maxElementCount * sizeof(uint32_t), tileFix) * tileFix,
+            keyCacheSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint8_t),
             referencesSize = 16ull * sizeof(uint32_t),//maxElementCount * sizeof(uint32_t),
             histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
             prefixScanSize = histogramsSize
