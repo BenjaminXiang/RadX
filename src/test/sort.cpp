@@ -268,7 +268,8 @@ namespace rad {
 			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
 			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
 			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
-			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset)
+			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset),
+			keysHostVectorCopy = keysHostVector // for C++ debug
 			;
 
         // on deprecation

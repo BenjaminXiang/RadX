@@ -73,11 +73,6 @@ namespace radx {
 		const T& operator [] (const uintptr_t& i) const { return at(i); };
 		T& operator [] (const uintptr_t& i) { return at(i); };
 
-		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
-		const vk::DeviceSize& offset() const { return bufInfo.offset; };
-		operator const vk::Buffer&() const { return *buffer; };
-		//operator vk::Buffer&() { return *buffer; };
-
 		// begin ptr
 		const T* begin() const { return &at(0); };
 		T* begin() { return &at(0); };
@@ -85,6 +80,10 @@ namespace radx {
 		// end ptr
 		const T* end() const { return &at(size() - 1ul); };
 		T* end() { return &at(size() - 1ul); };
+
+		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
+		operator const vk::Buffer&() const { return *buffer; };
+		const vk::DeviceSize& offset() const { return bufInfo.offset; };
 
 	protected:
 		T* mapped = {};
@@ -100,6 +99,7 @@ namespace radx {
 			region = std::make_shared<BufferRegion<T>>(buffer, size, offset);
 		};
 		Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
+		Vector(const Vector<T>& vector) : region(vector.region) {};
 
 		// map through
 		T* map() { return region->map(); };
