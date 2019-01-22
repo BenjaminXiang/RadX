@@ -259,13 +259,13 @@ namespace rad {
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
 		{
 			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
-			vmaFromHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU );
+			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU );
 			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_CPU_TO_GPU);
 		};
 
 		// 
 		radx::Vector<uint32_t> 
-			keysHostVector = radx::Vector<uint32_t>(vmaFromHostBuffer, elementCount, keysOffset),
+			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
 			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
 			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
 			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset)
@@ -359,12 +359,14 @@ namespace rad {
 #endif
 
         // do std sort for comparsion (equalent)
+		// for better result's should be work while GPU sorting (after copying host data into device)
         auto start = std::chrono::system_clock::now();
         std::sort(std::execution::par, keysHostVector.map(), keysHostVector.end());
         auto end = std::chrono::system_clock::now();
         std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
 		// get sorted numbers by device (for debug only)
+		// used alternate buffer, because std::sort already overriden 'keysHostVector' data 
 		std::vector<uint32_t> sortedNumbers(elementCount);
 		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 
