@@ -378,7 +378,6 @@ namespace rad {
 
         //
         std::cout << "Sorting Finished" << std::endl;
-        system("pause");
 
 
 #ifdef RENDERDOC_DEBUGGABLE

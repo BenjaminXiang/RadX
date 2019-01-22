@@ -15,6 +15,10 @@ namespace radx {
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
         );
 
+		~VmaAllocatedBuffer() {
+			vmaDestroyBuffer(*device, buffer, allocation);
+		};
+
         // Get mapped memory
         void* map();
 

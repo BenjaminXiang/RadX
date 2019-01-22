@@ -105,6 +105,11 @@ namespace radx {
         VmaAllocator allocator = {};
 
     public:
+		~Device() {
+			device.waitIdle(); // wait idle before than device has been destroyed
+			vmaDestroyAllocator(allocator);
+		};
+
         const std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() const { return descriptorLayouts; };
         std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() { return descriptorLayouts; };
 
