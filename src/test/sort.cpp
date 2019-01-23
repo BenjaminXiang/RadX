@@ -259,8 +259,8 @@ namespace rad {
         vk::DeviceSize memorySize = valuesOffset + valuesSize;
 		{
 			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
-			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU );
-			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_CPU_TO_GPU);
+			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
+			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_TO_CPU);
 		};
 
 		// 
@@ -290,7 +290,8 @@ namespace rad {
 		// generate random numbers and copy to buffer
 		keysHostVector.map();
         for (uint32_t i=0;i< keysHostVector.size();i++) { keysHostVector[i] = distr(eng); };
-        //memcpy(keysHostVector->map(), sortedNumbers.data(), keysHostVector->range()); // copy from std::vector
+		//std::copy(randNumbers.begin(), randNumbers.end(), keysHostVector.begin());
+        //memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
         // command allocation
         vk::CommandBufferAllocateInfo cci{};
@@ -311,7 +312,7 @@ namespace rad {
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
 			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
-			commandTransferBarrier(uploadCmdBuf);
+			//commandTransferBarrier(uploadCmdBuf);
 			uploadCmdBuf.end();
 		};
 
@@ -319,9 +320,9 @@ namespace rad {
 			auto& sortCmdBuf = cmdBuffers.at(1);
 			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
 			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
-			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
+			//sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
 			radixSort->command(sortCmdBuf, inputInterface);
-			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+			//sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
 			commandTransferBarrier(sortCmdBuf);
 			sortCmdBuf.end();
 		};
@@ -330,7 +331,7 @@ namespace rad {
 			auto& downloadCmdBuf = cmdBuffers.at(2);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
 			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
-			commandTransferBarrier(downloadCmdBuf);
+			//commandTransferBarrier(downloadCmdBuf);
 			downloadCmdBuf.end();
 		};
 
@@ -344,16 +345,21 @@ namespace rad {
 		sbmi.pCommandBuffers = cmdBuffers.data();
 
 		// submit commands
-        auto fence = fw->getFence();
-		fw->getQueue().submit(sbmi, fence);
-		vk::Device(*device).waitForFences({ fence }, true, INT32_MAX);
+		auto fence = fw->getFence(); {
+			
+			auto start = std::chrono::system_clock::now(); // get chrono start
+			fw->getQueue().submit(sbmi, fence);
+			vk::Device(*device).waitForFences({ fence }, true, INT32_MAX);
+			auto end = std::chrono::system_clock::now(); // get chrono end
+			std::cout << "GPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+		};
 		vk::Device(*device).resetFences({ 1, &fence });
 
 		// get Vulkan API timestamp measure result
-        std::array<uint64_t, 2> stamps{};
-        vk::Device(*device).getQueryPoolResults(queryPool, 0u, 2u, vk::ArrayProxy<uint64_t>{ 2, &stamps[0] }, sizeof(uint64_t), vk::QueryResultFlagBits::e64);
-        double diff = double(stamps[1] - stamps[0])/1e6;
-        std::cout << "GPU sort measured in " << diff << "ms" << std::endl;
+        //std::array<uint64_t, 2> stamps{};
+        //vk::Device(*device).getQueryPoolResults(queryPool, 0u, 2u, vk::ArrayProxy<uint64_t>{ 2, &stamps[0] }, sizeof(uint64_t), vk::QueryResultFlagBits::e64);
+        //double diff = double(stamps[1] - stamps[0])/1e6;
+        //std::cout << "GPU sort measured in " << diff << "ms" << std::endl;
 
 #ifdef RENDERDOC_DEBUG
         if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
@@ -361,15 +367,18 @@ namespace rad {
 
         // do std sort for comparsion (equalent)
 		// for better result's should be work while GPU sorting (after copying host data into device)
-        auto start = std::chrono::system_clock::now();
-        std::sort(std::execution::par, keysHostVector.map(), keysHostVector.end());
-        auto end = std::chrono::system_clock::now();
-        std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+		{
+			auto start = std::chrono::system_clock::now();
+			std::sort(std::execution::par, keysHostVector.begin(), keysHostVector.end());
+			auto end = std::chrono::system_clock::now();
+			std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+		};
 
 		// get sorted numbers by device (for debug only)
 		// used alternate buffer, because std::sort already overriden 'keysHostVector' data 
-		std::vector<uint32_t> sortedNumbers(elementCount);
-		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
+		   std::vector<uint32_t> sortedNumbers(elementCount);
+		   //std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
+		   memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 
 		// thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK

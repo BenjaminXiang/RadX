@@ -11,7 +11,7 @@ namespace radx {
         VmaAllocatedBuffer(
             const std::shared_ptr<radx::Device>& device, 
             vk::DeviceSize dsize = sizeof(uint32_t), 
-            vk::BufferUsageFlags bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, 
+            vk::BufferUsageFlags bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer, 
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
         );
 
@@ -61,11 +61,12 @@ namespace radx {
 			//this->map();
 		};
 
-		T* map() { mapped = (T*)((uint8_t*)buffer->map() + bufInfo.offset); return mapped; };
+		T* const& map() { mapped = (T*)((uint8_t*)buffer->map() + bufInfo.offset); return mapped; };
 		void unmap() { buffer->unmap(); };
 
-		T* data() { this->map(); return mapped; };
-		T* data() const { return mapped; };
+		T* const& data() { this->map(); return mapped; };
+		const T*& data() const { return mapped; };
+
 		size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
 		const vk::DeviceSize& range() const { return bufInfo.range; };
 
@@ -78,11 +79,11 @@ namespace radx {
 		T& operator [] (const uintptr_t& i) { return at(i); };
 
 		// begin ptr
-		const T* begin() const { return &at(0); };
-		T* begin() { return &at(0); };
+		const T*& begin() const { return data(); };
+		T* const& begin() { return map(); };
 
 		// end ptr
-		const T* end() const { return &at(size() - 1ul); };
+		const T*& end() const { return &at(size() - 1ul); };
 		T* end() { return &at(size() - 1ul); };
 
 		operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
@@ -106,11 +107,11 @@ namespace radx {
 		Vector(const Vector<T>& vector) : region(vector.region) {};
 
 		// map through
-		T* map() { return region->map(); };
+		T* const& map() { return region->map(); };
 		void unmap() { return region->unmap(); };
 
-		T* data() { return region->data(); };
-		T* data() const { return region->data(); };
+		T* const& data() { return region->data(); };
+		const T*& data() const { return region->data(); };
 
 		// sizing 
 		size_t size() const { return region->size(); };
@@ -125,8 +126,8 @@ namespace radx {
 		T& operator [] (const uintptr_t& i) { return at(i); };
 
 		// begin ptr
-		const T* begin() const { region->begin(); };
-		T* begin() { return region->begin(); };
+		const T*& begin() const { region->begin(); };
+		T* const& begin() { return region->begin(); };
 
 		// end ptr
 		const T* end() const { return region->end(); };

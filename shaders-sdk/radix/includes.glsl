@@ -97,19 +97,19 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-layout ( binding = 0, set = INDIR, std430, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
-layout ( binding = 1, set = INDIR, std430, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-layout ( binding = 0, set = OUTDIR, std430, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
-layout ( binding = 1, set = OUTDIR, std430, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
+layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
+layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
+layout ( binding = 0, set = OUTDIR, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
+layout ( binding = 1, set = OUTDIR, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
 
 // 
-layout ( binding = 3, set = 0, std430, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
-layout ( binding = 4, set = 0, std430, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
+layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
+layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;
-layout ( binding = 6, set = 0, std430, scalar ) uniform InlineUniformB { uint data; } internal_block[];
-layout ( binding = 6, set = 1, std430, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
+layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
+layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
 #define NumElements inline_block[0].data
 
