@@ -103,10 +103,9 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
-layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-layout ( binding = 0, set = OUTDIR, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
-layout ( binding = 1, set = OUTDIR, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
+//layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
+//layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
+//layout ( binding = 1, set = 0, scalar )  subgroupcoherent buffer ValueTmpB {uint values[]; } values[];
 
 // 
 layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };

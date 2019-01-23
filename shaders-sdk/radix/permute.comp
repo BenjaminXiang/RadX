@@ -31,7 +31,8 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
+layout ( binding = 0, set = 0, scalar ) subgroupcoherent buffer KeyTmpB {KEYTYPE data[]; } keys[2];
+//layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
 
 
@@ -114,11 +115,10 @@ void main() {
 
         LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) {
-           [[flatten]] if (validAddress) { 
-               KeyTmp[prefixW] = KeyIn[addrW]; 
-               //ValueTmp[prefixW] = ValueIn[addrW]; 
+            [[flatten]] if (validAddress) {
+                keys[nonuniformEXT(1-(push_block.Shift&1))].data[prefixW] = keys[nonuniformEXT(push_block.Shift&1)].data[addrW];
             };
-           addrW += ( Wave_Size_RT << VEC_SHIF );
+            addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
 };

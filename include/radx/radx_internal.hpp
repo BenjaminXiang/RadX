@@ -10,10 +10,6 @@ namespace radx {
         std::shared_ptr<radx::Device> device = {};
         std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
 
-        // TODO: use std::vector instead of 
-        vk::DescriptorBufferInfo keysCacheBufferInfo = {}, referencesBufferInfo = {},
-                                 keysStoreBufferInfo = {}, valuesStoreBufferInfo = {},
-                                 histogramBufferInfo = {}, prefixScansBufferInfo = {};
         vk::DescriptorSet descriptorSet = {};
         size_t maxElementCount = 1024*1024;
 
@@ -24,16 +20,22 @@ namespace radx {
             
         };
 
+		// TODO: use std::vector instead of 
+		vk::DescriptorBufferInfo keysCacheBufferInfo = {}, //referencesBufferInfo = {},
+			keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
+			histogramBufferInfo = {}, prefixScansBufferInfo = {};
+
+
         virtual InternalInterface& setKeysCacheBufferInfo(const vk::DescriptorBufferInfo& keysCache = {}){ this->keysCacheBufferInfo = keysCache; return *this; };
-        virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
+        //virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
         virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}){ this->keysStoreBufferInfo = keysStore; return *this; };
-        virtual InternalInterface& setValuesStoreBufferInfo(const vk::DescriptorBufferInfo& valuesStore = {}){ this->valuesStoreBufferInfo = valuesStore; return *this; };
         virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
+		virtual InternalInterface& setKeysBackupBufferInfo(const vk::DescriptorBufferInfo& keysBackup = {}) { this->keysBackupBufferInfo = keysBackup; return *this; };
         virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
         virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; return *this; };
-        virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize) {this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize); return *this; };
+        virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize) {this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc); return *this; };
         virtual InternalInterface& buildDescriptorSet();
-        
+
         // vk::DescriptorSet caster
         operator vk::DescriptorSet&() { return descriptorSet; };
         operator const vk::DescriptorSet&() const { return descriptorSet; };
@@ -45,7 +47,7 @@ namespace radx {
         std::shared_ptr<radx::Device> device = {};
 
         // TODO: use std::vector instead of 
-        vk::DescriptorBufferInfo keysBufferInfo = {}, valuesBufferInfo = {};
+        
         vk::DescriptorSet descriptorSet;
         size_t elementCount = 0;
 
@@ -53,10 +55,11 @@ namespace radx {
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
+		vk::DescriptorBufferInfo keysBufferInfo = {};
 
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
-        virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
+        //virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
         virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; return *this; };
         virtual InputInterface& buildDescriptorSet();
 

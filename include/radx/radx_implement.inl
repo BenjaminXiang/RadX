@@ -146,12 +146,12 @@ namespace radx {
 
             {
                 const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys cache
-                    vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values cache
+                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 2, vk::ShaderStageFlagBits::eCompute), // keys cache
+                    //vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values cache
                     vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // radice cache
                     vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // histogram of radices (every work group)
                     vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // prefix-sum of radices (every work group)
-                    vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+                    //vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys references
                     vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
                 };
 
@@ -162,8 +162,8 @@ namespace radx {
 
             {
                 const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                    vk::DescriptorSetLayoutBinding(0 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys in
-                    vk::DescriptorSetLayoutBinding(1 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
+                    //vk::DescriptorSetLayoutBinding(0 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys in
+                    //vk::DescriptorSetLayoutBinding(1 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
                     vk::DescriptorSetLayoutBinding(6 , vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute)
                 };
                 //const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
@@ -183,21 +183,23 @@ namespace radx {
 
         // if no has buffer, set it!
         if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = *bufferMemory;
-        if (!this->valuesStoreBufferInfo.buffer) this->valuesStoreBufferInfo.buffer = *bufferMemory;
+		if (!this->keysBackupBufferInfo.buffer) this->keysBackupBufferInfo.buffer = *bufferMemory;
+        //if (!this->valuesStoreBufferInfo.buffer) this->valuesStoreBufferInfo.buffer = *bufferMemory;
         if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = *bufferMemory;
         if (!this->histogramBufferInfo.buffer) this->histogramBufferInfo.buffer = *bufferMemory;
         if (!this->prefixScansBufferInfo.buffer) this->prefixScansBufferInfo.buffer = *bufferMemory;
-        if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
+        //if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
 
         // write into descriptor set
+		std::array<vk::DescriptorBufferInfo, 2> keyPair{ { this->keysStoreBufferInfo, this->keysBackupBufferInfo } };
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
         std::vector<vk::WriteDescriptorSet> writes = {
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysStoreBufferInfo),
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesStoreBufferInfo),
+            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&keyPair[0]).setDescriptorCount(2),
+            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesStoreBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setPBufferInfo(&this->keysCacheBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
+            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
         };
 
         // inline descriptor 
@@ -220,8 +222,8 @@ namespace radx {
         // input data 
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
         std::vector<vk::WriteDescriptorSet> writes = {
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo),
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesBufferInfo),
+            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo),
+            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesBufferInfo),
         };
 
         // inline descriptor 
@@ -270,23 +272,19 @@ namespace radx {
     VkResult Radix::command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) {
         std::vector<vk::DescriptorSet> descriptors = {*internalInterface, *inputInterface};
         cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
-        commandBarrier(cmdBuf);
+
+		cmdBuf.copyBuffer(inputInterface->keysBufferInfo.buffer, internalInterface->keysStoreBufferInfo.buffer, { inputInterface->keysBufferInfo.offset, internalInterface->keysStoreBufferInfo.offset, inputInterface->keysBufferInfo.range });
+		commandTransferBarrier(cmdBuf);
 
 		const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 8u;
         for (auto I=0u;I<stageCount;I++) { // TODO: add support variable stage length
 
             std::array<uint32_t,4> stageC = {I,0,0,0};
             cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t)*4, &stageC[0]);
-            //commandBarrier(cmdBuf);
-
 
 			cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
 			cmdBuf.dispatch(this->groupX, 1u, 1u);
-
-
-            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
-            cmdBuf.dispatch(this->groupX, 1u, 1u);
-            commandBarrier(cmdBuf);
+			commandBarrier(cmdBuf);
 
             cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
             cmdBuf.dispatch(this->groupX, 1u, 1u);
@@ -302,6 +300,9 @@ namespace radx {
 
         };
 
+		cmdBuf.copyBuffer(internalInterface->keysStoreBufferInfo.buffer, inputInterface->keysBufferInfo.buffer, { internalInterface->keysStoreBufferInfo.offset, inputInterface->keysBufferInfo.offset, inputInterface->keysBufferInfo.range });
+		commandTransferBarrier(cmdBuf);
+
         return VK_SUCCESS;
     };
 
@@ -312,7 +313,7 @@ namespace radx {
         vk::DeviceSize 
             inlineSize = 0,//sizeof(uint32_t) * 4ull,
             keysSize = maxElementCount * sizeof(uint32_t),
-            valuesSize = maxElementCount * sizeof(uint32_t),
+            keysBkpSize = maxElementCount * sizeof(uint32_t),
             keyCacheSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint8_t),
             referencesSize = 16ull * sizeof(uint32_t),//maxElementCount * sizeof(uint32_t),
             histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
@@ -321,8 +322,8 @@ namespace radx {
 
         vk::DeviceSize 
             keysOffset = inlineSize,
-            valuesOffset = keysOffset + keysSize,
-            keyCacheOffset = valuesOffset + valuesSize,
+			keysBkpOffset = keysOffset + keysSize,
+            keyCacheOffset = keysBkpOffset + keysBkpSize,
             referencesOffset = keyCacheOffset + keyCacheSize,
             histogramsOffset = referencesOffset + referencesSize,
             prefixScanOffset = histogramsOffset + histogramsSize
@@ -334,11 +335,11 @@ namespace radx {
 
         // on deprecation 
         internalInterface->setKeysStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, keysOffset, keysSize));
-        internalInterface->setValuesStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, valuesOffset, valuesSize));
+        internalInterface->setKeysBackupBufferInfo(vk::DescriptorBufferInfo(nullptr, keysBkpOffset, keysBkpSize));
 
         // next-gen featured buffers
         internalInterface->setKeysCacheBufferInfo(vk::DescriptorBufferInfo(nullptr, keyCacheOffset, keyCacheSize));
-        internalInterface->setReferencesBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize));
+        //internalInterface->setReferencesBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize));
 
         // still required for effective sorting 
         internalInterface->setHistogramBufferInfo(vk::DescriptorBufferInfo(nullptr, histogramsOffset, histogramsSize));

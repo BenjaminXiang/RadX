@@ -294,7 +294,7 @@ namespace rad {
 		// on deprecation
 		inputInterface->setElementCount(keysDeviceVector.size());
 		inputInterface->setKeysBufferInfo(keysDeviceVector);
-		inputInterface->setValuesBufferInfo(valuesDeviceVector);
+		//inputInterface->setValuesBufferInfo(valuesDeviceVector);
 
 		// build descriptor set
 		inputInterface->buildDescriptorSet();
