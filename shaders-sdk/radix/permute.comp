@@ -95,14 +95,9 @@ void main() {
         }};
 
         LGROUP_BARRIER
-
-        // prefer shuffle after calculation
-        [[flatten]] if (w < VEC_SIZE && validAddress) {
-            ValueTmp[prefixW] = ValueIn[addrW], KeyTmp[prefixW] = KeyIn[addrW]; 
+        [[flatten]] if (w < VEC_SIZE) {
+           [[flatten]] if (validAddress) { ValueTmp[prefixW] = ValueIn[addrW], KeyTmp[prefixW] = KeyIn[addrW]; };
+           addrW += ( Wave_Size_RT << VEC_SHIF );
         };
-
-        LGROUP_BARRIER
-        [[flatten]] if (w < VEC_SIZE) { addrW += ( Wave_Size_RT << VEC_SHIF ); };
-        //[[flatten]] if (w < 1u) { addrWt += Wave_Size_RT; };
     };
 };

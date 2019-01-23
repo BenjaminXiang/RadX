@@ -14,8 +14,8 @@ shared m8pq utype_v data[local_size_def];
 const m8pq u8x4_t max8u = u8x1_t(0xFFu).xxxx; // eq. 0xFFFFFFFFu
 const uvec4 seq4x = {0u,1u,2u,3u};
 
-layout ( binding = 0, set = 1, scalar ) readonly buffer KeyInU8B { u32vec4 Keys4x[]; };
-layout ( binding = 2, set = 0, scalar ) buffer RadiceCacheOutB { uint32_t Keys8x4t[]; };
+layout ( binding = 0, set = 1, scalar ) readonly workgroupcoherent buffer KeyInU8B { u32vec4 Keys4x[]; };
+layout ( binding = 2, set = 0, scalar )          workgroupcoherent buffer RadiceCacheOutB { uint32_t Keys8x4t[]; };
 
 // TODO: transpose keys for faster access 
 void main() {
@@ -27,11 +27,5 @@ void main() {
 
         data[Local_Idx] = utype_v(mix(max8u,BFE(Keys4x[globalID],int(push_block.Shift)*8,8),validAddress));
         Keys8x4t[globalID] = u8x4pack(data[Local_Idx]);
-        
-
-        //_data[Lane_Idx][Wave_Idx] = validAddress ? uint8_t(Key8n[globalID][push_block.Shift]) : uint8_t(0xFFu);
-        //LGROUP_BARRIER
-        //if (Wave_Idx < 1u) Key8x4t[Lane_Idx] = u8x4pack(_data[Lane_Idx]);
-        //LGROUP_BARRIER
     };
 };

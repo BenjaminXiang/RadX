@@ -277,14 +277,14 @@ namespace radx {
 
             std::array<uint32_t,4> stageC = {I,0,0,0};
             cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t)*4, &stageC[0]);
-            commandBarrier(cmdBuf);
+            //commandBarrier(cmdBuf);
+
+
+			cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
+			cmdBuf.dispatch(this->groupX, 1u, 1u);
+
 
             cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
-            cmdBuf.dispatch(this->groupX, 1u, 1u);
-            commandBarrier(cmdBuf);
-
-            // still broken
-            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
             cmdBuf.dispatch(this->groupX, 1u, 1u);
             commandBarrier(cmdBuf);
 
