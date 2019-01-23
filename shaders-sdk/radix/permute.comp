@@ -96,7 +96,10 @@ void main() {
 
         LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) {
-           [[flatten]] if (validAddress) { ValueTmp[prefixW] = ValueIn[addrW], KeyTmp[prefixW] = KeyIn[addrW]; };
+           [[flatten]] if (validAddress) { 
+               KeyTmp[prefixW] = KeyIn[addrW]; 
+               //ValueTmp[prefixW] = ValueIn[addrW]; 
+            };
            addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };

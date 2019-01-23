@@ -59,8 +59,9 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <AdditionalOptions>--std=c++14 %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_70,sm_70;compute_75,sm_75;%(CodeGeneration)</CodeGeneration>
+      <CudaRuntime>Shared</CudaRuntime>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -81,7 +82,8 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_70,sm_70;compute_75,sm_75;%(CodeGeneration)</CodeGeneration>
-      <AdditionalOptions>--std=c++14 %(AdditionalOptions)</AdditionalOptions>
+      <CudaRuntime>Shared</CudaRuntime>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

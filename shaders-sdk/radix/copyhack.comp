@@ -20,6 +20,9 @@ void main() {
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
         // currently only copying support
-        [[flatten]] if (validAddress) { KeyTmp[globalID] = KeyIn[globalID], ValueTmp[globalID] = ValueIn[globalID]; };
+        [[flatten]] if (validAddress) { 
+            KeyTmp[globalID] = KeyIn[globalID];
+            //ValueTmp[globalID] = ValueIn[globalID]; 
+        };
     };
 };
