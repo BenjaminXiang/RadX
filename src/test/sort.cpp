@@ -311,7 +311,7 @@ namespace rad {
 		{
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
+			//uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
 			//commandTransferBarrier(uploadCmdBuf);
 			uploadCmdBuf.end();
 		};
@@ -319,10 +319,16 @@ namespace rad {
 		{
 			auto& sortCmdBuf = cmdBuffers.at(1);
 			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
-			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
+
+			sortCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
+			commandTransferBarrier(sortCmdBuf);
+
+			//sortCmdBuf.resetQueryPool(queryPool, 0, 2);
 			//sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
 			radixSort->command(sortCmdBuf, inputInterface);
 			//sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
+
+			sortCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			commandTransferBarrier(sortCmdBuf);
 			sortCmdBuf.end();
 		};
@@ -330,7 +336,7 @@ namespace rad {
 		{ // copy to host into dedicated buffer (for debug only)
 			auto& downloadCmdBuf = cmdBuffers.at(2);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
+			//downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			//commandTransferBarrier(downloadCmdBuf);
 			downloadCmdBuf.end();
 		};
@@ -341,8 +347,8 @@ namespace rad {
 
         // submit command
         vk::SubmitInfo sbmi = {};
-        sbmi.commandBufferCount = cmdBuffers.size();
-		sbmi.pCommandBuffers = cmdBuffers.data();
+		sbmi.commandBufferCount = 1;//cmdBuffers.size();
+		sbmi.pCommandBuffers = cmdBuffers.data()+1;
 
 		// submit commands
 		auto fence = fw->getFence(); {
