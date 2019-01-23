@@ -25,7 +25,7 @@ void main() {
         const uint workID = gl_NumWorkGroups.x * w + gl_WorkGroupID.x, globalID = workID * gl_WorkGroupSize.x + Local_Idx;
         const bvec4 validAddress = lessThan(globalID.xxxx*4u+seq4x, wsize.xxxx); IFALL(all(not(validAddress))) break;
 
-        data[Local_Idx] = utype_v(mix(max8u,BFE(Keys4x[globalID],int(push_block.Shift)*8,8),validAddress));
+        data[Local_Idx] = utype_v(mix(max8u,BFE(Keys4x[globalID],int(push_block.Shift>>SHF8B)*8,8),validAddress));
         Keys8x4t[globalID] = u8x4pack(data[Local_Idx]);
     };
 };

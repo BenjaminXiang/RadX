@@ -18,12 +18,14 @@
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
 #define READ_U8
+#define SHF8B 0
 #else
 // 4-bit
 #define BITS_PER_PASS 4
 #define RADICES 16u
 #define RADICES_MASK 0xFu
 #define SIMPLER_SORT
+#define SHF8B 1
 #endif
 
 
