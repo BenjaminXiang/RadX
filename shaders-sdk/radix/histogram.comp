@@ -100,8 +100,8 @@ void main() {
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RT) {
         const lowp uint radice = rk + Lane_Idx;
         [[flatten]] if (radice < RADICES) {
-            PrefixSum[RADICES * gl_WorkGroupID.x + radice] = localHistogram[radice+0u];
-            Histogram[RADICES * gl_WorkGroupID.x + radice] = localHistogram[radice+0u];
+            PrefixSum[gl_WorkGroupID.x][radice] = localHistogram[radice+0u];
+            Histogram[gl_WorkGroupID.x][radice] = localHistogram[radice+0u];
         };
     };
 };

@@ -41,7 +41,7 @@ void main() {
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
-        [[flatten]] if (radice < RADICES) { localPrefix[radice+0u] = PrefixSum[gl_WorkGroupID.x * RADICES + radice]; };
+        [[flatten]] if (radice < RADICES) { localPrefix[radice+0u] = PrefixSum[gl_WorkGroupID.x][radice]; };
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER

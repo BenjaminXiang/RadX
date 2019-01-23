@@ -103,8 +103,8 @@ layout ( binding = 0, set = OUTDIR, std430, scalar )  subgroupcoherent buffer Ke
 layout ( binding = 1, set = OUTDIR, std430, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
 
 // 
-layout ( binding = 3, set = 0, std430, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[]; };
-layout ( binding = 4, set = 0, std430, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[]; };
+layout ( binding = 3, set = 0, std430, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
+layout ( binding = 4, set = 0, std430, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;

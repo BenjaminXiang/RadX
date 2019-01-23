@@ -40,9 +40,9 @@ void main() {
         // calculate prefix-sums by work-groups for every radice
         uint radcount = 0u;
         [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
-            const lowp uint workgroup = gp+Lane_Idx, widx = workgroup*RADICES + radice;
+            const lowp uint workgroup = gp+Lane_Idx;
             [[flatten]] if (workgroup < WG_COUNT) {
-                PrefixSum[widx] = subgroupExclusiveAdd(Histogram[widx]) + add(radcount, subgroupAdd(Histogram[widx]));
+                PrefixSum[workgroup][radice] = subgroupExclusiveAdd(Histogram[workgroup][radice]) + add(radcount, subgroupAdd(Histogram[workgroup][radice]));
             };
         };
         [[flatten]] if (electedInvoc()) localHistogram[radice] = radcount; // collect all radice counts
@@ -56,9 +56,9 @@ void main() {
         // calculate prefix-sums of every radice
         uint gprefix = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
-            const lowp uint radice = rk + Lane_Idx, widx = workgroup*RADICES + radice;
+            const lowp uint radice = rk + Lane_Idx;
             [[flatten]] if (radice < RADICES) {
-                PrefixSum[widx] += subgroupExclusiveAdd(localHistogram[radice]) + add(gprefix, subgroupAdd(localHistogram[radice]));
+                PrefixSum[workgroup][radice] += subgroupExclusiveAdd(localHistogram[radice]) + add(gprefix, subgroupAdd(localHistogram[radice]));
             };
         };
     };
