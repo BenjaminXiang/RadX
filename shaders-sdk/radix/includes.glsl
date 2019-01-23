@@ -28,6 +28,12 @@
 #define SHF8B 1
 #endif
 
+// relaxed key_only mode (par_unseq)
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+#define KEY_ONLY_MODE
+#endif
+
+
 
 // general work groups
 #define Wave_Size_RX Wave_Size_RT

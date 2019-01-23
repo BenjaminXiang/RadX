@@ -186,6 +186,11 @@ namespace rad {
 #endif
 
 
+
+
+
+
+
 	TestSort::TestSort() {
 
 #ifdef RENDERDOC_DEBUGGABLE
@@ -258,7 +263,7 @@ namespace rad {
 		// get memory size and set max element count
 		vk::DeviceSize memorySize = valuesOffset + valuesSize;
 		{
-			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
+			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize*2ull, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
 			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
 			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_TO_CPU);
 		};
@@ -268,6 +273,7 @@ namespace rad {
 			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
 			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
 			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
+			keysDeviceVectorBackup = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, memorySize+keysOffset),
 			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset),
 			keysHostVectorCopy = keysHostVector // for C++ debug
 			;
@@ -296,7 +302,7 @@ namespace rad {
 		// command allocation
 		vk::CommandBufferAllocateInfo cci{};
 		cci.commandPool = fw->getCommandPool();
-		cci.commandBufferCount = 3;
+		cci.commandBufferCount = 4;
 		cci.level = vk::CommandBufferLevel::ePrimary;
 		std::vector<vk::CommandBuffer> cmdBuffers = vk::Device(*device).allocateCommandBuffers(cci);
 
@@ -311,37 +317,41 @@ namespace rad {
 		{
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			//uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
-			//commandTransferBarrier(uploadCmdBuf);
+			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVectorBackup.offset(), keysHostVector.range()) }); // copy buffer to host
 			uploadCmdBuf.end();
 		};
 
+		// generate command
 		{
-			auto& sortCmdBuf = cmdBuffers.at(1);
+			auto& uploadCmdBuf = cmdBuffers.at(1);
+			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
+			uploadCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
+			uploadCmdBuf.end();
+		};
+
+		// sorting command
+		{
+			auto& sortCmdBuf = cmdBuffers.at(2);
 			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
 			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
 			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
 
 			// copy from host to device 
-			sortCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
+			sortCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
 			commandTransferBarrier(sortCmdBuf);
 
 			// sorting command
 			radixSort->command(sortCmdBuf, inputInterface);
 
-			// get result from device 
-			sortCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
-			commandTransferBarrier(sortCmdBuf);
-
+			// finish sort command 
 			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 1);
 			sortCmdBuf.end();
 		};
 
 		{ // copy to host into dedicated buffer (for debug only)
-			auto& downloadCmdBuf = cmdBuffers.at(2);
+			auto& downloadCmdBuf = cmdBuffers.at(3);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			//downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
-			//commandTransferBarrier(downloadCmdBuf);
+			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			downloadCmdBuf.end();
 		};
 
@@ -349,20 +359,15 @@ namespace rad {
 		if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
-		// submit command
-		vk::SubmitInfo sbmi = {};
-		sbmi.commandBufferCount = 1;//cmdBuffers.size();
-		sbmi.pCommandBuffers = cmdBuffers.data() + 1;
+		// copy from host to backup memory 
+		fw->submitCommandWithSync(cmdBuffers.at(0));
 
 		// submit commands
-		auto fence = fw->getFence(); {
-			//auto start = std::chrono::system_clock::now(); // get chrono start
-			fw->getQueue().submit(sbmi, fence);
-			vk::Device(*device).waitForFences({ fence }, true, INT32_MAX);
-			//auto end = std::chrono::system_clock::now(); // get chrono end
-			//std::cout << "GPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+		for (int i = 0; i < 1; i++) {
+			//fw->submitCommandWithSync(cmdBuffers.at(1));
+			fw->submitCommandWithSync(cmdBuffers.at(2));
+			fw->submitCommandWithSync(cmdBuffers.at(3));
 		};
-		vk::Device(*device).resetFences({ 1, &fence });
 
 #ifdef RENDERDOC_DEBUG
 		if (rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);

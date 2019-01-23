@@ -138,6 +138,20 @@ namespace rad {
         const vk::Fence& getFence() const {return this->fence;};
         const vk::Instance& getInstance() const {return this->instance;};
         const vk::CommandPool& getCommandPool() const {return this->commandPool;};
+
+		void submitCommandWithSync(const vk::CommandBuffer& cmdBuf) {
+			// submit command
+			vk::SubmitInfo sbmi = {};
+			sbmi.commandBufferCount = 1;//cmdBuffers.size();
+			sbmi.pCommandBuffers = &cmdBuf;
+
+			// submit commands
+			auto fence = getFence(); {
+				getQueue().submit(sbmi, fence);
+				device.waitForFences({ fence }, true, INT32_MAX);
+			};
+			device.resetFences({ 1, &fence });
+		}
     };
 
 
