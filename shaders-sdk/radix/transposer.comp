@@ -8,7 +8,7 @@
 //#define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
-const uint local_size_def = 1024u;//Wave_Size*1u;
+const uint local_size_def = Wave_Size*16u;
 layout (local_size_x = local_size_def) in; // use many as possible
 shared m8pq utype_v data[local_size_def];
 const m8pq u8x4_t max8u = u8x1_t(0xFFu).xxxx; // eq. 0xFFFFFFFFu
