@@ -21,8 +21,9 @@ namespace radx {
         };
 
 		// TODO: use std::vector instead of 
-		vk::DescriptorBufferInfo keysCacheBufferInfo = {}, //referencesBufferInfo = {},
+		vk::DescriptorBufferInfo 
 			keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
+			keysCacheBufferInfo = {}, //referencesBufferInfo = {},
 			histogramBufferInfo = {}, prefixScansBufferInfo = {};
 
 
@@ -49,13 +50,14 @@ namespace radx {
         // TODO: use std::vector instead of 
         
         vk::DescriptorSet descriptorSet;
-        size_t elementCount = 0;
+        
 
     public:
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
 		vk::DescriptorBufferInfo keysBufferInfo = {};
+		size_t elementCount = 0;
 
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };

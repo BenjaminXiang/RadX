@@ -11,11 +11,11 @@
 const uint local_size_def = Wave_Size*16u;
 layout (local_size_x = local_size_def) in; // use many as possible
 shared m8pq utype_v data[local_size_def];
-const m8pq u8x4_t max8u = u8x1_t(0xFFu).xxxx; // eq. 0xFFFFFFFFu
+const m8pq u8x4_t max8u = u8x1_t(RADICES_MASK).xxxx; // eq. 0xFFFFFFFFu
 const uvec4 seq4x = {0u,1u,2u,3u};
 
-layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { u32vec4 data[]; } keys[2];
-layout ( binding = 2, set = 0, scalar )          workgroupcoherent buffer RadiceCacheOutB { uint32_t Keys8x4t[]; };
+layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { u32vec4 data[]; } keys[];
+layout ( binding = 2, set = 0, scalar ) workgroupcoherent buffer RadiceCacheOutB { uint32_t Keys8x4t[]; };
 
 // TODO: transpose keys for faster access 
 void main() {
@@ -25,7 +25,7 @@ void main() {
         const uint workID = gl_NumWorkGroups.x * w + gl_WorkGroupID.x, globalID = workID * gl_WorkGroupSize.x + Local_Idx;
         const bvec4 validAddress = lessThan(globalID.xxxx*4u+seq4x, wsize.xxxx); IFALL(all(not(validAddress))) break;
 
-        data[Local_Idx] = utype_v(mix(max8u,BFE(keys[nonuniformEXT(push_block.Shift&1)].data[globalID],int(push_block.Shift>>SHF8B)*8,8),validAddress));
+        data[Local_Idx] = utype_v(mix(max8u,BFE(keys[push_block.Shift&1].data[globalID],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress));
         Keys8x4t[globalID] = u8x4pack(data[Local_Idx]);
     };
 };

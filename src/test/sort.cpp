@@ -187,20 +187,30 @@ namespace rad {
 
 
 
-	struct u32radix { uint8_t data[4]; };
-	struct u32value { uint8_t data[4]; uint32_t value; };
-	//struct u32radix { uint32_t data[1]; };
-	//struct u32value { uint32_t data[1]; uint32_t value; };
+	//struct u32radix { uint8_t data[4]; };
+	//struct u32value { uint8_t data[4]; uint32_t value; };
+	struct u32radix { uint32_t data[1]; };
+	struct u32value { uint32_t data[1]; uint32_t value; };
 
 	template<uint32_t t=0>
 	auto rdcmp = [](u32radix const &a, u32radix const &b) { return a.data[t] < b.data[t]; };
 
 	void radixSortCPU(u32radix* v32t_begin, u32radix* v32t_end) {
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
 		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<1u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<2u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<3u>);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<1u>);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<2u>);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<3u>);
+	};
+
+	uint32_t hash(uint32_t a) {
+		a = (a + 0x7ed55d16) + (a << 12);
+		a = (a ^ 0xc761c23c) ^ (a >> 19);
+		a = (a + 0x165667b1) + (a << 5);
+		a = (a + 0xd3a2646c) ^ (a << 9);
+		a = (a + 0xfd7046c5) + (a << 3);
+		a = (a ^ 0xb55a4f09) ^ (a >> 16);
+		return a;
 	};
 
 
@@ -269,32 +279,29 @@ namespace rad {
 		inputInterface = std::make_shared<radx::InputInterface>(device);
 
 		{ // sizes of offsets
-			keysSize = elementCount * sizeof(uint32_t), valuesSize = elementCount * sizeof(uint32_t);
-			keysOffset = 0, valuesOffset = keysOffset + keysSize;
+			keysSize = elementCount * sizeof(uint32_t), keysBackupSize = keysSize;
+			keysOffset = 0, keysBackupOffset = keysOffset + keysSize;
 		};
 
 		// get memory size and set max element count
-		vk::DeviceSize memorySize = valuesOffset + valuesSize;
+		vk::DeviceSize memorySize = keysBackupOffset + keysBackupSize;
 		{
-			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize*2ull, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
+			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
 			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
 			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_TO_CPU);
 		};
 
 		// 
 		radx::Vector<uint32_t>
+			// in-host buffers
 			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
-			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
-			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
-			keysDeviceVectorBackup = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, memorySize+keysOffset),
-			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset),
-			keysHostVectorCopy = keysHostVector // for C++ debug
+			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset),
+			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset)
 			;
 
 		// on deprecation
 		inputInterface->setElementCount(keysDeviceVector.size());
 		inputInterface->setKeysBufferInfo(keysDeviceVector);
-		//inputInterface->setValuesBufferInfo(valuesDeviceVector);
 
 		// build descriptor set
 		inputInterface->buildDescriptorSet();
@@ -308,14 +315,14 @@ namespace rad {
 
 		// generate random numbers and copy to buffer
 		keysHostVector.map();
-		for (uint32_t i = 0; i < keysHostVector.size(); i++) { keysHostVector[i] = distr(eng); };
+		for (uint32_t i = 0; i < keysHostVector.size(); i++) { keysHostVector[i] = hash(i);/*distr(eng)*/; };
 		//std::copy(randNumbers.begin(), randNumbers.end(), keysHostVector.begin());
 		//memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
 		// command allocation
 		vk::CommandBufferAllocateInfo cci{};
 		cci.commandPool = fw->getCommandPool();
-		cci.commandBufferCount = 4;
+		cci.commandBufferCount = 3;
 		cci.level = vk::CommandBufferLevel::ePrimary;
 		std::vector<vk::CommandBuffer> cmdBuffers = vk::Device(*device).allocateCommandBuffers(cci);
 
@@ -330,28 +337,16 @@ namespace rad {
 		{
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVectorBackup.offset(), keysHostVector.range()) }); // copy buffer to host
-			uploadCmdBuf.end();
-		};
-
-		// generate command
-		{
-			auto& uploadCmdBuf = cmdBuffers.at(1);
-			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
+			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, {vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
 			uploadCmdBuf.end();
 		};
 
 		// sorting command
 		{
-			auto& sortCmdBuf = cmdBuffers.at(2);
+			auto& sortCmdBuf = cmdBuffers.at(1);
 			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
 			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
 			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
-
-			// copy from host to device 
-			sortCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
-			commandTransferBarrier(sortCmdBuf);
 
 			// sorting command
 			radixSort->command(sortCmdBuf, inputInterface);
@@ -362,9 +357,9 @@ namespace rad {
 		};
 
 		{ // copy to host into dedicated buffer (for debug only)
-			auto& downloadCmdBuf = cmdBuffers.at(3);
+			auto& downloadCmdBuf = cmdBuffers.at(2);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
+			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, {vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			downloadCmdBuf.end();
 		};
 
@@ -372,15 +367,16 @@ namespace rad {
 		if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
-		// copy from host to backup memory 
+		// copy from host to device memory 
 		fw->submitCommandWithSync(cmdBuffers.at(0));
 
-		// submit commands
+		// submit sorting commands
 		for (int i = 0; i < 1; i++) {
-			//fw->submitCommandWithSync(cmdBuffers.at(1));
-			fw->submitCommandWithSync(cmdBuffers.at(2));
-			fw->submitCommandWithSync(cmdBuffers.at(3));
+			fw->submitCommandWithSync(cmdBuffers.at(1));
 		};
+
+		// copy from device to host memory
+		fw->submitCommandWithSync(cmdBuffers.at(2));
 
 #ifdef RENDERDOC_DEBUG
 		if (rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);

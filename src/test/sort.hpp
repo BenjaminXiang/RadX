@@ -169,10 +169,10 @@ namespace rad {
 		
 
         // 
-        const size_t elementCount = (2 << 22);
+        const size_t elementCount = (1 << 23);
 
-        vk::DeviceSize keysSize = 0, valuesSize = 0;
-        vk::DeviceSize keysOffset = 0, valuesOffset = 0;
+        vk::DeviceSize keysSize = 0, keysBackupSize = 0;
+        vk::DeviceSize keysOffset = 0, keysBackupOffset = 0;
 
 #ifdef ENABLE_THRUST_BENCHMARK
 		void testSortingThrust();

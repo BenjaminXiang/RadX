@@ -14,7 +14,7 @@
 #include <random>
 #include <iostream>
 
-const size_t elementCount = (2 << 22);
+const size_t elementCount = (1 << 21);
 
 int main(){
 

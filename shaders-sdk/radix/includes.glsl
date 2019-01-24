@@ -112,11 +112,11 @@ layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uin
 layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 
 // push constant in radix sort
-layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;
+layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_block;
 layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
 layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
-#define NumElements inline_block[0].data
+#define NumElements push_block.ELCNT//inline_block[0].data
 
 // division of radix sort (TODO: fix corruptions)
 struct blocks_info { uint count, limit, offset, wkoffset; };

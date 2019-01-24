@@ -26,10 +26,8 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-//layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyTmpB {KEYTYPE data[]; } keys[2];
-//layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
-
+layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
 
 // 
 void main() {
@@ -54,11 +52,8 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
 
-#ifdef READ_U8
         [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(Key8t[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
-#else
-        [[flatten]] if (w < VEC_SIZE) { keyW = utype_t(BFE(validAddress ? utype_t(Key8t[addrW]) : utype_t(0xFFu), int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
-#endif
+        //[[flatten]] if (w < VEC_SIZE) { keyW = utype_t(mix(RADICES_MASK,BFE(keys[0].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress)); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
         [[flatten]] if (w < VEC_SIZE) 
