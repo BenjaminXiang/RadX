@@ -30,7 +30,7 @@
 
 // relaxed key_only mode (par_unseq)
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-#define KEY_ONLY_MODE
+//#define KEY_ONLY_MODE // experiment failed
 #endif
 
 

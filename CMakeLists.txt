@@ -111,8 +111,8 @@ endif()
 
 # set language specific
 set (CMAKE_CXX_EXTENSIONS 1)
-set (CMAKE_CXX_STANDARD 17)
-set (CMAKE_C_STANDARD 11)
+#set (CMAKE_CXX_STANDARD 17)
+#set (CMAKE_C_STANDARD 11)
 
 # compiler specific options
 if (MSVC) # Clang in Visual Studio 2017

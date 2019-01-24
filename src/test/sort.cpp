@@ -213,6 +213,15 @@ namespace rad {
 		return a;
 	};
 
+	template <typename T>
+	static inline auto sgn(const T& val) { return (T(0) < val) - (val < T(0)); }
+
+	template<class T = uint64_t>
+	static inline T tiled(const T& sz, const T& gmaxtile) {
+		// return (int32_t)ceil((double)sz / (double)gmaxtile);
+		return sz <= 0 ? 0 : (sz / gmaxtile + sgn(sz % gmaxtile));
+	}
+
 
 	TestSort::TestSort() {
 
@@ -314,8 +323,10 @@ namespace rad {
 
 
 		// generate random numbers and copy to buffer
-		keysHostVector.map();
-		for (uint32_t i = 0; i < keysHostVector.size(); i++) { keysHostVector[i] = hash(i);/*distr(eng)*/; };
+		keysHostVector.map(); const size_t vsize = keysHostVector.size(), tsize = rad::tiled<uint32_t>(UINT32_MAX, vsize);
+		for (uint32_t i = 0; i < vsize; i++) { keysHostVector[i] = i;/*distr(eng)*/; };
+		std::shuffle(keysHostVector.begin(), keysHostVector.end(), eng);
+
 		//std::copy(randNumbers.begin(), randNumbers.end(), keysHostVector.begin());
 		//memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
