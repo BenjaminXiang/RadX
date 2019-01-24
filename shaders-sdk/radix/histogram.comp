@@ -13,7 +13,7 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
-shared lowp uint _data[VEC_SIZE][Wave_Size];
+shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
 shared uint addrL[VEC_SIZE][Wave_Size]; //shared uint addrT[Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
