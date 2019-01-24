@@ -186,21 +186,23 @@ namespace rad {
 #endif
 
 
+#pragma pack(push, 1)
+	//struct u32radix { uint32_t a : 8, b : 8, c : 8, d : 8; };
+	struct u32radix { uint32_t a: 32; };
+	//struct u32value { uint32_t a; uint32_t value; };
+#pragma pack(pop)
 
-	//struct u32radix { uint8_t data[4]; };
-	//struct u32value { uint8_t data[4]; uint32_t value; };
-	struct u32radix { uint32_t data[1]; };
-	struct u32value { uint32_t data[1]; uint32_t value; };
-
-	template<uint32_t t=0>
-	auto rdcmp = [](u32radix const &a, u32radix const &b) { return a.data[t] < b.data[t]; };
+	auto rdcmp_a = [](const u32radix &a, const u32radix &b) { return a.a <= b.a; };
+	//auto rdcmp_b = [](const u32radix &a, const u32radix &b) { return a.b <= b.b; };
+	//auto rdcmp_c = [](const u32radix &a, const u32radix &b) { return a.c <= b.c; };
+	//auto rdcmp_d = [](const u32radix &a, const u32radix &b) { return a.d <= b.d; };
 
 	void radixSortCPU(u32radix* v32t_begin, u32radix* v32t_end) {
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<1u>);
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<2u>);
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<3u>);
+		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp_a);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp_a);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp_b);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp_c);
+		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp_d);
 	};
 
 	uint32_t hash(uint32_t a) {
@@ -415,7 +417,9 @@ namespace rad {
 		// used alternate buffer, because std::sort already overriden 'keysHostVector' data 
 		std::vector<uint32_t> sortedNumbers(elementCount);
 		//std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
-		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
+		//memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
+		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range());
+		
 
 	 // thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK
