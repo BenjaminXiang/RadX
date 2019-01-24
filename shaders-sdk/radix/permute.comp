@@ -72,7 +72,7 @@ void main() {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             [[flatten]] if (w < VEC_SIZE) {
                 const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-                prefixW = utype_t(subgroupPartitionedExclusiveAddNV(1u,blt)), histgmW = utype_t(subgroupPartitionedAddNV(1u,blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt));
+                prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt));
             };
 
             LGROUP_BARRIER
