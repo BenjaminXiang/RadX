@@ -14,7 +14,7 @@
 #include <random>
 #include <iostream>
 
-const size_t elementCount = (1 << 21);
+const size_t elementCount = (1 << 23);
 
 int main(){
 
@@ -30,8 +30,8 @@ int main(){
 	thrust::device_vector<uint32_t> valuesDev(elementCount);
 	thrust::host_vector<uint32_t> sortedNumbersThrust(elementCount);
 	std::vector<uint32_t> sortedNumbers(elementCount);
-    for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = distr(eng); };
-	//auto start = std::chrono::system_clock::now();
+    for (uint32_t i=0;i<randNumbers.size();i++) { randNumbers[i] = i; };
+	std::shuffle(randNumbers.begin(), randNumbers.end(), eng);
 	
 
 	// command and execution
@@ -46,7 +46,7 @@ int main(){
 	cudaDeviceSynchronize();
 	cudaEventRecord(start_event, 0);
 	thrust::copy(keysDevBackup.begin(), keysDevBackup.end(), keysDev.begin());
-    thrust::sort(keysDev.begin(), keysDev.end());
+    thrust::stable_sort(keysDev.begin(), keysDev.end());
 	//thrust::copy(keysDev.begin(), keysDev.end(), sortedNumbersThrust.begin());
 	cudaEventRecord(stop_event, 0);
     cudaEventSynchronize(stop_event);
