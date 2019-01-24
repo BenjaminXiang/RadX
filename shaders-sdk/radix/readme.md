@@ -1,1 +1,1 @@
-C:/home/elviras9t/RadX/shaders-sdk/readme.md
+../readme.md

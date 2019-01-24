@@ -186,22 +186,43 @@ namespace rad {
 #endif
 
 
+#pragma pack(push, 1)
+	struct u32radix { uint32_t a : 8, b : 8, c : 8, d : 8; };
+	//struct u32radix { uint32_t a: 32; };
+	//struct u32value { uint32_t a; uint32_t value; };
+#pragma pack(pop)
 
-	struct u32radix { uint8_t data[4]; };
-	struct u32value { uint8_t data[4]; uint32_t value; };
-	//struct u32radix { uint32_t data[1]; };
-	//struct u32value { uint32_t data[1]; uint32_t value; };
-
-	template<uint32_t t=0>
-	auto rdcmp = [](u32radix const &a, u32radix const &b) { return a.data[t] < b.data[t]; };
+	auto rdcmp_a = [](const u32radix &a, const u32radix &b) { return a.a < b.a; };
+	auto rdcmp_b = [](const u32radix &a, const u32radix &b) { return a.b < b.b; };
+	auto rdcmp_c = [](const u32radix &a, const u32radix &b) { return a.c < b.c; };
+	auto rdcmp_d = [](const u32radix &a, const u32radix &b) { return a.d < b.d; };
 
 	void radixSortCPU(u32radix* v32t_begin, u32radix* v32t_end) {
-		//std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<0u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<1u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<2u>);
-		std::sort(std::execution::par_unseq, v32t_begin, v32t_end, rdcmp<3u>);
+		//std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_a);
+		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_a);
+		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_b);
+		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_c);
+		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_d);
 	};
+
+	uint32_t hash(uint32_t a) {
+		a = (a + 0x7ed55d16) + (a << 12);
+		a = (a ^ 0xc761c23c) ^ (a >> 19);
+		a = (a + 0x165667b1) + (a << 5);
+		a = (a + 0xd3a2646c) ^ (a << 9);
+		a = (a + 0xfd7046c5) + (a << 3);
+		a = (a ^ 0xb55a4f09) ^ (a >> 16);
+		return a;
+	};
+
+	template <typename T>
+	static inline auto sgn(const T& val) { return (T(0) < val) - (val < T(0)); }
+
+	template<class T = uint64_t>
+	static inline T tiled(const T& sz, const T& gmaxtile) {
+		// return (int32_t)ceil((double)sz / (double)gmaxtile);
+		return sz <= 0 ? 0 : (sz / gmaxtile + sgn(sz % gmaxtile));
+	}
 
 
 	TestSort::TestSort() {
@@ -269,32 +290,29 @@ namespace rad {
 		inputInterface = std::make_shared<radx::InputInterface>(device);
 
 		{ // sizes of offsets
-			keysSize = elementCount * sizeof(uint32_t), valuesSize = elementCount * sizeof(uint32_t);
-			keysOffset = 0, valuesOffset = keysOffset + keysSize;
+			keysSize = elementCount * sizeof(uint32_t), keysBackupSize = keysSize;
+			keysOffset = 0, keysBackupOffset = keysOffset + keysSize;
 		};
 
 		// get memory size and set max element count
-		vk::DeviceSize memorySize = valuesOffset + valuesSize;
+		vk::DeviceSize memorySize = keysBackupOffset + keysBackupSize;
 		{
-			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize*2ull, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
+			vmaDeviceBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_ONLY);
 			vmaHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_GPU_TO_CPU);
 			vmaToHostBuffer = std::make_shared<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_TO_CPU);
 		};
 
 		// 
 		radx::Vector<uint32_t>
+			// in-host buffers
 			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
-			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset), // for debugging
-			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
-			keysDeviceVectorBackup = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, memorySize+keysOffset),
-			valuesDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, valuesOffset),
-			keysHostVectorCopy = keysHostVector // for C++ debug
+			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset),
+			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset)
 			;
 
 		// on deprecation
 		inputInterface->setElementCount(keysDeviceVector.size());
 		inputInterface->setKeysBufferInfo(keysDeviceVector);
-		inputInterface->setValuesBufferInfo(valuesDeviceVector);
 
 		// build descriptor set
 		inputInterface->buildDescriptorSet();
@@ -307,15 +325,17 @@ namespace rad {
 
 
 		// generate random numbers and copy to buffer
-		keysHostVector.map();
-		for (uint32_t i = 0; i < keysHostVector.size(); i++) { keysHostVector[i] = distr(eng); };
+		keysHostVector.map(); const size_t vsize = keysHostVector.size(), tsize = rad::tiled<uint32_t>(UINT32_MAX, vsize);
+		for (uint32_t i = 0; i < vsize; i++) { keysHostVector[i] = i;/*distr(eng)*/; };
+		std::shuffle(keysHostVector.begin(), keysHostVector.end(), eng);
+
 		//std::copy(randNumbers.begin(), randNumbers.end(), keysHostVector.begin());
 		//memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
 		// command allocation
 		vk::CommandBufferAllocateInfo cci{};
 		cci.commandPool = fw->getCommandPool();
-		cci.commandBufferCount = 4;
+		cci.commandBufferCount = 3;
 		cci.level = vk::CommandBufferLevel::ePrimary;
 		std::vector<vk::CommandBuffer> cmdBuffers = vk::Device(*device).allocateCommandBuffers(cci);
 
@@ -330,28 +350,16 @@ namespace rad {
 		{
 			auto& uploadCmdBuf = cmdBuffers.at(0);
 			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, { vk::BufferCopy(keysHostVector.offset(), keysDeviceVectorBackup.offset(), keysHostVector.range()) }); // copy buffer to host
-			uploadCmdBuf.end();
-		};
-
-		// generate command
-		{
-			auto& uploadCmdBuf = cmdBuffers.at(1);
-			uploadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			uploadCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
+			uploadCmdBuf.copyBuffer(keysHostVector, keysDeviceVector, {vk::BufferCopy(keysHostVector.offset(), keysDeviceVector.offset(), keysHostVector.range()) }); // copy buffer to host
 			uploadCmdBuf.end();
 		};
 
 		// sorting command
 		{
-			auto& sortCmdBuf = cmdBuffers.at(2);
+			auto& sortCmdBuf = cmdBuffers.at(1);
 			sortCmdBuf.begin(vk::CommandBufferBeginInfo());
 			sortCmdBuf.resetQueryPool(queryPool, 0, 2);
 			sortCmdBuf.writeTimestamp(vk::PipelineStageFlagBits::eComputeShader, queryPool, 0);
-
-			// copy from host to device 
-			sortCmdBuf.copyBuffer(keysDeviceVectorBackup, keysDeviceVector, { vk::BufferCopy(keysDeviceVectorBackup.offset(), keysDeviceVector.offset(), keysDeviceVectorBackup.range()) }); // copy buffer to host
-			commandTransferBarrier(sortCmdBuf);
 
 			// sorting command
 			radixSort->command(sortCmdBuf, inputInterface);
@@ -362,9 +370,9 @@ namespace rad {
 		};
 
 		{ // copy to host into dedicated buffer (for debug only)
-			auto& downloadCmdBuf = cmdBuffers.at(3);
+			auto& downloadCmdBuf = cmdBuffers.at(2);
 			downloadCmdBuf.begin(vk::CommandBufferBeginInfo());
-			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, { vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
+			downloadCmdBuf.copyBuffer(keysDeviceVector, keysToHostVector, {vk::BufferCopy(keysDeviceVector.offset(), keysToHostVector.offset(), keysDeviceVector.range()) }); // copy buffer to host
 			downloadCmdBuf.end();
 		};
 
@@ -372,15 +380,16 @@ namespace rad {
 		if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
-		// copy from host to backup memory 
+		// copy from host to device memory 
 		fw->submitCommandWithSync(cmdBuffers.at(0));
 
-		// submit commands
+		// submit sorting commands
 		for (int i = 0; i < 1; i++) {
-			//fw->submitCommandWithSync(cmdBuffers.at(1));
-			fw->submitCommandWithSync(cmdBuffers.at(2));
-			fw->submitCommandWithSync(cmdBuffers.at(3));
+			fw->submitCommandWithSync(cmdBuffers.at(1));
 		};
+
+		// copy from device to host memory
+		fw->submitCommandWithSync(cmdBuffers.at(2));
 
 #ifdef RENDERDOC_DEBUG
 		if (rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
@@ -397,18 +406,20 @@ namespace rad {
 		// do std sort for comparsion (equalent)
 		// for better result's should be work while GPU sorting (after copying host data into device)
 		{
-			auto start = std::chrono::system_clock::now();
-			//std::sort(std::execution::par, keysHostVector.begin(), keysHostVector.end());
-			radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
-			auto end = std::chrono::system_clock::now();
-			std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+			//auto start = std::chrono::system_clock::now();
+			//std::stable_sort(std::execution::par, keysHostVector.begin(), keysHostVector.end());
+			//radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
+			//auto end = std::chrono::system_clock::now();
+			//std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 		};
 
 		// get sorted numbers by device (for debug only)
-		// used alternate buffer, because std::sort already overriden 'keysHostVector' data 
+		// used alternate buffer, because std::stable_sort already overriden 'keysHostVector' data 
 		std::vector<uint32_t> sortedNumbers(elementCount);
 		//std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
 		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
+		//memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range());
+		
 
 	 // thrust sorting
 #ifdef ENABLE_THRUST_BENCHMARK

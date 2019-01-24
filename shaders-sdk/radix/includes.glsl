@@ -11,28 +11,25 @@
 //#define RADICES 4u
 //#define RADICES_MASK 0x3u
 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+//#ifdef ENABLE_TURING_INSTRUCTION_SET
 // 8-bit (risen again, but Turing only)
+#ifdef ENABLE_TURING_INSTRUCTION_SET
 #define ENABLE_SUBGROUP_PARTITION_SORT
+#endif
+
+// bits support 
+#ifdef ENABLE_TURING_INSTRUCTION_SET
 #define BITS_PER_PASS 8
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
-#define READ_U8
 #define SHF8B 0
 #else
-// 4-bit
 #define BITS_PER_PASS 4
 #define RADICES 16u
 #define RADICES_MASK 0xFu
 #define SIMPLER_SORT
 #define SHF8B 1
 #endif
-
-// relaxed key_only mode (par_unseq)
-#ifdef ENABLE_TURING_INSTRUCTION_SET
-#define KEY_ONLY_MODE
-#endif
-
 
 
 // general work groups
@@ -103,21 +100,20 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
-layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-layout ( binding = 0, set = OUTDIR, scalar )  subgroupcoherent buffer KeyTmpB {KEYTYPE KeyTmp[]; };
-layout ( binding = 1, set = OUTDIR, scalar )  subgroupcoherent buffer ValueTmpB {uint ValueTmp[]; };
+//layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
+//layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
+//layout ( binding = 1, set = 0, scalar )  subgroupcoherent buffer ValueTmpB {uint values[]; } values[];
 
 // 
 layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
 layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 
 // push constant in radix sort
-layout ( push_constant ) uniform PushBlock { uint Shift, r0, r1, r2; } push_block;
+layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_block;
 layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
 layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
-#define NumElements inline_block[0].data
+#define NumElements push_block.ELCNT//inline_block[0].data
 
 // division of radix sort (TODO: fix corruptions)
 struct blocks_info { uint count, limit, offset, wkoffset; };

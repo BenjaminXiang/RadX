@@ -13,13 +13,16 @@ shared uint localPrefix[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
-shared uint addrL[VEC_SIZE][Wave_Size];
-shared lowp uint prefixL[VEC_SIZE][Wave_Size];
+shared uint addrL[VEC_SIZE][Wave_Size], prefixL[VEC_SIZE][Wave_Size];
+shared lowp uint histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 #define addrW addrL[w][Lane_Idx]
 #define keyW _data[w][Lane_Idx]
 #define prefixW prefixL[w][Lane_Idx]
+#define histgmW histgmL[w][Lane_Idx]
+#define fsLaneW fsLaneL[w][Lane_Idx]
+
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -31,9 +34,8 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = 0, scalar ) readonly subgroupcoherent buffer KeyInU8B { u8vec4 Key8n[]; };
+layout ( binding = 0, set = 0, scalar ) workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
-
 
 // 
 void main() {
@@ -53,72 +55,49 @@ void main() {
     //[[flatten]] if (w < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + w; };
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        LGROUP_BARRIER
+        //LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
         
-#ifdef READ_U8
-        [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(Key8t[addrW]) : utype_t(0xFFu); }; // shorter way to get radices (cached)
-#else
-        [[flatten]] if (w < VEC_SIZE) { keyW = utype_t(BFE(validAddress ? utype_t(Key8t[addrW]) : utype_t(0xFFu), int((push_block.Shift&1)*BITS_PER_PASS), int(BITS_PER_PASS))); };
-#endif
-
-        LGROUP_BARRIER
+        [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(Key8t[addrW]) : utype_t(RADICES_MASK); }; // shorter way to get radices (cached)
+        //[[flatten]] if (w < VEC_SIZE) { keyW = utype_t(mix(RADICES_MASK,BFE(keys[0].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress)); };
 
         // TODO: par_unseq version support 
         // TODO: reduce four atomicAdd ops to single
-#ifndef KEY_ONLY_MODE
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-        [[flatten]] if (w == 0u)
+#ifndef ENABLE_SUBGROUP_PARTITION_SORT
+        LGROUP_BARRIER
+        [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) 
 #endif
-        {[[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
-#endif
-
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-#ifndef KEY_ONLY_MODE
         {
-            const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-            const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-            uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], btc); };
-            { prefixW = subgroupShuffle(cntl,fLn) + btl; };
-        };
-#else
-        if (w < VEC_SIZE) { // without values, keys can be more relaxed
-            const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-            const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-            uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = atomicAdd(localPrefix[uint(keyW)], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            { prefixW = subgroupShuffle(cntl,fLn) + btl; };
-        };
-#endif
-#else
-#ifdef SIMPLER_SORT
-            [[flatten]] if (keyW == Wr && validAddress) {
-                const uint offset = countOffset(keyW);
-                ValueTmp[offset] = ValueIn[addrW], KeyTmp[offset] = KeyIn[addrW];
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+            [[flatten]] if (w < VEC_SIZE) {
+                const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
+                prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt));
             };
+
+            LGROUP_BARRIER
+
+            [[flatten]] if (w == 0u) {[[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate local prefix
+                uint cntl = 0u; [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], histgmW); };
+                prefixW += subgroupShuffle(cntl,fsLaneW);
+            }};
 #else
+    #ifdef SIMPLER_SORT
+            [[flatten]] if (keyW == Wr && validAddress) { prefixW = countOffset(keyW); };
+    #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {
-                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
-                    const uint offset = countOffset(keyW);
-                    ValueTmp[offset] = ValueIn[addrW], KeyTmp[offset] = KeyIn[addrW];
-                };
-                [[flatten]] if ( subgroupAll(found) ) { break; };
+                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) { prefixW = countOffset(keyW); };
+                [[flatten]] if (subgroupAll(found)) { break; };
             };
+    #endif
 #endif
-#endif
-
-#ifndef KEY_ONLY_MODE
-        }};
-#endif
+        };
 
         LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) {
-           [[flatten]] if (validAddress) { 
-               KeyTmp[prefixW] = KeyIn[addrW]; 
-               //ValueTmp[prefixW] = ValueIn[addrW]; 
-            };
-           addrW += ( Wave_Size_RT << VEC_SHIF );
+            [[flatten]] if (validAddress) { keys[1-(push_block.Shift&1)].data[prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
+            addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
 };
