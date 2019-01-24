@@ -14,12 +14,16 @@ shared uint localPrefix[RADICES];
 // planned 64-wide for Turing
 shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
 shared uint addrL[VEC_SIZE][Wave_Size];
-shared lowp uint prefixL[VEC_SIZE][Wave_Size];
+shared lowp uint prefixL[VEC_SIZE][Wave_Size], histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
+
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 #define addrW addrL[w][Lane_Idx]
 #define keyW _data[w][Lane_Idx]
 #define prefixW prefixL[w][Lane_Idx]
+#define histgmW histgmL[w][Lane_Idx]
+#define fsLaneW fsLaneL[w][Lane_Idx]
+
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -63,29 +67,22 @@ void main() {
 
         // TODO: par_unseq version support 
         // TODO: reduce four atomicAdd ops to single
-#if defined(ENABLE_SUBGROUP_PARTITION_SORT) && !defined(KEY_ONLY_MODE)
-        [[flatten]] if (w == 0u)
-#endif
-#if !defined(ENABLE_SUBGROUP_PARTITION_SORT) || !defined(KEY_ONLY_MODE)
+#ifndef ENABLE_SUBGROUP_PARTITION_SORT
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) 
 #endif
         {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
-    #ifndef KEY_ONLY_MODE
-            {
+            [[flatten]] if (w < VEC_SIZE) {
                 const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-                const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-                uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], btc); };
-                { prefixW = subgroupShuffle(cntl,fLn) + btl; };
+                histgmW = subgroupPartitionedAddNV(1u,blt), prefixW = subgroupPartitionedExclusiveAddNV(1u,blt), fsLaneW = subgroupBallotFindMSB(blt);
             };
-    #else
-            if (w < VEC_SIZE) { // without values, keys can be more relaxed
-                const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-                const uint btc = subgroupPartitionedAddNV(1u,blt), btl = subgroupPartitionedExclusiveAddNV(1u,blt), fLn = subgroupBallotFindMSB(blt);
-                uint cntl = 0u; [[flatten]] if (fLn == Lane_Idx && validAddress) { cntl = atomicAdd(localPrefix[uint(keyW)], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                { prefixW = subgroupShuffle(cntl,fLn) + btl; };
-            };
-    #endif
+
+            LGROUP_BARRIER
+
+            [[flatten]] if (w == 0u) {[[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate local prefix
+                uint cntl = 0u; [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], histgmW); };
+                prefixW += subgroupShuffle(cntl,fsLaneW);
+            }};
 #else
     #ifdef SIMPLER_SORT
             [[flatten]] if (keyW == Wr && validAddress) { prefixW = countOffset(keyW); };
