@@ -84,6 +84,8 @@
       <CodeGeneration>compute_70,sm_70;compute_75,sm_75;%(CodeGeneration)</CodeGeneration>
       <CudaRuntime>Shared</CudaRuntime>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
+      <Optimization>InheritFromHost</Optimization>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -38,14 +38,15 @@ void main() {
         const lowp uint radice = rk + Wave_Idx;
 
         // calculate prefix-sums by work-groups for every radice
-        uint radcount = 0u;
         [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
             const lowp uint workgroup = gp+Lane_Idx;
             [[flatten]] if (workgroup < WG_COUNT) {
-                PrefixSum[workgroup][radice] = subgroupExclusiveAdd(Histogram[workgroup][radice]) + add(radcount, subgroupAdd(Histogram[workgroup][radice]));
+                const uint histv = Histogram[workgroup][radice], sum = subgroupAdd(histv); uint pref = 0u;
+                [[flatten]] if (electedInvoc()) { pref = add(localHistogram[radice], sum); };
+                PrefixSum[workgroup][radice] = readFLane(pref) + subgroupExclusiveAdd(histv);
             };
         };
-        [[flatten]] if (electedInvoc()) localHistogram[radice] = radcount; // collect all radice counts
+        //[[flatten]] if (electedInvoc()) localHistogram[radice] = radcount; // collect all radice counts
     };
 
     LGROUP_BARRIER

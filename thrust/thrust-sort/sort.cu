@@ -47,14 +47,16 @@ int main(){
 	cudaEventRecord(start_event, 0);
 	thrust::copy(keysDevBackup.begin(), keysDevBackup.end(), keysDev.begin());
     thrust::stable_sort(keysDev.begin(), keysDev.end());
-	//thrust::copy(keysDev.begin(), keysDev.end(), sortedNumbersThrust.begin());
 	cudaEventRecord(stop_event, 0);
     cudaEventSynchronize(stop_event);
     cudaEventElapsedTime(&totalTime, start_event, stop_event);
 	cudaDeviceSynchronize();
 
+	thrust::copy(keysDev.begin(), keysDev.end(), sortedNumbersThrust.begin());
+	cudaDeviceSynchronize();
+
 	// copy from device to host (finally)
-	//std::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
+	std::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
 	std::cout << "Thrust sort measured in " << double(totalTime) << "ms" << std::endl;
 	//std::cout << "Thrust sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 	system("pause");

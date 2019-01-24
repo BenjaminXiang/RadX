@@ -406,18 +406,18 @@ namespace rad {
 		// do std sort for comparsion (equalent)
 		// for better result's should be work while GPU sorting (after copying host data into device)
 		{
-			auto start = std::chrono::system_clock::now();
+			//auto start = std::chrono::system_clock::now();
 			//std::stable_sort(std::execution::par, keysHostVector.begin(), keysHostVector.end());
-			radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
-			auto end = std::chrono::system_clock::now();
-			std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+			//radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
+			//auto end = std::chrono::system_clock::now();
+			//std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 		};
 
 		// get sorted numbers by device (for debug only)
 		// used alternate buffer, because std::stable_sort already overriden 'keysHostVector' data 
 		std::vector<uint32_t> sortedNumbers(elementCount);
 		//std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
-		memcpy(sortedNumbers.data(), keysHostVector.map(), keysHostVector.range()); // copy
+		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 		//memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range());
 		
 
