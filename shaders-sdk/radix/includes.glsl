@@ -11,16 +11,19 @@
 //#define RADICES 4u
 //#define RADICES_MASK 0x3u
 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
+//#ifdef ENABLE_TURING_INSTRUCTION_SET
 // 8-bit (risen again, but Turing only)
+#ifdef ENABLE_TURING_INSTRUCTION_SET
 #define ENABLE_SUBGROUP_PARTITION_SORT
+#endif
+
+// bits support 
+#ifdef ENABLE_TURING_INSTRUCTION_SET
 #define BITS_PER_PASS 8
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
-#define READ_U8
 #define SHF8B 0
 #else
-// 4-bit
 #define BITS_PER_PASS 4
 #define RADICES 16u
 #define RADICES_MASK 0xFu
