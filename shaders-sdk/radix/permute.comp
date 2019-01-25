@@ -18,10 +18,10 @@ shared lowp uint histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
-#ifndef ENABLE_SUBGROUP_PARTITION_SORT
-shared highp uvec4 bltL[VEC_SIZE][Wave_Size];
-#define blt bltL[w][Lane_Idx]
-#endif
+//#ifndef ENABLE_SUBGROUP_PARTITION_SORT
+//shared highp uvec4 bltL[VEC_SIZE][Wave_Size];
+//#define blt bltL[w][Lane_Idx]
+//#endif
 
 #define addrW addrL[w][Lane_Idx]
 #define keyW _data[w][Lane_Idx]
@@ -32,9 +32,9 @@ shared highp uvec4 bltL[VEC_SIZE][Wave_Size];
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
-#ifndef ENABLE_SUBGROUP_PARTITION_SORT
-initSubgroupIncFunctionTarget(localPrefix[WHERE], countOffset, 1, uint)
-#endif
+//#ifndef ENABLE_SUBGROUP_PARTITION_SORT
+//initSubgroupIncFunctionTarget(localPrefix[WHERE], countOffset, 1, uint)
+//#endif
 
 const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
@@ -68,24 +68,30 @@ void main() {
         //[[flatten]] if (w < VEC_SIZE) { keyW = utype_t(mix(RADICES_MASK,BFE(keys[0].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress)); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
-        const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
+        [[flatten]] if (w < VEC_SIZE) {
+            const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
+            prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt)); 
+        };
 #else
         LGROUP_BARRIER
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
-            [[flatten]] if (keyW == Wr && validAddress) { blt = subgroupBallot(true); };
+            [[flatten]] if (keyW == Wr && validAddress) {
+                const highp uvec4 blt = subgroupBallot(true);
+                prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt));
+            };
     #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {
-                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) { blt = subgroupBallot(true); };
+                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
+                    const highp uvec4 blt = subgroupBallot(true);
+                    prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt));
+                };
                 [[flatten]] if ( subgroupAll(found) ) { break; };
             };
     #endif
         };
-        LGROUP_BARRIER
 #endif
-
-        [[flatten]] if (w < VEC_SIZE) { prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindMSB(blt)); };
         LGROUP_BARRIER
 
         // critical block

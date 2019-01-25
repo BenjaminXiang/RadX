@@ -48,9 +48,13 @@ const uint UONE = 1u;
 //lowp uvec2 bPrefixSum() { return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); };
 
 lowp uvec2 bPrefixSum() {
-    //const highp uvec4 ballot = subgroupBallot(true);
-    //return uvec2(subgroupBallotBitCount(ballot), subgroupBallotExclusiveBitCount(ballot));
-    return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); 
+    const highp uvec4 ballot = subgroupBallot(true);
+    return uvec2(subgroupBallotBitCount(ballot), subgroupBallotExclusiveBitCount(ballot));
+    //return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); 
+};
+
+lowp uint bSum() {
+    return subgroupBallotBitCount(subgroupBallot(true));
 };
 
 #define initAtomicSubgroupIncFunction(mem, fname, by, T)\
@@ -78,8 +82,15 @@ T fname(in  uint WHERE) {\
 #define initSubgroupIncFunctionTarget(mem, fname, by, T)\
 T fname(in  uint WHERE) {\
     const lowp uvec2 pfx = bPrefixSum();\
-    T gadd = 0; [[flatten]] if (subgroupElect()) {gadd = add(mem, T(pfx.x) * T(by));}; gadd = readFLane(gadd);\
+    T gadd = 0; [[flatten]] if (subgroupElect()) {gadd = atomicAdd(mem, T(pfx.x) * T(by), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed);}; gadd = readFLane(gadd);\
     return T(pfx.y) * T(by) + gadd;\
+};
+
+// statically multiplied
+#define initSubgroupIncReducedFunctionTarget(mem, fname, by, T)\
+void fname(in  uint WHERE) {\
+    const lowp uint pfx = bSum();\
+    if (subgroupElect()) {atomicAdd(mem, T(pfx.x) * T(by), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed);};\
 };
 
 #endif
