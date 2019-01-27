@@ -100,16 +100,16 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 // used when filling
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
-//layout ( binding = 0, set = INDIR, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE KeyIn[]; };
-//layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
-//layout ( binding = 1, set = 0, scalar )  subgroupcoherent buffer ValueTmpB {uint values[]; } values[];
+// input influence data
+layout ( binding = 0, set = 1, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE data[]; } keyIn[];
+layout ( binding = 1, set = 1, scalar )  readonly subgroupcoherent buffer ValueInB {uint data[]; } valueIn[];
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_block;
 layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
 layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
-#define NumElements push_block.ELCNT//inline_block[0].data
+#define NumElements inline_block[0].data
 
 // division of radix sort (TODO: fix corruptions)
 struct blocks_info { uint count, limit, offset, wkoffset; };

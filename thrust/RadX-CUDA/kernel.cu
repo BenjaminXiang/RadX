@@ -16,16 +16,23 @@
 
 const size_t elementCount = (1 << 23);
 
-__global__ void KeyExtract(const uint32_t phase, const uint32_t * keysStorage, const uint32_t * keyExtract, const uint32_t * histogramBuf) {
+
+__global__ void LocalSort(const uint32_t * histogramBuf, uint32_t * prefixBuf) {
     
+
+
 };
 
-__global__ void Histogram(const uint32_t phase, const uint32_t * keyExtract) {
+__global__ void Histogram(const uint32_t phase, const uint32_t * keysStorage, uint32_t * keyExtract, uint32_t * histogramBuf) {
     
+
+
 };
 
-__global__ void Permute(const uint32_t phase, const uint32_t * keysStorage, const uint32_t * prefixBuf, uint32_t * keysBackup) {
+__global__ void Permute(const uint32_t * keysStorage, const uint32_t * keyExtract, const uint32_t * prefixBuf, uint32_t * keysBackup) {
     
+
+
 };
 
 

@@ -152,7 +152,9 @@ namespace radx {
                     vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // histogram of radices (every work group)
                     vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // prefix-sum of radices (every work group)
                     vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys references
-                    vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
+                    vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute), // inline uniform data of algorithms
+					vk::DescriptorSetLayoutBinding(7, vk::DescriptorType::eStorageTexelBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+					//vk::DescriptorSetLayoutBinding(8, vk::DescriptorType::eUniformTexelBuffer, 1, vk::ShaderStageFlagBits::eCompute),
                 };
 
 				const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, {}, {}, {}, {}, {} };
@@ -162,11 +164,11 @@ namespace radx {
 
             {
                 const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                    //vk::DescriptorSetLayoutBinding(0 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys in
+                    vk::DescriptorSetLayoutBinding(0 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys in
                     //vk::DescriptorSetLayoutBinding(1 , vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
                     vk::DescriptorSetLayoutBinding(6 , vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute)
                 };
-                //const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { {}, {}, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                //const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
                 //const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
                 descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
             };
@@ -180,6 +182,18 @@ namespace radx {
      InternalInterface& InternalInterface::buildDescriptorSet(){
         std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(0) };
         this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
+
+		// buffer view
+		vk::BufferViewCreateInfo cpi{};
+		cpi.buffer = *bufferMemory;
+		cpi.offset = this->keysCacheBufferInfo.offset;
+		cpi.range = this->keysCacheBufferInfo.range;
+		//cpi.format = vk::Format::eR8Uint; // for uniform texel view
+		//keyExtraBufferViewU8x4 = vk::Device(*device).createBufferView(cpi);
+
+		cpi.format = vk::Format::eR8Uint;
+		keyExtraBufferViewStore = vk::Device(*device).createBufferView(cpi);
+		
 
         // if no has buffer, set it!
 		if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
@@ -198,6 +212,9 @@ namespace radx {
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
 			vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
+
+			vk::WriteDescriptorSet(writeTmpl).setDstBinding(7).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setPTexelBufferView(&this->keyExtraBufferViewStore),
+			//vk::WriteDescriptorSet(writeTmpl).setDstBinding(8).setDescriptorType(vk::DescriptorType::eUniformTexelBuffer).setPTexelBufferView(&this->keyExtraBufferViewU8x4),
         };
 
         // inline descriptor 
@@ -220,8 +237,8 @@ namespace radx {
         // input data 
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
         std::vector<vk::WriteDescriptorSet> writes = {
-            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo),
-            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesBufferInfo),
+            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo).setDescriptorCount(this->keysBufferInfo.range ? 1 : 0),
+            //vk::WriteDescriptorSet(writeTmpl).setDstBinding(1).setPBufferInfo(&this->valuesBufferInfo).setDescriptorCount(this->valuesBufferInfo.range ? 1 : 0),
         };
 
         // inline descriptor 
@@ -276,7 +293,7 @@ namespace radx {
 		const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 8u;
         for (auto I=0u;I<stageCount;I++) { // TODO: add support variable stage length
 
-            std::array<uint32_t,4> stageC = {I,inputInterface->elementCount,0,0};
+            std::array<uint32_t,4> stageC = {I,0,0,0};
             cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t)*4, &stageC[0]);
 
             cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);

@@ -12,14 +12,14 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localPrefix[RADICES];
 
 // planned 64-wide for Turing
-shared m8pq utype_v _data[Wave_Size];
+shared m8pq utype_t _data[Wave_Size*VEC_SIZE];
 shared uint addrL[VEC_SIZE][Wave_Size], prefixL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define prefixW prefixL[w][Lane_Idx]
 #define addrW addrL[w][Lane_Idx]
-#define keyW _data[Lane_Idx][w]
+#define keyW _data[w*Wave_Size_RT+Lane_Idx]
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -28,9 +28,12 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 layout ( binding = 0, set = 0, scalar ) subgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
-layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { u8vec4 data[]; } keyExtra[];
+layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t data[]; } keyExtra[];
 layout ( binding = 4, set = 0, scalar ) readonly subgroupcoherent buffer PrefixSumB { uint PrefixSum[][RADICES]; };
 layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer ReferenceB { uint data[]; } references[];
+
+// key extra buffer view
+//layout ( binding = 8, set = 0 ) uniform usamplerBuffer keyExtraView;
 
 // 
 void main() {
@@ -51,7 +54,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
 
-        [[flatten]] if (w < VEC_SIZE) { keyW = keyExtra[0].data[ blocks.wkoffset + Wave_Size_RT * wk + Lane_Idx ][w], prefixW = references[0].data[addrW]; }; // shorter way to get radices (cached)
+        [[flatten]] if (w < VEC_SIZE) { keyW = keyExtra[0].data[addrW], prefixW = references[0].data[addrW]; }; // shorter way to get radices (cached)
         [[flatten]] if (w < VEC_SIZE) {
             [[flatten]] if (validAddress) { keys[1-(push_block.Shift&1)].data[localPrefix[uint(keyW)] + prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );

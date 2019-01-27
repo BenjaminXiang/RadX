@@ -9,6 +9,7 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device = {};
         std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
+		vk::BufferView keyExtraBufferViewStore = {}, keyExtraBufferViewU8x4 = {};
 
         vk::DescriptorSet descriptorSet = {};
         size_t maxElementCount = 1024*1024;
@@ -34,7 +35,7 @@ namespace radx {
 		virtual InternalInterface& setKeysBackupBufferInfo(const vk::DescriptorBufferInfo& keysBackup = {}) { this->keysBackupBufferInfo = keysBackup; return *this; };
         virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
         virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; return *this; };
-        virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize) {this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc); return *this; };
+        virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize) {this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eStorageTexelBuffer | vk::BufferUsageFlagBits::eUniformTexelBuffer); return *this; };
         virtual InternalInterface& buildDescriptorSet();
 
         // vk::DescriptorSet caster
@@ -48,20 +49,18 @@ namespace radx {
         std::shared_ptr<radx::Device> device = {};
 
         // TODO: use std::vector instead of 
-        
         vk::DescriptorSet descriptorSet;
-        
 
     public:
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
-		vk::DescriptorBufferInfo keysBufferInfo = {};
+		vk::DescriptorBufferInfo keysBufferInfo = {}, valuesBufferInfo = {};
 		size_t elementCount = 0;
 
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
-        //virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
+        virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
         virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; return *this; };
         virtual InputInterface& buildDescriptorSet();
 
