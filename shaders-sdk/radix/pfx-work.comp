@@ -46,7 +46,7 @@ void main() {
             const uint 
                 histv = subgroupInverseBallot(mask) ? Histogram[workgroup][radice] : 0u,
                 scan = subgroupExclusiveAdd(histv), 
-                sum = subgroupAdd(histv); //subgroupShuffle(histv, subgroupBallotFindMSB(mask)) + subgroupShuffle(scan, subgroupBallotFindLSB(mask)); 
+                sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
             uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(localHistogram[radice], sum); }; pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { PrefixSum[workgroup][radice] = (pref + scan); };
@@ -66,7 +66,7 @@ void main() {
             const uint histv = 
                 subgroupInverseBallot(mask) ? localHistogram[radice] : 0u,
                 scan = subgroupExclusiveAdd(histv),
-                sum = subgroupAdd(histv); //subgroupShuffle(histv, subgroupBallotFindMSB(mask)) + subgroupShuffle(scan, subgroupBallotFindLSB(mask)); 
+                sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
             uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(gprefix, sum); }; pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { PrefixSum[workgroup][radice] += (pref + scan); };

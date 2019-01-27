@@ -69,7 +69,7 @@ void main() {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
         [[flatten]] if (w < VEC_SIZE) {
             const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-            const uint btc = subgroupBallotBitCount(blt), fLn = subgroupBallotFindMSB(blt);
+            const uint btc = subgroupBallotBitCount(blt), fLn = subgroupBallotFindLSB(blt);
             [[flatten]] if (fLn == Lane_Idx && validAddress) { atomicAdd(localHistogram[uint(keyW)], btc, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
 #else
