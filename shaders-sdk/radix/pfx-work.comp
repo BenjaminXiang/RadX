@@ -42,10 +42,14 @@ void main() {
         // calculate prefix-sums by work-groups for every radice
         [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
             const lowp uint workgroup = gp+Lane_Idx;
-            const uint histv = workgroup < WG_COUNT ? Histogram[workgroup][radice] : 0u, sum = subgroupAdd(histv), scan = subgroupExclusiveAdd(histv); uint pref = 0u;
+            const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT);
+            const uint 
+                histv = subgroupInverseBallot(mask) ? Histogram[workgroup][radice] : 0u,
+                scan = subgroupExclusiveAdd(histv), 
+                sum = subgroupAdd(histv); //subgroupShuffle(histv, subgroupBallotFindMSB(mask)) + subgroupShuffle(scan, subgroupBallotFindLSB(mask)); 
 
-            [[flatten]] if (electedInvoc()) { pref = add(localHistogram[radice], sum); }; pref = readFLane(pref);
-            [[flatten]] if (workgroup < WG_COUNT) { PrefixSum[workgroup][radice] = (pref + scan); };
+            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(localHistogram[radice], sum); }; pref = readFLane(pref);
+            [[flatten]] if (subgroupInverseBallot(mask)) { PrefixSum[workgroup][radice] = (pref + scan); };
         };
     };
 
@@ -53,15 +57,19 @@ void main() {
 
     [[unroll, dependency_length(2)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
-        
+
         // calculate prefix-sums of every radice
         uint gprefix = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
             const lowp uint radice = rk + Lane_Idx;
-            const uint histv = radice < RADICES ? localHistogram[radice] : 0u, sum = subgroupAdd(histv), scan = subgroupExclusiveAdd(histv); uint pref = 0u;
-            
-            [[flatten]] if (electedInvoc()) { pref = add(gprefix, sum); }; pref = readFLane(pref);
-            [[flatten]] if (radice < RADICES) { PrefixSum[workgroup][radice] += (pref + scan); };
+            const highp uvec4 mask = subgroupBallot(radice < RADICES);
+            const uint histv = 
+                subgroupInverseBallot(mask) ? localHistogram[radice] : 0u,
+                scan = subgroupExclusiveAdd(histv),
+                sum = subgroupAdd(histv); //subgroupShuffle(histv, subgroupBallotFindMSB(mask)) + subgroupShuffle(scan, subgroupBallotFindLSB(mask)); 
+
+            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(gprefix, sum); }; pref = readFLane(pref);
+            [[flatten]] if (subgroupInverseBallot(mask)) { PrefixSum[workgroup][radice] += (pref + scan); };
         };
     };
 };
