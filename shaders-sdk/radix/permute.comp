@@ -12,37 +12,25 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localPrefix[RADICES];
 
 // planned 64-wide for Turing
-shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
+shared m8pq utype_v _data[Wave_Size];
 shared uint addrL[VEC_SIZE][Wave_Size], prefixL[VEC_SIZE][Wave_Size];
-shared lowp uint histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
-//#ifndef ENABLE_SUBGROUP_PARTITION_SORT
-//shared highp uvec4 bltL[VEC_SIZE][Wave_Size];
-//#define blt bltL[w][Lane_Idx]
-//#endif
-
-#define addrW addrL[w][Lane_Idx]
-#define keyW _data[w][Lane_Idx]
 #define prefixW prefixL[w][Lane_Idx]
-#define histgmW histgmL[w][Lane_Idx]
-#define fsLaneW fsLaneL[w][Lane_Idx]
-
+#define addrW addrL[w][Lane_Idx]
+#define keyW _data[Lane_Idx][w]
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
-
-//#ifndef ENABLE_SUBGROUP_PARTITION_SORT
-//initSubgroupIncFunctionTarget(localPrefix[WHERE], countOffset, 1, uint)
-//#endif
 
 const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = 0, scalar ) workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
-layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
-layout ( binding = 4, set = 0, scalar ) readonly subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
+layout ( binding = 0, set = 0, scalar ) subgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
+layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { u8vec4 data[]; } keyExtra[];
+layout ( binding = 4, set = 0, scalar ) readonly subgroupcoherent buffer PrefixSumB { uint PrefixSum[][RADICES]; };
+layout ( binding = 5, set = 0, scalar ) readonly subgroupcoherent buffer referenceB { uint data[]; } references[];
 
 // 
 void main() {
@@ -57,51 +45,13 @@ void main() {
     LGROUP_BARRIER
     [[flatten]] IFANY (bcount <= 0) return;
 
-    // calculate blocks
+    // permute blocks (use radice prefix as offset)
     [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
-    //[[flatten]] if (w < 1u) { addrWt = blocks.wkoffset + Lane_Idx*1u + w; };
-    
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
 
-        [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(Key8t[addrW]) : utype_t(RADICES_MASK); }; // shorter way to get radices (cached)
-        //[[flatten]] if (w < VEC_SIZE) { keyW = utype_t(mix(RADICES_MASK,BFE(keys[0].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress)); };
-
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
-        [[flatten]] if (w < VEC_SIZE) {
-            const highp uvec4 blt = subgroupPartitionNV(keyW)&validAddressL[w];
-            prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindLSB(blt)); 
-        };
-#else
-        LGROUP_BARRIER
-        [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
-    #ifdef SIMPLER_SORT
-            [[flatten]] if (keyW == Wr && validAddress) {
-                const highp uvec4 blt = subgroupBallot(true);
-                prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindLSB(blt));
-            };
-    #else
-            bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
-            for (lowp uint t=0;t<BSIZE;t+=1u) {
-                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
-                    const highp uvec4 blt = subgroupBallot(true);
-                    prefixW = utype_t(subgroupBallotExclusiveBitCount(blt)), histgmW = utype_t(subgroupBallotBitCount(blt)), fsLaneW = utype_t(subgroupBallotFindLSB(blt));
-                };
-                [[flatten]] if ( subgroupAll(found) ) { break; };
-            };
-    #endif
-        };
-#endif
-        LGROUP_BARRIER
-
-        // critical block
-        [[flatten]] if (w == 0u) {[[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate local prefix
-            uint cntl = 0u; [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = add(localPrefix[uint(keyW)], histgmW); };
-            prefixW += subgroupShuffle(cntl,fsLaneW);
-        }};
-
-        LGROUP_BARRIER
+        [[flatten]] if (w < VEC_SIZE) { keyW = keyExtra[0].data[ blocks.wkoffset + Wave_Size_RT * wk + Lane_Idx ][w], prefixW = localPrefix[uint(keyW)] + references[0].data[addrW]; }; // shorter way to get radices (cached)
         [[flatten]] if (w < VEC_SIZE) {
             [[flatten]] if (validAddress) { keys[1-(push_block.Shift&1)].data[prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );

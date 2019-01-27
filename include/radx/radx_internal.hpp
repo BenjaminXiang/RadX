@@ -23,12 +23,12 @@ namespace radx {
 		// TODO: use std::vector instead of 
 		vk::DescriptorBufferInfo 
 			keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
-			keysCacheBufferInfo = {}, //referencesBufferInfo = {},
+			keysCacheBufferInfo = {}, referencesBufferInfo = {},
 			histogramBufferInfo = {}, prefixScansBufferInfo = {};
 
 
         virtual InternalInterface& setKeysCacheBufferInfo(const vk::DescriptorBufferInfo& keysCache = {}){ this->keysCacheBufferInfo = keysCache; return *this; };
-        //virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
+        virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
         virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}){ this->keysStoreBufferInfo = keysStore; return *this; };
         virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
 		virtual InternalInterface& setKeysBackupBufferInfo(const vk::DescriptorBufferInfo& keysBackup = {}) { this->keysBackupBufferInfo = keysBackup; return *this; };

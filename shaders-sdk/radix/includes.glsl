@@ -120,8 +120,7 @@ blocks_info get_blocks_info(in uint n) {
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,
         block_limit = block_offset + block_size,
-        block_count = tiled(block_size, block_tile),
-        block_offset_single = (block_size>>VEC_SHIF)*gl_WorkGroupID.x;
+        block_count = tiled(block_size, block_tile);
 
     return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
 };

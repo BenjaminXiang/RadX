@@ -15,7 +15,7 @@ const lowp uvec4 max8u = RADICES_MASK.xxxx; // eq. 0xFFFFFFFFu
 const uvec4 seq4x = {0u,1u,2u,3u};
 
 layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { u32vec4 data[]; } keys[];
-layout ( binding = 2, set = 0, scalar ) workgroupcoherent buffer RadiceCacheOutB { uint32_t Keys8x4t[]; };
+layout ( binding = 2, set = 0, scalar ) workgroupcoherent buffer RadiceCacheOutB { uint32_t data[]; } keyExtra[];
 
 // TODO: transpose keys for faster access 
 void main() {
@@ -26,6 +26,6 @@ void main() {
         const bvec4 validAddress = lessThan(globalID.xxxx*4u+seq4x, wsize.xxxx); IFALL(all(not(validAddress))) break;
 
         data[Local_Idx] = utype_v(mix(max8u,BFE(keys[push_block.Shift&1].data[globalID],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress));
-        Keys8x4t[globalID] = u8x4pack(utype_v(data[Local_Idx]));
+        keyExtra[0].data[globalID] = u8x4pack(utype_v(data[Local_Idx]));
     };
 };

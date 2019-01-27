@@ -151,11 +151,11 @@ namespace radx {
                     vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // radice cache
                     vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // histogram of radices (every work group)
                     vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // prefix-sum of radices (every work group)
-                    //vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys references
+                    vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // keys references
                     vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute) // inline uniform data of algorithms
                 };
 
-                const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, {}, {}, {}, {} };
+				const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, {}, {}, {}, {}, {} };
                 const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
                 descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
             };
@@ -182,6 +182,7 @@ namespace radx {
         this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
 
         // if no has buffer, set it!
+		if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
         if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = *bufferMemory;
 		if (!this->keysBackupBufferInfo.buffer) this->keysBackupBufferInfo.buffer = *bufferMemory;
         if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = *bufferMemory;
@@ -196,6 +197,7 @@ namespace radx {
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setPBufferInfo(&this->keysCacheBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
+			vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
         };
 
         // inline descriptor 
@@ -277,13 +279,6 @@ namespace radx {
             std::array<uint32_t,4> stageC = {I,inputInterface->elementCount,0,0};
             cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t)*4, &stageC[0]);
 
-			//cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
-			//cmdBuf.dispatch(this->groupX, 1u, 1u);
-
-			cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
-			cmdBuf.dispatch(this->groupX, 1u, 1u);
-			commandBarrier(cmdBuf);
-			
             cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
             cmdBuf.dispatch(this->groupX, 1u, 1u);
             commandBarrier(cmdBuf);
@@ -313,7 +308,7 @@ namespace radx {
             keysSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keysBkpSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keyCacheSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint8_t),
-            referencesSize = 16ull * sizeof(uint32_t),//maxElementCount * sizeof(uint32_t),
+            referencesSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             histogramsSize = 256ull * (this->groupX+1) * sizeof(uint32_t),
             prefixScanSize = histogramsSize
             ;
@@ -335,6 +330,7 @@ namespace radx {
         internalInterface->setKeysStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, keysOffset, keysSize));
         internalInterface->setKeysBackupBufferInfo(vk::DescriptorBufferInfo(nullptr, keysBkpOffset, keysBkpSize));
         internalInterface->setKeysCacheBufferInfo(vk::DescriptorBufferInfo(nullptr, keyCacheOffset, keyCacheSize));
+		internalInterface->setReferencesBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize)); // with work-group local prefix-scans
 
         // still required for effective sorting 
         internalInterface->setHistogramBufferInfo(vk::DescriptorBufferInfo(nullptr, histogramsOffset, histogramsSize));
