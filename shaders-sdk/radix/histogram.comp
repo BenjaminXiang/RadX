@@ -38,11 +38,11 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
-layout ( binding = 2, set = 0, scalar ) subgroupcoherent buffer RadiceCacheOutB { uint32_t data[]; } keyExtra[];
+layout ( binding = 3, set = 0, scalar )          workgroupcoherent buffer HistogramB { uint Histogram[][RADICES]; };
 
 // 
-layout ( binding = 3, set = 0, scalar ) subgroupcoherent buffer HistogramB { uint Histogram[][RADICES]; };
-layout ( binding = 5, set = 0, scalar ) subgroupcoherent buffer referenceB { uint data[]; } references[];
+layout ( binding = 2, set = 0, scalar ) subgroupcoherent buffer RadiceCacheOutB { uint32_t data[]; } keyExtra[];
+layout ( binding = 5, set = 0, scalar ) subgroupcoherent buffer ReferenceB { uint data[]; } references[];
 
 // 
 void main() {

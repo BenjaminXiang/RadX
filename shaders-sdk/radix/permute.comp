@@ -30,7 +30,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 layout ( binding = 0, set = 0, scalar ) subgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { u8vec4 data[]; } keyExtra[];
 layout ( binding = 4, set = 0, scalar ) readonly subgroupcoherent buffer PrefixSumB { uint PrefixSum[][RADICES]; };
-layout ( binding = 5, set = 0, scalar ) readonly subgroupcoherent buffer referenceB { uint data[]; } references[];
+layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer ReferenceB { uint data[]; } references[];
 
 // 
 void main() {
