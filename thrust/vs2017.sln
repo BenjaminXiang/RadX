@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thrust-sort", "thrust-sort\thrust-sort.vcxproj", "{BFE2BE3F-2B4E-426B-9E21-ADC4235071D9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RadX-CUDA", "RadX-CUDA\RadX-CUDA.vcxproj", "{9070B5BA-8057-4743-A4A7-06D77B4240E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{BFE2BE3F-2B4E-426B-9E21-ADC4235071D9}.Debug|x64.Build.0 = Debug|x64
 		{BFE2BE3F-2B4E-426B-9E21-ADC4235071D9}.Release|x64.ActiveCfg = Release|x64
 		{BFE2BE3F-2B4E-426B-9E21-ADC4235071D9}.Release|x64.Build.0 = Release|x64
+		{9070B5BA-8057-4743-A4A7-06D77B4240E7}.Debug|x64.ActiveCfg = Debug|x64
+		{9070B5BA-8057-4743-A4A7-06D77B4240E7}.Debug|x64.Build.0 = Debug|x64
+		{9070B5BA-8057-4743-A4A7-06D77B4240E7}.Release|x64.ActiveCfg = Release|x64
+		{9070B5BA-8057-4743-A4A7-06D77B4240E7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

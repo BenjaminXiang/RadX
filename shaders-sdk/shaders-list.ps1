@@ -62,7 +62,7 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "transposer.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
 
     # optimize built shaders
-    #OptimizeMainline
+    OptimizeMainline
 }
 
 

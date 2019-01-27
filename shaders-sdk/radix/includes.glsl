@@ -104,10 +104,6 @@ const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 //layout ( binding = 1, set = INDIR, scalar )  readonly subgroupcoherent buffer ValueInB {uint ValueIn[]; };
 //layout ( binding = 1, set = 0, scalar )  subgroupcoherent buffer ValueTmpB {uint values[]; } values[];
 
-// 
-layout ( binding = 3, set = 0, scalar )  subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
-layout ( binding = 4, set = 0, scalar )  subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
-
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_block;
 layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];

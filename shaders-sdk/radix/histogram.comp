@@ -32,8 +32,10 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
+layout ( binding = 3, set = 0, scalar )          subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
 layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
+
 
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
 initSubgroupIncReducedFunctionTarget(localHistogram[WHERE], histCount, 1, uint)
@@ -97,7 +99,7 @@ void main() {
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RT) {
         const lowp uint radice = rk + Lane_Idx;
         [[flatten]] if (radice < RADICES) {
-            PrefixSum[gl_WorkGroupID.x][radice] = localHistogram[radice+0u];
+            //PrefixSum[gl_WorkGroupID.x][radice] = localHistogram[radice+0u];
             Histogram[gl_WorkGroupID.x][radice] = localHistogram[radice+0u];
         };
     };

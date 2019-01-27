@@ -42,6 +42,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 // 
 layout ( binding = 0, set = 0, scalar ) workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
 layout ( binding = 2, set = 0, scalar ) readonly subgroupcoherent buffer RadiceCacheOutB { uint8_t Key8t[]; };
+layout ( binding = 4, set = 0, scalar ) readonly subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 
 // 
 void main() {
