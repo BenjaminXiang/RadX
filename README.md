@@ -26,3 +26,9 @@ GPU sorting shaders dedication from vRt project.
 - Performance tested in Windows 10 Build 18317 (Insiders) and Visual Studio 2019 
 - Can build by GCC-8 in Linux systems (tested in Ubuntu 18.10)
 
+## PDF's
+
+- http://www.heterogeneouscompute.org/wordpress/wp-content/uploads/2011/06/RadixSort.pdf (principles)
+- https://vgc.poly.edu/~csilva/papers/cgf.pdf (partially)
+- https://devblogs.nvidia.com/using-cuda-warp-level-primitives/ (planned real CUDA version)
+- https://github.com/KhronosGroup/GLSL/blob/master/extensions/nv/GL_NV_shader_subgroup_partitioned.txt
