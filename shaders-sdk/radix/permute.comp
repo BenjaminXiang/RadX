@@ -51,9 +51,9 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
 
-        [[flatten]] if (w < VEC_SIZE) { keyW = keyExtra[0].data[ blocks.wkoffset + Wave_Size_RT * wk + Lane_Idx ][w], prefixW = localPrefix[uint(keyW)] + references[0].data[addrW]; }; // shorter way to get radices (cached)
+        [[flatten]] if (w < VEC_SIZE) { keyW = keyExtra[0].data[ blocks.wkoffset + Wave_Size_RT * wk + Lane_Idx ][w], prefixW = references[0].data[addrW]; }; // shorter way to get radices (cached)
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { keys[1-(push_block.Shift&1)].data[prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
+            [[flatten]] if (validAddress) { keys[1-(push_block.Shift&1)].data[localPrefix[uint(keyW)] + prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
