@@ -39,7 +39,7 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
+layout ( binding = 0, set = InputKeys, rgba8ui ) uniform readonly workgroupcoherent uimageBuffer keys[];
 
 // pointer buffers
 layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { uint counts[][RADICES]; };
