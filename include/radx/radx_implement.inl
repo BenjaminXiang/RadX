@@ -164,11 +164,11 @@ namespace radx {
 
             {
                 const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 2, vk::ShaderStageFlagBits::eCompute), // keys in
+                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageTexelBuffer, 2, vk::ShaderStageFlagBits::eCompute), // keys in
                     //vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
                     vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute)
                 };
-                const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
+                const std::vector<vk::DescriptorBindingFlagsEXT> _bindingFlags = { vk::DescriptorBindingFlagBitsEXT::ePartiallyBound, vk::DescriptorBindingFlagBitsEXT::ePartiallyBound };
                 const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_bindingFlags.data()).setBindingCount(_bindingFlags.size());
                 descriptorLayouts.push_back(device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size())));
             };
@@ -183,16 +183,7 @@ namespace radx {
         std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(0) };
         this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
 
-        // buffer view
-        vk::BufferViewCreateInfo cpi{};
-        cpi.buffer = *bufferMemory;
-        cpi.offset = this->keysCacheBufferInfo.offset;
-        cpi.range = this->keysCacheBufferInfo.range;
-        //cpi.format = vk::Format::eR8Uint; // for uniform texel view
-        //keyExtraBufferViewU8x4 = vk::Device(*device).createBufferView(cpi);
 
-        cpi.format = vk::Format::eR8Uint;
-        keyExtraBufferViewStore = vk::Device(*device).createBufferView(cpi);
 
 
         // if no has buffer, set it!
@@ -231,14 +222,24 @@ namespace radx {
 
 
     InputInterface& InputInterface::buildDescriptorSet() {
+        // buffer view
+        vk::BufferViewCreateInfo cpi{};
+        cpi.format = vk::Format::eR8G8B8A8Uint; // for uniform texel view
+
+        cpi.buffer = keysBufferInfo.buffer, cpi.offset = keysBufferInfo.offset, cpi.range = keysBufferInfo.range;
+        keysBufferView = vk::Device(*device).createBufferView(cpi);
+
+        cpi.buffer = swapBufferInfo.buffer, cpi.offset = swapBufferInfo.offset, cpi.range = swapBufferInfo.range;
+        swapBufferView = vk::Device(*device).createBufferView(cpi);
+
         std::vector<vk::DescriptorSetLayout> dsLayouts = { device->getDescriptorSetLayoutSupport().at(1) };
         this->descriptorSet = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1)).at(0);
 
         // input data 
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
         std::vector<vk::WriteDescriptorSet> writes = {
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->keysBufferInfo),
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&this->swapBufferInfo).setDstArrayElement(1),
+            vk::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setDstBinding(0).setPTexelBufferView(&keysBufferView),
+            vk::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setDstBinding(0).setPTexelBufferView(&swapBufferView).setDstArrayElement(1),
         };
 
         // inline descriptor 

@@ -9,7 +9,7 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device = {};
         std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
-		vk::BufferView keyExtraBufferViewStore = {}, keyExtraBufferViewU8x4 = {};
+		
 
         vk::DescriptorSet descriptorSet = {};
         size_t maxElementCount = 1024*1024;
@@ -52,6 +52,7 @@ namespace radx {
 
         // TODO: use std::vector instead of 
         vk::DescriptorSet descriptorSet;
+        vk::BufferView keysBufferView = {}, swapBufferView = {};
 
     public:
         friend Algorithm;

@@ -126,6 +126,8 @@ blocks_info get_blocks_info(in uint n) {
     return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
 };
 
+#define extractKey(a,s) ((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+
 #ifdef PREFER_UNPACKED
 #define upfunc(x) (x)
 #else
