@@ -14,7 +14,7 @@ shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
-shared uint addrL[VEC_SIZE][Wave_Size], prefixL[VEC_SIZE][Wave_Size];
+shared uint addrL[VEC_SIZE*Wave_Size], prefixL[VEC_SIZE][Wave_Size];
 shared lowp uint histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
@@ -24,7 +24,7 @@ shared blocks_info blocks;
 //#define blt bltL[w][Lane_Idx]
 //#endif
 
-#define addrW addrL[w][Lane_Idx]
+#define addrW addrL[Local_Idx]
 #define keyW keyL[w][Lane_Idx]
 #define prefixW prefixL[w][Lane_Idx]
 #define histgmW histgmL[w][Lane_Idx]
