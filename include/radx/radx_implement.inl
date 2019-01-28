@@ -273,11 +273,11 @@ namespace radx {
 
         // create pipeline layout 
         this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::histogram, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::workload, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permute, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::copyhack, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::transposer, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::counting, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::partition, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::scattering, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::indiction, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permutation, *device->getPhysicalHelper()), pipelineLayout, *device));
 
         // return shared_ptr when needed
         return VK_SUCCESS;
@@ -304,15 +304,15 @@ namespace radx {
             std::array<uint32_t, 4> stageC = { I,0,0,0 };
             cmdBuf.pushConstants(this->pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, sizeof(uint32_t) * 4, &stageC[0]);
 
-            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->histogram]);
+            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->counting]);
             cmdBuf.dispatch(this->groupX, 1u, 1u);
             commandBarrier(cmdBuf);
 
-            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->workload]);
+            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->partition]);
             cmdBuf.dispatch(1u, 1u, 1u);
             commandBarrier(cmdBuf);
 
-            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->permute]);
+            cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->scattering]);
             cmdBuf.dispatch(this->groupX, 1u, 1u);
             commandBarrier(cmdBuf);
 

@@ -134,7 +134,7 @@ namespace radx {
     // TODO: better vendor-based setup for device 
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
     protected:
-        uint32_t histogram = 0, workload = 1, permute = 2, copyhack = 3, transposer = 4, resolve = 5;
+        uint32_t counting = 0, partition = 1, scattering = 2, indiction = 3, permutation = 4, resolve = 5;
         virtual VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override;
 
     public:

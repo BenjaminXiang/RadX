@@ -40,11 +40,13 @@ function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName =
 
 function OptimizeMainline($Pfx = "") {
     # optimize radix sort
-    Optimize "permute.comp"   "$HRDDIR$RDXI"
-    Optimize "histogram.comp" "$HRDDIR$RDXI"
-    Optimize "pfx-work.comp"  "$HRDDIR$RDXI"
-    Optimize "copyhack.comp"  "$HRDDIR$RDXI"
-    Optimize "transposer.comp"  "$HRDDIR$RDXI"
+    
+    Optimize "counting.comp"      "$HRDDIR$RDXI"
+    Optimize "partition.comp"     "$HRDDIR$RDXI"
+    Optimize "scattering.comp"    "$HRDDIR$RDXI"
+    
+    Optimize "indiction.comp"     "$HRDDIR$RDXI"
+    Optimize "permutation.comp"   "$HRDDIR$RDXI"
 }
 
 
@@ -55,11 +57,12 @@ function BuildAllShaders($Pfx = "") {
     new-item -Name $HRDDIR$RDXI -itemtype directory  -Force | Out-Null
 
     # radix sort
-    BuildCompute "permute.comp"    "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "histogram.comp"  "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "pfx-work.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "copyhack.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "transposer.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "counting.comp"     "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "partition.comp"    "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "scattering.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
+    
+    BuildCompute "indiction.comp"    "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "permutation.comp"  "$INDIR$RDXI" "$HRDDIR$RDXI"
 
     # optimize built shaders
     OptimizeMainline
