@@ -13,6 +13,13 @@ shared uint localPartitions[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
+
+#ifdef SIMPLER_READ_U8
+shared u8vec4 keymL[VEC_SIZE*Wave_Size];
+#else
+shared uint keymL[VEC_SIZE*Wave_Size];
+#endif
+
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];//, ptrL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
@@ -21,6 +28,7 @@ shared blocks_info blocks;
 #define addrW addrL[Local_Idx]
 #define keyW keyL[w][Lane_Idx]
 #define ptrW ptrL[w][Lane_Idx]
+#define keymW keymL[Local_Idx]
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -58,15 +66,18 @@ void main() {
         IFALL(all(not(validAddress))) break;
 
         [[flatten]] if (w < VEC_SIZE) {
+            keymW = keys[push_block.Shift&1].data[addrW];
 #ifdef SIMPLER_READ_U8
-            keyW = validAddress ? utype_t(keys[push_block.Shift&1].data[addrW][push_block.Shift]) : utype_t(RADICES_MASK),
+            keyW = validAddress ? utype_t(keymW[push_block.Shift]) : utype_t(RADICES_MASK),
 #else
-            keyW = validAddress ? utype_t(BFE(keys[push_block.Shift&1].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK),
+            keyW = validAddress ? utype_t(BFE(keymW,int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK),
 #endif
             prtscnW = offsets[0].data[addrW];
         };
+
+        // TODO: local sorting to avoid cache missing or using TBO 
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { prtscnW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prtscnW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
+            [[flatten]] if (validAddress) { prtscnW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prtscnW] = keymW; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
