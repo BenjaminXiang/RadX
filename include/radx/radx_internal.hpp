@@ -27,12 +27,14 @@ namespace radx {
 			keysCacheBufferInfo = {}, referencesBufferInfo = {},
 			histogramBufferInfo = {}, prefixScansBufferInfo = {};
 
-
+        // deprecated stuff
+        virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}) { this->keysStoreBufferInfo = keysStore; return *this; };
+        virtual InternalInterface& setKeysBackupBufferInfo(const vk::DescriptorBufferInfo& keysBackup = {}) { this->keysBackupBufferInfo = keysBackup; return *this; };
         virtual InternalInterface& setKeysCacheBufferInfo(const vk::DescriptorBufferInfo& keysCache = {}){ this->keysCacheBufferInfo = keysCache; return *this; };
+
+        // current cache stuff
         virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
-        virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}){ this->keysStoreBufferInfo = keysStore; return *this; };
         virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
-		virtual InternalInterface& setKeysBackupBufferInfo(const vk::DescriptorBufferInfo& keysBackup = {}) { this->keysBackupBufferInfo = keysBackup; return *this; };
         virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
         virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; return *this; };
         virtual InternalInterface& buildMemory(const vk::DeviceSize& memorySize) {this->bufferMemory = std::make_unique<radx::VmaAllocatedBuffer>(this->device, memorySize, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eStorageTexelBuffer | vk::BufferUsageFlagBits::eUniformTexelBuffer); return *this; };
@@ -55,12 +57,12 @@ namespace radx {
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
-		vk::DescriptorBufferInfo keysBufferInfo = {}, valuesBufferInfo = {};
+		vk::DescriptorBufferInfo keysBufferInfo = {}, swapBufferInfo = {};
 		size_t elementCount = 0;
 
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };
-        virtual InputInterface& setValuesBufferInfo(const vk::DescriptorBufferInfo& values = {}){ this->valuesBufferInfo = values; return *this; };
+        virtual InputInterface& setSwapBufferInfo(const vk::DescriptorBufferInfo& swap = {}){ this->swapBufferInfo = swap; return *this; };
         virtual InputInterface& setElementCount(const size_t& elementCount = 0) { this->elementCount = elementCount; return *this; };
         virtual InputInterface& buildDescriptorSet();
 

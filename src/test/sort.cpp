@@ -307,12 +307,14 @@ namespace rad {
 			// in-host buffers
 			keysHostVector = radx::Vector<uint32_t>(vmaHostBuffer, elementCount, keysOffset),
 			keysToHostVector = radx::Vector<uint32_t>(vmaToHostBuffer, elementCount, keysOffset),
-			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset)
+			keysDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysOffset),
+            swapDeviceVector = radx::Vector<uint32_t>(vmaDeviceBuffer, elementCount, keysBackupOffset)
 			;
 
 		// on deprecation
 		inputInterface->setElementCount(keysDeviceVector.size());
 		inputInterface->setKeysBufferInfo(keysDeviceVector);
+        inputInterface->setSwapBufferInfo(swapDeviceVector);
 
 		// build descriptor set
 		inputInterface->buildDescriptorSet();

@@ -15,7 +15,7 @@ GPU sorting shaders dedication from vRt project.
 
 ## Preview results
 
-- Radix sort in RTX 2070 now is (up to 8x) faster than optimized CPU sorting (Intel Core i7-8700K)
+- Radix sort in RTX 2070 now is (up to 8x) faster than optimized parallel CPU sorting (Intel Core i7-8700K)
 - Performance tested in Windows 10 Build 18317 (Insiders) and Visual Studio 2017 
 - Can be built by GCC-8 in Linux systems (tested in Ubuntu 18.10)
 

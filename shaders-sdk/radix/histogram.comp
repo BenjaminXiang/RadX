@@ -38,9 +38,9 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 #ifdef SIMPLER_READ_U8
-layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInB { u8vec4 data[]; } keys[];
+layout ( binding = 0, set = InputKeys, scalar ) readonly workgroupcoherent buffer KeyInB { u8vec4 data[]; } keys[];
 #else
-layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInB { KEYTYPE data[]; } keys[];
+layout ( binding = 0, set = InputKeys, scalar ) readonly workgroupcoherent buffer KeyInB { KEYTYPE data[]; } keys[];
 #endif
 
 // pointer buffers

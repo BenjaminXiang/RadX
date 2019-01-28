@@ -110,6 +110,7 @@ layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } in
 layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
 #define NumElements inline_block[0].data
+#define InputKeys 1
 
 // division of radix sort (TODO: fix corruptions)
 struct blocks_info { uint count, limit, offset, wkoffset; };
