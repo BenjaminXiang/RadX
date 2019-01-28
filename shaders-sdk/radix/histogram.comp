@@ -46,6 +46,9 @@ layout ( binding = 5, set = 0, scalar ) subgroupcoherent buffer ReferenceB { uin
 layout ( binding = 7, set = 0, r8ui ) uniform writeonly workgroupcoherent uimageBuffer keyExtraViewStore;
 
 // 
+//layout ( binding = 0, set = 1, scalar )  readonly subgroupcoherent buffer KeyInB { KEYTYPE data[]; } keyIn[];
+
+// 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + Wave_Idx);
     const lowp uint w = Wave_Idx, Wr = Wc * w;
@@ -66,7 +69,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         //IFALL(all(not(validAddress))) break;
         
-        //[[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(keyExtra[0].data[addrW]) : utype_t(RADICES_MASK); }; // shorter way to get radices (cached)
+        // encode radice for read-only
         [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(BFE(keys[push_block.Shift&1].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 

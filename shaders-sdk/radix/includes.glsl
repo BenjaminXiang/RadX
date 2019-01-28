@@ -101,7 +101,6 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
 // input influence data
-layout ( binding = 0, set = 1, scalar )  readonly subgroupcoherent buffer KeyInB {KEYTYPE data[]; } keyIn[];
 layout ( binding = 1, set = 1, scalar )  readonly subgroupcoherent buffer ValueInB {uint data[]; } valueIn[];
 
 // push constant in radix sort

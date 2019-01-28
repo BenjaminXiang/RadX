@@ -5,27 +5,24 @@
 #include "../include/mathlib.glsl"
 #include "../include/ballotlib.glsl"
 
-//#define COPY_HACK_IDENTIFY // buffer names was swapped
+#define COPY_HACK_IDENTIFY // buffer names was swapped
 #include "./includes.glsl"
 
 const uint local_size_def = Wave_Size*16u;
 layout (local_size_x = local_size_def) in; // use many as possible
-shared m8pq utype_v data[local_size_def];
-const lowp uvec4 max8u = RADICES_MASK.xxxx; // eq. 0xFFFFFFFFu
-const uvec4 seq4x = {0u,1u,2u,3u};
 
-layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { u32vec4 data[]; } keys[];
-layout ( binding = 2, set = 0, scalar ) workgroupcoherent buffer RadiceCacheOutB { uint32_t data[]; } keyExtra[];
+layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } ptrs[];
+layout ( binding = 0, set = 1, scalar )           subgroupcoherent buffer KeyInB {KEYTYPE data[]; } keyIn[];
 
-// TODO: transpose keys for faster access 
 void main() {
     const uint wsize = NumElements;
-    IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_NumWorkGroups.x*gl_WorkGroupSize.x*4), 2097152u);
-    [[dependency_infinite]] for (uint w=0;w<wcount;w++) {
-        const uint workID = gl_NumWorkGroups.x * w + gl_WorkGroupID.x, globalID = workID * gl_WorkGroupSize.x + Local_Idx;
-        const bvec4 validAddress = lessThan(globalID.xxxx*4u+seq4x, wsize.xxxx); IFALL(all(not(validAddress))) break;
+    IFANY (wsize <= 0) return; const uint wcount = min(tiled(wsize, gl_WorkGroupSize.x), 2097152u);
 
-        data[Local_Idx] = utype_v(mix(max8u,BFE(keys[push_block.Shift&1].data[globalID],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS),validAddress));
-        keyExtra[0].data[globalID] = u8x4pack(utype_v(data[Local_Idx]));
+    [[dependency_infinite]] for (uint w=0;w<wcount;w+=gl_NumWorkGroups.x) {
+        const uint globalID = (w + gl_WorkGroupID.x) * gl_WorkGroupSize.x + Local_Idx;
+        const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
+
+        // currently only copying support
+        [[flatten]] if (validAddress) { keyIn[0].data[globalID] = keyIn[1].data[ptrs[0].data[globalID]]; };
     };
 };

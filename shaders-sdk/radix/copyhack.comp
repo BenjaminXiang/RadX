@@ -11,7 +11,7 @@
 const uint local_size_def = Wave_Size*16u;
 layout (local_size_x = local_size_def) in; // use many as possible
 
-layout ( binding = 0, set = 0, scalar ) workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
+layout ( binding = 0, set = 0, scalar ) workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } ptrs[];
 
 void main() {
     const uint wsize = NumElements;
@@ -22,8 +22,6 @@ void main() {
         const bool validAddress = lessThan(globalID, wsize); //IFALL (!validAddress) break;
 
         // currently only copying support
-        [[flatten]] if (validAddress) { 
-            keys[1].data[globalID] = keys[0].data[globalID];
-        };
+        [[flatten]] if (validAddress) { ptrs[0].data[globalID] = globalID; };
     };
 };
