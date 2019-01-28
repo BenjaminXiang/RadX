@@ -12,10 +12,8 @@ layout (local_size_x = VEC_SIZE*Wave_Size) in;
 shared uint localPartitions[RADICES];
 
 // planned 64-wide for Turing
-//shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
-//shared m8pq utype_v keymL[VEC_SIZE*Wave_Size];
-shared lowp uint keyL[VEC_SIZE][Wave_Size];
-shared lowp uvec4 keymL[VEC_SIZE*Wave_Size];
+shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
+shared uint kymL[VEC_SIZE*Wave_Size];
 
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];//, ptrL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
@@ -25,7 +23,7 @@ shared blocks_info blocks;
 #define addrW addrL[Local_Idx]
 #define keyW keyL[w][Lane_Idx]
 #define ptrW ptrL[w][Lane_Idx]
-#define keymW keymL[Local_Idx]
+#define keyM kymL[Local_Idx]
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -39,7 +37,8 @@ const uint BSIZE = min(Wc,Wave_Size);
 //layout ( binding = 0, set = InputKeys, scalar ) devicecoherent buffer KeyInB { KEYTYPE data[]; } keys[];
 //#endif
 
-layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
+//layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) workgroupcoherent buffer KeysB { uint data[]; } keys[];
 
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
@@ -65,18 +64,14 @@ void main() {
         IFALL(all(not(validAddress))) break;
 
         [[flatten]] if (w < VEC_SIZE) {
-            keymW = utype_v(imageLoad(keys[push_block.Shift&1], int(addrW))),//keys[push_block.Shift&1].data[addrW];
-            keyW = validAddress ? utype_t(keymW[push_block.Shift]) : utype_t(RADICES_MASK),
-            //keyW = validAddress ? utype_t(extractKey(keymW,push_block.Shift)) : utype_t(RADICES_MASK),
+            keyM = keys[push_block.Shift&1].data[addrW],
+            keyW = validAddress ? utype_t(extractKey(keyM,push_block.Shift)) : utype_t(RADICES_MASK),
             prtscnW = offsets[0].data[addrW];
         };
 
         // TODO: local sorting to avoid cache missing or using TBO 
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { 
-                //prtscnW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prtscnW] = keymW;
-                prtscnW += localPartitions[uint(keyW)], imageStore(keys[1-(push_block.Shift&1)], int(prtscnW), keymW);
-            }; // copy from backup to inner store
+            [[flatten]] if (validAddress) { prtscnW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prtscnW] = keyM; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };

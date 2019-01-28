@@ -164,7 +164,7 @@ namespace radx {
 
             {
                 const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageTexelBuffer, 2, vk::ShaderStageFlagBits::eCompute), // keys in
+                    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 2, vk::ShaderStageFlagBits::eCompute), // keys in
                     //vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute), // values in
                     vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eInlineUniformBlockEXT, sizeof(uint32_t), vk::ShaderStageFlagBits::eCompute)
                 };
@@ -238,8 +238,8 @@ namespace radx {
         // input data 
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
         std::vector<vk::WriteDescriptorSet> writes = {
-            vk::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setDstBinding(0).setPTexelBufferView(&keysBufferView),
-            vk::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setDstBinding(0).setPTexelBufferView(&swapBufferView).setDstArrayElement(1),
+            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&keysBufferInfo),
+            vk::WriteDescriptorSet(writeTmpl).setDstBinding(0).setPBufferInfo(&swapBufferInfo).setDstArrayElement(1),
         };
 
         // inline descriptor 

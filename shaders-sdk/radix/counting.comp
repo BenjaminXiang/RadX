@@ -13,8 +13,7 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES];
 
 // planned 64-wide for Turing
-//shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
-shared lowp uint keyL[VEC_SIZE][Wave_Size];
+shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
 shared lowp uint prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
@@ -39,7 +38,8 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = InputKeys, rgba8ui ) uniform readonly workgroupcoherent uimageBuffer keys[];
+//layout ( binding = 0, set = InputKeys, rgba8ui ) uniform readonly workgroupcoherent uimageBuffer keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) readonly workgroupcoherent buffer KeysB { uint data[]; } keys[];
 
 // pointer buffers
 layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { uint counts[][RADICES]; };
@@ -67,8 +67,8 @@ void main() {
         //IFALL(all(not(validAddress))) break;
         
         // encode radice for read-only
-        [[flatten]] if (w < VEC_SIZE) { // TODO: direct key extraction 
-            keyW = validAddress ? utype_t(imageLoad(keys[push_block.Shift&1], int(addrW))[push_block.Shift]) : utype_t(RADICES_MASK);
+        [[flatten]] if (w < VEC_SIZE) { // 
+            keyW = validAddress ? utype_t(extractKey(keys[push_block.Shift&1].data[addrW], push_block.Shift)) : utype_t(RADICES_MASK);
         };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
