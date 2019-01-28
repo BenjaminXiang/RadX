@@ -23,7 +23,7 @@ const uint local_size_def = 1024u;
 const uint local_size_def = Wave_Size * RADICES;
 #endif
 
-layout (local_size_x = local_size_def) in; // use many as possible
+layout ( local_size_x = local_size_def) in; // use many as possible
 layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB {uint Histogram[][RADICES]; };
 layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB {uint PrefixSum[][RADICES]; };
 

@@ -13,7 +13,7 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localHistogram[RADICES];
 
 // planned 64-wide for Turing
-shared m8pq utype_t _data[VEC_SIZE][Wave_Size];
+shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 shared uint addrL[VEC_SIZE][Wave_Size], prefixL[VEC_SIZE][Wave_Size];
 shared lowp uint histgmL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared highp uvec4[VEC_SIZE] validAddressL;
@@ -25,7 +25,7 @@ shared blocks_info blocks;
 //#endif
 
 #define addrW addrL[w][Lane_Idx]
-#define keyW _data[w][Lane_Idx]
+#define keyW keyL[w][Lane_Idx]
 #define prefixW prefixL[w][Lane_Idx]
 #define histgmW histgmL[w][Lane_Idx]
 #define fsLaneW fsLaneL[w][Lane_Idx]
@@ -37,16 +37,15 @@ const uint Wc = RADICES/Wave_Count;
 const uint BSIZE = min(Wc,Wave_Size);
 
 // 
-layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInterfaceB { uint32_t data[]; } keys[];
-layout ( binding = 3, set = 0, scalar )          workgroupcoherent buffer HistogramB { uint Histogram[][RADICES]; };
+#ifdef SIMPLER_READ_U8
+layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInB { u8vec4 data[]; } keys[];
+#else
+layout ( binding = 0, set = 0, scalar ) readonly workgroupcoherent buffer KeyInB { KEYTYPE data[]; } keys[];
+#endif
 
-// 
-//layout ( binding = 2, set = 0, scalar ) subgroupcoherent buffer RadiceCacheOutB { uint32_t data[]; } keyExtra[];
-layout ( binding = 5, set = 0, scalar ) subgroupcoherent buffer ReferenceB { uint data[]; } references[];
-layout ( binding = 7, set = 0, r8ui ) uniform writeonly workgroupcoherent uimageBuffer keyExtraViewStore;
-
-// 
-//layout ( binding = 0, set = 1, scalar )  readonly subgroupcoherent buffer KeyInB { KEYTYPE data[]; } keyIn[];
+// pointer buffers
+layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { uint Histogram[][RADICES]; };
+layout ( binding = 5, set = 0, scalar ) workgroupcoherent buffer ReferenceB { uint data[]; } references[];
 
 // 
 void main() {
@@ -70,7 +69,13 @@ void main() {
         //IFALL(all(not(validAddress))) break;
         
         // encode radice for read-only
-        [[flatten]] if (w < VEC_SIZE) { keyW = validAddress ? utype_t(BFE(keys[push_block.Shift&1].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK); };
+        [[flatten]] if (w < VEC_SIZE) {
+#ifdef SIMPLER_READ_U8
+            keyW = validAddress ? utype_t(keys[push_block.Shift&1].data[addrW][push_block.Shift]) : utype_t(RADICES_MASK);
+#else
+            keyW = validAddress ? utype_t(BFE(keys[push_block.Shift&1].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK);
+#endif
+        };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
         [[flatten]] if (w < VEC_SIZE) {
@@ -109,7 +114,7 @@ void main() {
         // 
         LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { imageStore(keyExtraViewStore, int(addrW), keyW.xxxx); references[0].data[addrW] = prefixW; }; // local prefix scan without offset (needs to calculate and permute)
+            [[flatten]] if (validAddress) { references[0].data[addrW] = prefixW; }; // local prefix scan without offset (needs to calculate and permute)
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };

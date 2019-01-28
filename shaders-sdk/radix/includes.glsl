@@ -22,6 +22,7 @@
 #define BITS_PER_PASS 8
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
+#define SIMPLER_READ_U8
 #define SHF8B 0
 #else
 #define BITS_PER_PASS 4
