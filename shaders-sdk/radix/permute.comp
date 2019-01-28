@@ -8,7 +8,7 @@
 
 #include "./includes.glsl"
 
-layout (local_size_x = BLOCK_SIZE) in;
+layout (local_size_x = VEC_SIZE*Wave_Size) in;
 shared uint localPrefix[RADICES];
 
 // planned 64-wide for Turing
@@ -52,7 +52,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks (use radice prefix as offset)
-    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
+    [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         IFALL(all(not(validAddress))) break;
