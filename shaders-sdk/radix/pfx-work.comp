@@ -39,7 +39,7 @@ void main() {
 #endif
         const lowp uint radice = rk + Wave_Idx;
 
-        // calculate prefix-sums by work-groups for every radice
+        // calculate partitions by work-groups for every radice
         [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
             const lowp uint workgroup = gp+Lane_Idx;
             const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT);
@@ -58,8 +58,8 @@ void main() {
     [[unroll, dependency_length(2)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
 
-        // calculate prefix-sums of every radice
-        uint gprefix = 0u;
+        // calculate partition offsets of every radice
+        uint partsum = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
             const lowp uint radice = rk + Lane_Idx;
             const highp uvec4 mask = subgroupBallot(radice < RADICES);
@@ -68,7 +68,7 @@ void main() {
                 scan = subgroupExclusiveAdd(histv),
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
-            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(gprefix, sum); }; pref = readFLane(pref);
+            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(partsum, sum); }; pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { partitions[workgroup][radice] += (pref + scan); };
         };
     };

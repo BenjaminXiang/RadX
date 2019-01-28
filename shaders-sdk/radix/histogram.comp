@@ -106,7 +106,7 @@ void main() {
         // critical block
         LGROUP_BARRIER
         [[flatten]] if (w == 0u) {
-            [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate local prefix
+            [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
                 uint cntl = 0u; [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = add(localCounts[uint(keyW)], prtsumW); };
                 prtscnW += subgroupShuffle(cntl,fsLaneW);
             }};
@@ -114,7 +114,7 @@ void main() {
         // 
         LGROUP_BARRIER
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { offsets[0].data[addrW] = prtscnW; }; // local prefix scan without offset (needs to calculate and permute)
+            [[flatten]] if (validAddress) { offsets[0].data[addrW] = prtscnW; }; // local offset scan without global partition (needs to calculate and permute)
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
