@@ -9,7 +9,7 @@
 #include "./includes.glsl"
 
 layout (local_size_x = VEC_SIZE*Wave_Size) in;
-shared uint localPrefix[RADICES];
+shared uint localPartitions[RADICES];
 
 // planned 64-wide for Turing
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
@@ -35,8 +35,8 @@ layout ( binding = 0, set = InputKeys, scalar ) workgroupcoherent buffer KeyInB 
 #endif
 
 // 
-layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint PrefixSum[][RADICES]; };
-layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer ReferenceB { uint data[]; } references[];
+layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
+layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
 // 
 void main() {
@@ -45,7 +45,7 @@ void main() {
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
-        [[flatten]] if (radice < RADICES) { localPrefix[radice+0u] = PrefixSum[gl_WorkGroupID.x][radice]; };
+        [[flatten]] if (radice < RADICES) { localPartitions[radice+0u] = partitions[gl_WorkGroupID.x][radice]; };
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
     LGROUP_BARRIER
@@ -63,10 +63,10 @@ void main() {
 #else
             keyW = validAddress ? utype_t(BFE(keys[push_block.Shift&1].data[addrW],int(push_block.Shift)*BITS_PER_PASS,BITS_PER_PASS)) : utype_t(RADICES_MASK),
 #endif
-            prefixW = references[0].data[addrW];
+            prefixW = offsets[0].data[addrW];
         };
         [[flatten]] if (w < VEC_SIZE) {
-            [[flatten]] if (validAddress) { prefixW += localPrefix[uint(keyW)], keys[1-(push_block.Shift&1)].data[prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
+            [[flatten]] if (validAddress) { prefixW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prefixW] = keys[push_block.Shift&1].data[addrW]; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
