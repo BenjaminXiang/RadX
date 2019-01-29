@@ -340,7 +340,7 @@ namespace radx {
             keysSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keysBkpSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keyCacheSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
-            referencesSize = tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
+            referencesSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             histogramsSize = 256ull * (this->groupX + 1) * sizeof(uint32_t),
             prefixScanSize = histogramsSize
             ;
