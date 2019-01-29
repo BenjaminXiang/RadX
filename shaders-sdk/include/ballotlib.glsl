@@ -7,8 +7,10 @@
 #ifndef Wave_Size
     #if (defined(AMD_PLATFORM) || defined(ENABLE_TURING_INSTRUCTION_SET))
         #define Wave_Size 64u
+        #define bqualf highp
     #else
         #define Wave_Size 32u
+        #define bqualf lowp
     #endif
 #endif
 
@@ -48,7 +50,7 @@ const uint UONE = 1u;
 //lowp uvec2 bPrefixSum() { return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); };
 
 lowp uvec2 bPrefixSum() {
-    const highp uvec4 ballot = subgroupBallot(true);
+    const bqualf uvec4 ballot = subgroupBallot(true);
     return uvec2(subgroupBallotBitCount(ballot), subgroupBallotExclusiveBitCount(ballot));
     //return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); 
 };

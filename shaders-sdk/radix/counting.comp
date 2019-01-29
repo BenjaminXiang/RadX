@@ -17,11 +17,11 @@ shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
 shared lowp uint prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
-shared highp uvec4[VEC_SIZE] validAddressL;
+shared bqualf uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 //#ifndef ENABLE_SUBGROUP_PARTITION_SORT
-//shared highp uvec4 bltL[VEC_SIZE][Wave_Size];
+//shared bqualf uvec4 bltL[VEC_SIZE][Wave_Size];
 //#define blt bltL[w][Lane_Idx]
 //#endif
 
@@ -73,7 +73,7 @@ void main() {
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
         [[flatten]] if (w < VEC_SIZE) {
-            const highp uvec4 prtmask = subgroupPartitionNV(keyW)&validAddressL[w];
+            const bqualf uvec4 prtmask = subgroupPartitionNV(keyW)&validAddressL[w];
             prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask)); 
         };
 #else
@@ -81,14 +81,14 @@ void main() {
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
             [[flatten]] if (keyW == Wr && validAddress) {
-                const highp uvec4 prtmask = subgroupBallot(true);
+                const bqualf uvec4 prtmask = subgroupBallot(true);
                 prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
             };
     #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
-                    const highp uvec4 prtmask = subgroupBallot(true);
+                    const bqualf uvec4 prtmask = subgroupBallot(true);
                     prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
                 };
                 [[flatten]] if ( subgroupAll(found) ) { break; };

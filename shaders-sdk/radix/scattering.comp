@@ -16,7 +16,7 @@ shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 shared uint kymL[VEC_SIZE*Wave_Size];
 
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];//, ptrL[VEC_SIZE][Wave_Size];
-//shared highp uvec4[VEC_SIZE] validAddressL;
+//shared bqualf uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define prtscnW prtscnL[w][Lane_Idx]
@@ -68,9 +68,9 @@ void main() {
         };
 
 #ifdef RTX_HACK
-        const highp uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit))&subgroupPartitionNV(keyW);
+        const bqualf uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit))&subgroupPartitionNV(keyW);
 #else
-        const highp uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit));
+        const bqualf uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit));
 #endif
         IFALL(all(not(validAddress))) break;
 
