@@ -68,7 +68,7 @@ void main() {
         
         // encode radice for read-only
         [[flatten]] if (w < VEC_SIZE) { // 
-            keyW = validAddress ? utype_t(extractKey(keys[push_block.Shift&1].data[addrW], push_block.Shift)) : utype_t(RADICES_MASK);
+            keyW = utype_t(extractKey(keys[push_block.Shift&1].data[addrW], push_block.Shift));
         };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 

@@ -16,7 +16,7 @@ shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 shared uint kymL[VEC_SIZE*Wave_Size];
 
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];//, ptrL[VEC_SIZE][Wave_Size];
-shared highp uvec4[VEC_SIZE] validAddressL;
+//shared highp uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define prtscnW prtscnL[w][Lane_Idx]
@@ -24,11 +24,11 @@ shared blocks_info blocks;
 #define keyW keyL[w][Lane_Idx]
 #define ptrW ptrL[w][Lane_Idx]
 #define keyM kymL[Local_Idx]
-#define validAddress subgroupInverseBallot(validAddressL[w])
+#define validAddress subgroupInverseBallot(validAddressM)//subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
-const uint Wc = RADICES/Wave_Count;
-const uint BSIZE = min(Wc,Wave_Size);
+//const uint Wc = RADICES/Wave_Count;
+//const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 //#ifdef SIMPLER_READ_U8
@@ -47,7 +47,8 @@ layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer Refere
 // 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + w);
-    const lowp uint w = Wave_Idx, Wr = Wc * w;
+    //const lowp uint w = Wave_Idx, Wr = Wc * w;
+    const lowp uint w = Wave_Idx, Wx = tiled(Wave_Size_RT, Wave_Count_RT);
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
@@ -60,17 +61,20 @@ void main() {
     // permute blocks by partitions
     [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        [[flatten]] if (w < VEC_SIZE) validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
-        IFALL(all(not(validAddress))) break;
-
         [[flatten]] if (w < VEC_SIZE) {
             keyM = keys[push_block.Shift&1].data[addrW],
-            keyW = validAddress ? utype_t(extractKey(keyM,push_block.Shift)) : utype_t(RADICES_MASK),
+            keyW = utype_t(extractKey(keyM,push_block.Shift)),
             prtscnW = offsets[0].data[addrW];
         };
 
-        // TODO: local sorting to avoid cache missing or using TBO 
-        [[flatten]] if (w < VEC_SIZE) {
+#ifdef RTX_HACK
+        const highp uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit))&subgroupPartitionNV(keyW);
+#else
+        const highp uvec4 validAddressM = subgroupBallot(lessThan(addrW, blocks.limit));
+#endif
+        IFALL(all(not(validAddress))) break;
+
+        [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
             [[flatten]] if (validAddress) { prtscnW += localPartitions[uint(keyW)], keys[1-(push_block.Shift&1)].data[prtscnW] = keyM; }; // copy from backup to inner store
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };

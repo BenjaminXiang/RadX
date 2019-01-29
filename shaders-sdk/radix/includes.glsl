@@ -24,6 +24,7 @@
 #define RADICES_MASK 0xFFu
 #define SIMPLER_READ_U8
 #define SHF8B 0
+#define RTX_HACK
 #else
 #define BITS_PER_PASS 4
 #define RADICES 16u
