@@ -44,7 +44,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 //#endif
 
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
-  layout ( binding = 0, set = InputKeys, scalar ) workgroupcoherent buffer KeysB { uint data[]; } keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) subgroupcoherent buffer KeysB { uint data[]; } keys[];
 
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
