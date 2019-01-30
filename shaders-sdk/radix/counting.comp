@@ -15,17 +15,20 @@ shared uint localCounts[RADICES];
 // 
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 
+
 shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
 shared lowp uint prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared bqualf uvec4[VEC_SIZE] validAddressL;
+
 shared blocks_info blocks;
 
 #define addrW addrL[Local_Idx]
-#define keyW keyL[w][Lane_Idx]
 #define prtscnW prtscnL[w][Lane_Idx]
 #define prtsumW prtsumL[w][Lane_Idx]
 #define fsLaneW fsLaneL[w][Lane_Idx]
-
+#define keyW keyL[w][Lane_Idx]
+#define keyM kymL[Local_Idx]
+//#define validAddress subgroupInverseBallot(validAddressM)
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
 
@@ -36,7 +39,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform readonly workgroupcoherent uimageBuffer keys[];
   layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { uint data[]; } keys[];
 
-// pointer buffers
+// 
 layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { uint counts[][RADICES]; };
 //layout ( binding = 5, set = 0, scalar ) workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
@@ -73,11 +76,12 @@ void main() {
         LGROUP_BARRIER
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
-            [[flatten]] if (keyW == Wr && validAddress) {
-                const bqualf uvec4 prtmask = subgroupBallot(true);
-                prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-                fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
-            };
+            [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
+                [[flatten]] if (keyW == (r + Wave_Idx) && validAddress) {
+                    const bqualf uvec4 prtmask = subgroupBallot(true);
+                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
+                    fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
+                }};
     #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {

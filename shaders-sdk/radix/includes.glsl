@@ -60,11 +60,11 @@
     #define BOOLX bool
 
 // 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+//#ifdef ENABLE_SUBGROUP_PARTITION_SORT
 #define Wave_Count VEC_SIZE
-#else
-#define Wave_Count 16u
-#endif
+//#else
+//#define Wave_Count 16u
+//#endif
 
 // default values
 #ifndef BLOCK_SIZE
