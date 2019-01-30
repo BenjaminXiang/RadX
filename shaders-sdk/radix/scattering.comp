@@ -70,44 +70,44 @@ void main() {
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
         const bqualf uvec4 prtmask = subgroupPartitionNV(keyW)&validAddressL[w];
-        [[flatten]] if (w < VEC_SIZE) {
-            prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
-            prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-            fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
-        };
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask)); };
+        
+        // critical block
+        LGROUP_BARRIER
+        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { uint cntl = 0u; // critically calculate partition offset
+            [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            prtscnW += subgroupShuffle(cntl,fsLaneW);
+        }};
 #else
+        // 
         LGROUP_BARRIER
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
                 [[flatten]] if (keyW == (r + Wave_Idx) && validAddress) {
                     const bqualf uvec4 prtmask = subgroupBallot(true)&validAddressL[w];
-                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-                    fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
+                    const lowp uint prtsumS = utype_t(subgroupBallotBitCount(prtmask));
+
+                    uint cntl = 0u;
+                    [[flatten]] if (subgroupElect()) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumS, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)) + readFLane(cntl);
                 }};
     #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const bqualf uvec4 prtmask = subgroupBallot(true)&validAddressL[w];
-                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-                    fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
+                    const lowp uint prtsumS = utype_t(subgroupBallotBitCount(prtmask));
+
+                    uint cntl = 0u;
+                    [[flatten]] if (subgroupElect()) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumS, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)) + readFLane(cntl);
                 };
                 [[flatten]] if ( subgroupAll(found) ) { break; };
             };
     #endif
         };
 #endif
-
-        // critical block
-        LGROUP_BARRIER
-        [[flatten]] if (w == 0u) {
-            [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { uint cntl = 0u; // critically calculate partition offset
-                [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                prtscnW += subgroupShuffle(cntl,fsLaneW);
-            }};
 
         // 
         LGROUP_BARRIER
