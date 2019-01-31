@@ -26,11 +26,17 @@
 #define SHF8B 0
 #define RTX_HACK
 #else
-#define BITS_PER_PASS 4
-#define RADICES 16u
-#define RADICES_MASK 0xFu
+//#define BITS_PER_PASS 4
+//#define RADICES 16u
+//#define RADICES_MASK 0xFu
+//#define SIMPLER_SORT
+//#define SHF8B 1
+
+#define BITS_PER_PASS 2
+#define RADICES 4u
+#define RADICES_MASK 0x3u
 #define SIMPLER_SORT
-#define SHF8B 1
+#define SHF8B 2
 #endif
 
 

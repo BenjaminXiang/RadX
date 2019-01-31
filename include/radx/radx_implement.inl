@@ -299,7 +299,7 @@ namespace radx {
         //commandBarrier(cmdBuf);
 
         // radix sort phases
-        const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 8u;
+        const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 16u;
         for (auto I = 0u; I < stageCount; I++) { // TODO: add support variable stage length
 
             std::array<uint32_t, 4> stageC = { I,0,0,0 };

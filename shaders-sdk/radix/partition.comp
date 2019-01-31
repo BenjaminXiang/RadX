@@ -17,13 +17,10 @@ const uint WG_COUNT = 64u;
 shared uint localHistogram[RADICES];
 
 // local size 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
 const uint local_size_def = 1024u;
-#else
-const uint local_size_def = Wave_Size * RADICES;
-#endif
-
 layout ( local_size_x = local_size_def) in; // use many as possible
+
+// 
 layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB {uint counts[][RADICES]; };
 layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB {uint partitions[][RADICES]; };
 
