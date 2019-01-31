@@ -42,7 +42,7 @@ void main() {
         // calculate partitions by work-groups for every radice
         [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
             const lowp uint workgroup = gp+Lane_Idx;
-            const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT);
+            const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
             const uint 
                 histv = subgroupInverseBallot(mask) ? counts[workgroup][radice] : 0u,
                 scan = subgroupExclusiveAdd(histv), 
@@ -62,7 +62,7 @@ void main() {
         uint partsum = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
             const lowp uint radice = rk + Lane_Idx;
-            const highp uvec4 mask = subgroupBallot(radice < RADICES);
+            const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
             const uint histv = 
                 subgroupInverseBallot(mask) ? localHistogram[radice] : 0u,
                 scan = subgroupExclusiveAdd(histv),
