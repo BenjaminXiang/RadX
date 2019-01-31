@@ -54,7 +54,7 @@ void main() {
         [[flatten]] if (radice < RADICES) localCounts[radice] = 0u;
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
-    LGROUP_BARRIER
+    subgroupBarrier();
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks
@@ -73,7 +73,7 @@ void main() {
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
 #else
-        LGROUP_BARRIER
+        subgroupBarrier();
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
@@ -96,7 +96,7 @@ void main() {
             };
     #endif
         };
-        LGROUP_BARRIER
+        subgroupBarrier();
 #endif
 
         [[flatten]] if (w < VEC_SIZE) {
@@ -104,8 +104,7 @@ void main() {
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };
-
-    LGROUP_BARRIER
+    subgroupBarrier();
     
     // resolve histograms 
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) {

@@ -54,7 +54,7 @@ void main() {
         [[flatten]] if (radice < RADICES) { localPartitions[radice] = partitions[gl_WorkGroupID.x][radice], localCounts[radice] = 0u; };
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
-    LGROUP_BARRIER
+    subgroupBarrier();
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
@@ -73,14 +73,14 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask)); };
         
         // critical block
-        LGROUP_BARRIER
+        subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { uint cntl = 0u; // critically calculate partition offset
             [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtscnW += subgroupShuffle(cntl,fsLaneW);
         }};
 #else
         // 
-        LGROUP_BARRIER
+        subgroupBarrier();
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
     #ifdef SIMPLER_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
@@ -110,7 +110,7 @@ void main() {
 #endif
 
         // 
-        LGROUP_BARRIER
+        subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
 #ifdef RTX_HACK
             #define validAddressM prtmask
@@ -119,9 +119,9 @@ void main() {
 #endif
             //IFALL (all(not( subgroupInverseBallot(validAddressM)))) break;
             [[flatten]] if (subgroupInverseBallot(validAddressM)) {
-                prtscnW += localPartitions[uint(keyW)], 
-                keys[1-(push_block.Shift&1)].data[prtscnW] = keyM;
+                keys[1-(push_block.Shift&1)].data[prtscnW + localPartitions[uint(keyW)]] = keyM;
             }; // copy from backup to inner store
+            subgroupBarrier(); // barrier faster memory operation
             addrW += ( Wave_Size_RT << VEC_SHIF );
         };
     };

@@ -81,7 +81,6 @@ int main() {
     std::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
     std::cout << "Thrust sort measured in " << double(totalTime) << "ms" << std::endl;
     //std::cout << "Thrust sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
-    system("pause");
 
     return 0;
 };

@@ -27,7 +27,7 @@ layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixS
 // X axis is workgroup count, Y is radices
 void main() {
     [[flatten]] if (Local_Idx < RADICES) localHistogram[Local_Idx] = 0u;
-    LGROUP_BARRIER
+    subgroupBarrier();
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
     [[unroll, dependency_length(8)]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
@@ -49,9 +49,8 @@ void main() {
             [[flatten]] if (subgroupInverseBallot(mask)) { partitions[workgroup][radice] = (pref + scan); };
         };
     };
-
-    LGROUP_BARRIER
-
+    
+    subgroupBarrier();
     [[unroll, dependency_length(2)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
 
