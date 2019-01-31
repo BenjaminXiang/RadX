@@ -90,7 +90,7 @@ endif()
 
 if (ArrayFire_OpenCL_FOUND)
     set (INC_DIR ${INC_DIR} ${ArrayFire_INCLUDE_DIRS})
-    set (LIBS ${LIBS} ${ArrayFire_CUDA_LIBRARIES} ${ArrayFire_OpenCL_LIBRARIES})
+    set (LIBS ${LIBS} ${ArrayFire_OpenCL_LIBRARIES})
 endif()
 
 # 
