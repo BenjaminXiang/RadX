@@ -10,6 +10,11 @@
 #include <chrono>
 
 
+#ifdef ENABLE_ARRAYFIRE_BENCHMARK
+#include <arrayfire.h>
+#endif
+
+
 //#define RENDERDOC_DEBUGGABLE_GLFW3
 #ifdef RENDERDOC_DEBUGGABLE_GLFW3
 #define GLFW_INCLUDE_NONE
@@ -25,6 +30,10 @@
 #endif
 #include <renderdoc.h>
 #endif
+
+
+
+
 
 namespace rad {
 
@@ -331,6 +340,32 @@ namespace rad {
 		for (uint32_t i = 0; i < vsize; i++) { keysHostVector[i] = i;/*distr(eng)*/; };
 		std::shuffle(keysHostVector.begin(), keysHostVector.end(), eng);
 
+        std::vector<uint32_t> sortedNumbers(elementCount);
+
+#ifdef ENABLE_ARRAYFIRE_BENCHMARK
+        // set arrayfire device
+        af::setDevice(0);
+        af::info();
+
+        // arrayfre vector 
+        auto keysDeviceVectorAF = af::array(dim_t(keysHostVector.size()), 1ull, keysHostVector.data()).as(u32);
+
+        // host vectors
+        auto keysHostVectorAF = af::array(dim_t(sortedNumbers.size()), 1ull, sortedNumbers.data()).as(u32);
+        auto indiceHostVectorAF = af::array(dim_t(sortedNumbers.size()), 1ull, u32);
+
+        // arrayfire sort
+        {
+            auto start = std::chrono::system_clock::now();
+            //af::sort(keysHostVectorAF, keysDeviceVectorAF, keysDeviceVectorAF);
+            af::sort(keysDeviceVectorAF);
+            auto end = std::chrono::system_clock::now();
+            std::cout << "ArrayFire sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+        };
+
+        af_get_data_ptr(sortedNumbers.data(), keysHostVectorAF.get());
+#endif
+
 		//std::copy(randNumbers.begin(), randNumbers.end(), keysHostVector.begin());
 		//memcpy(keysHostVector->map(), randNumbers.data(), keysHostVector->range()); // copy from std::vector
 
@@ -417,7 +452,7 @@ namespace rad {
 
 		// get sorted numbers by device (for debug only)
 		// used alternate buffer, because std::stable_sort already overriden 'keysHostVector' data 
-		std::vector<uint32_t> sortedNumbers(elementCount);
+		
 		//std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
 		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 		//memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range());

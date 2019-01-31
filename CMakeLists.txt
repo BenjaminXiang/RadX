@@ -11,6 +11,7 @@ endif()
 set (DEP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${DEP_DIR}" "${DEP_DIR}/lib/cmake/")
 find_package (Vulkan QUIET)
+find_package (ArrayFire QUIET)
 #find_package (CUDA QUIET)
 
 # Set source directories
@@ -85,6 +86,11 @@ if (CUDA_FOUND)
     set (INC_DIR ${INC_DIR} ${CUDA_INCLUDE_DIRS} ${THRUST_INCLUDE_DIR})
     set (LIB_DIR ${LIB_DIR} ${CUDA_LIBRARY_DIRS})
     #set (LIBS ${LIBS} ${CUDART_LIBRARY} ${CUDA_LIBRARY})
+endif()
+
+if (ArrayFire_OpenCL_FOUND)
+    set (INC_DIR ${INC_DIR} ${ArrayFire_INCLUDE_DIRS})
+    set (LIBS ${LIBS} ${ArrayFire_CUDA_LIBRARIES} ${ArrayFire_OpenCL_LIBRARIES})
 endif()
 
 # 
