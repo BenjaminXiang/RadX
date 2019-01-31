@@ -10,7 +10,7 @@
 #define ENABLE_THRUST_BENCHMARK
 #endif
 
-#define ENABLE_ARRAYFIRE_BENCHMARK
+//#define ENABLE_ARRAYFIRE_BENCHMARK
 
 namespace rad {
 
