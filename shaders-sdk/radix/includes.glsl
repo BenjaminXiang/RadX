@@ -19,20 +19,20 @@
 
 // bits support 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-#define BITS_PER_PASS 8
+#define BITS_PER_PASS 8u
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
 #define SIMPLER_READ_U8
 #define SHF8B 0
 #define RTX_HACK
 #else
-//#define BITS_PER_PASS 4
+//#define BITS_PER_PASS 4u
 //#define RADICES 16u
 //#define RADICES_MASK 0xFu
 //#define SIMPLER_SORT
 //#define SHF8B 1
 
-#define BITS_PER_PASS 2
+#define BITS_PER_PASS 2u
 #define RADICES 4u
 #define RADICES_MASK 0x3u
 #define SIMPLER_SORT
@@ -133,7 +133,7 @@ blocks_info get_blocks_info(in uint n) {
     return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
 };
 
-#define extractKey(a,s) ((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 
 #ifdef PREFER_UNPACKED
 #define upfunc(x) (x)
