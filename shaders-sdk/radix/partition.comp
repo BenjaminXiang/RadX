@@ -10,8 +10,8 @@
 #include "./includes.glsl"
 
 // current work group size
-//#define WG_COUNT 64u
-const uint WG_COUNT = 64u;
+//#define WG_COUNT 128u
+const uint WG_COUNT = 128u;
 
 // shared memory of...
 shared uint localHistogram[RADICES];
@@ -37,7 +37,7 @@ void main() {
         const lowp uint radice = rk + Wave_Idx;
 
         // calculate partitions by work-groups for every radice
-        [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
+        [[unroll, dependency_length(4)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
             const lowp uint workgroup = gp+Lane_Idx;
             const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
             const uint 
@@ -51,12 +51,16 @@ void main() {
     };
     
     subgroupBarrier();
-    [[unroll, dependency_length(2)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
+    [[unroll, dependency_length(4)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
 
         // calculate partition offsets of every radice
         uint partsum = 0u;
-        [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+        [[unroll, dependency_length(8)]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
+#else
+        { lowp uint rk = 0u;
+#endif
             const lowp uint radice = rk + Lane_Idx;
             const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
             const uint histv = 
