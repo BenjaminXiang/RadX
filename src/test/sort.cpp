@@ -196,22 +196,23 @@ namespace rad {
 
 
 #pragma pack(push, 1)
-	struct u32radix { uint32_t a : 8, b : 8, c : 8, d : 8; };
+	//struct u32radix { uint32_t a : 8, b : 8, c : 8, d : 8; };
 	//struct u32radix { uint32_t a: 32; };
 	//struct u32value { uint32_t a; uint32_t value; };
+    using u32radix = uint32_t;
 #pragma pack(pop)
 
-	auto rdcmp_a = [](const u32radix &a, const u32radix &b) { return a.a < b.a; };
-	auto rdcmp_b = [](const u32radix &a, const u32radix &b) { return a.b < b.b; };
-	auto rdcmp_c = [](const u32radix &a, const u32radix &b) { return a.c < b.c; };
-	auto rdcmp_d = [](const u32radix &a, const u32radix &b) { return a.d < b.d; };
+	//auto rdcmp_a = [](const u32radix &a, const u32radix &b) { return a.a < b.a; };
+	//auto rdcmp_b = [](const u32radix &a, const u32radix &b) { return a.b < b.b; };
+	//auto rdcmp_c = [](const u32radix &a, const u32radix &b) { return a.c < b.c; };
+	//auto rdcmp_d = [](const u32radix &a, const u32radix &b) { return a.d < b.d; };
 
 	void radixSortCPU(u32radix* v32t_begin, u32radix* v32t_end) {
+		std::stable_sort(std::execution::par, v32t_begin, v32t_end);
 		//std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_a);
-		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_a);
-		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_b);
-		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_c);
-		std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_d);
+		//std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_b);
+		//std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_c);
+		//std::stable_sort(std::execution::par, v32t_begin, v32t_end, rdcmp_d);
 	};
 
 	uint32_t hash(uint32_t a) {
@@ -443,11 +444,10 @@ namespace rad {
 		// do std sort for comparsion (equalent)
 		// for better result's should be work while GPU sorting (after copying host data into device)
 		{
-			//auto start = std::chrono::system_clock::now();
-			//std::stable_sort(std::execution::par, keysHostVector.begin(), keysHostVector.end());
-			//radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
-			//auto end = std::chrono::system_clock::now();
-			//std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
+			auto start = std::chrono::system_clock::now();
+			radixSortCPU((rad::u32radix*)keysHostVector.begin(), (rad::u32radix*)keysHostVector.end());
+			auto end = std::chrono::system_clock::now();
+		    std::cout << "CPU sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 		};
 
 		// get sorted numbers by device (for debug only)
