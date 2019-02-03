@@ -92,7 +92,7 @@ namespace radx {
 
             // counting in SM with atomics
             {
-                int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&pmask; __syncwarp();
+                int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask; __syncwarp();
                 if (laneID == (__ffs(prtmask) - 1u)) {atomicAdd(&localCounts[keyW], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
             };
 
@@ -142,9 +142,9 @@ namespace radx {
             const uint32_t& pmask = validAddressL[waveID];
 
             // 
-            int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&pmask;
+            int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred);
             __syncwarp();
-            { prefix = __popc(prtmask & cub::LaneMaskLt()), cnt = __popc(prtmask), leader = __ffs(prtmask) - 1u; };
+            { prefix = __popc(prtmask & pmask & cub::LaneMaskLt()), cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u; };
             __syncthreads();
 
             // counting in SM with atomics
@@ -178,7 +178,9 @@ namespace radx {
         const uint32_t& laneID = cub::LaneId(), waveID = cub::WarpId();
 
         typedef cub::WarpScan<uint32_t> WarpScan;
-        __shared__ typename WarpScan::TempStorage temp_storage;
+        typedef cub::WarpReduce<uint32_t> WarpReduce;
+        __shared__ typename WarpScan::TempStorage scanStorage;
+        __shared__ typename WarpReduce::TempStorage reduceStorage;
 
         __shared__ uint32_t localCounts[RADICES];
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) {
@@ -192,17 +194,18 @@ namespace radx {
             for (uint32_t gp=0u;gp<WG_COUNT;gp+=WAVE_SIZE) { uint32_t workgroup = gp+laneID;
             
                 // validate masks
-                bool predicate = workgroup < WG_COUNT && radice < RADICES;
-                const uint32_t mask = __ballot_sync(__activemask(), predicate);
+                const bool predicate = workgroup < WG_COUNT && radice < RADICES;
+                const uint32_t activem = __activemask();
+                const uint32_t mask = __ballot_sync(activem, predicate);
                 const uint32_t mostb = 31u - __clz(mask); // MSB
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
-                uint32_t scan = 0u; WarpScan(temp_storage).ExclusiveSum(cnt, scan);
-                uint32_t sum = __shfl_sync(__activemask(), cnt+scan, mostb);
+                uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum);//__shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
-                uint32_t pref = 0u; if (laneID == 0u && predicate) { pref = localCounts[radice]; localCounts[radice] += sum; }; pref = __shfl_sync(__activemask(), pref, 0);
+                uint32_t pref = 0u; if (laneID == 0u) { pref = localCounts[radice]; localCounts[radice] += sum; }; pref = __shfl_sync(activem, pref, 0);
                 if (predicate) { partitionsBuf[workgroup*RADICES+radice] = pref + scan; };
             };
         };
@@ -213,17 +216,18 @@ namespace radx {
             for (uint32_t rk=0u;rk<RADICES;rk+=WAVE_SIZE) { uint32_t radice = rk+laneID;
 
                 // validate masks
-                bool predicate = workgroup < WG_COUNT && radice < RADICES;
-                const uint32_t mask = __ballot_sync(__activemask(), predicate);
+                const bool predicate = workgroup < WG_COUNT && radice < RADICES;
+                const uint32_t activem = __activemask();
+                const uint32_t mask = __ballot_sync(activem, predicate);
                 const uint32_t mostb = 31u - __clz(mask); // MSB
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? localCounts[radice] : 0u;
-                uint32_t scan = 0u; WarpScan(temp_storage).ExclusiveSum(cnt, scan);
-                uint32_t sum = __shfl_sync(__activemask(), cnt + scan, mostb);
+                uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum);//__shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
-                uint32_t pref = 0u; if (laneID == 0u && predicate) { pref = partsum, partsum += sum; }; pref = __shfl_sync(__activemask(), pref, 0);
+                uint32_t pref = 0u; if (laneID == 0u) { pref = partsum, partsum += sum; }; pref = __shfl_sync(activem, pref, 0);
                 if (predicate) { partitionsBuf[workgroup*RADICES+radice] += pref + scan; };
             };
         };
@@ -244,7 +248,7 @@ namespace radx {
         uint32_t *countMem = histogramMem, *partitionMem = histogramMem + (RADICES*WG_COUNT);
 
         //cudaDeviceSynchronize();
-        for (uint32_t p = 0u; p < 4u; p++) {
+        for (uint32_t p = 0u; p < 1u; p++) {
             Counting<<< WG_COUNT, VECSIZE*WAVE_SIZE>>>(
                 p, bclk.count, bclk.size, bclk.limit,
                 countMem, keysStorePtr
@@ -259,8 +263,8 @@ namespace radx {
             //cudaDeviceSynchronize();
             std::swap(keysStorePtr, keysBackupPtr);
         };
-        //cudaDeviceSynchronize();
-        //cudaMemcpy(keysStorePtr, keysBackupPtr, sizeof(uint32_t) * size, cudaMemcpyDeviceToDevice);
+        cudaDeviceSynchronize();
+        cudaMemcpy(keysBackupPtr, keysStorePtr, sizeof(uint32_t) * size, cudaMemcpyDeviceToDevice);
 
     }
 };
@@ -286,7 +290,7 @@ int main() {
     std::vector<uint32_t> randNumbers(elementCount);
     std::vector<uint32_t> sortedNumbers(elementCount);
     for (uint32_t i = 0; i < randNumbers.size(); i++) { randNumbers[i] = i; };
-    std::shuffle(randNumbers.begin(), randNumbers.end(), eng);
+    //std::shuffle(randNumbers.begin(), randNumbers.end(), eng);
 
 
     // cuda malloc
