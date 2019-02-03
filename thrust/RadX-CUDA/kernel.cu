@@ -23,7 +23,7 @@
 #include <iostream>
 #include <algorithm>
 
-const size_t elementCount = 1 << 10;//(1 << 23);
+const size_t elementCount = 1 << 16;//(1 << 23);
 
 namespace radx {
     const uint32_t RADICES = 256u;
@@ -108,7 +108,7 @@ namespace radx {
             keyW = predicate ? cub::BFE(keyM, BIT_CNT*P, BIT_CNT) : 0xFFu;
 
             // predicate mask in local group
-            uint32_t pmask_ = __ballot_sync(__activemask(), predicate);
+            const uint32_t pmask_ = __ballot_sync(__activemask(), predicate);
             if (laneID == 0u) validAddressL[waveID] = pmask_;
             const uint32_t& pmask = validAddressL[waveID];
 
@@ -116,6 +116,7 @@ namespace radx {
             {
                 int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
                 if (laneID == (__ffs(prtmask) - 1u)) {atomicAdd(&localCounts[keyW], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
+                __syncwarp();
             };
 
             addressW += blockDim.x;
@@ -159,13 +160,14 @@ namespace radx {
             keyW = predicate ? cub::BFE(keyM, BIT_CNT*P, BIT_CNT) : 0xFFu;
 
             // predicate mask in local group
-            uint32_t pmask_ = __ballot_sync(__activemask(), predicate);
+            const uint32_t pmask_ = __ballot_sync(__activemask(), predicate);
             if (laneID == 0u) validAddressL[waveID] = pmask_;
             const uint32_t& pmask = validAddressL[waveID];
 
             // 
             int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
             { prefix = __popc(prtmask & cub::LaneMaskLt()), cnt = __popc(prtmask), leader = __ffs(prtmask) - 1u; };
+            __syncwarp();
             __syncthreads();
 
             // counting in SM with atomics
@@ -178,8 +180,9 @@ namespace radx {
                 if (laneID == leader) {sumt = atomicAdd(&localCounts[keyW], cnt);}; 
                 prefix += __shfl_sync(prtmask, sumt, leader);
             };
-            __syncthreads();
             __syncwarp();
+            __syncthreads();
+            
             if (predicate) {
                 const uint32_t& partition = localPartitions[keyW];
                 keysBackup[partition + prefix] = keyM;
@@ -213,11 +216,11 @@ namespace radx {
             
                 // validate masks
                 bool predicate = workgroup < WG_COUNT && radice < RADICES;
-                uint32_t mask = __ballot_sync(__activemask(), predicate);
-                uint32_t mostb = 31u - __clz(mask); // MSB
+                const uint32_t mask = __ballot_sync(__activemask(), predicate);
+                const uint32_t mostb = 31u - __clz(mask); // MSB
 
                 // prefix scan and sum
-                uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
+                const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
                 uint32_t scan = 0u; WarpScan(temp_storage).ExclusiveSum(cnt, scan);
                 uint32_t sum = __shfl_sync(__activemask(), cnt+scan, mostb);
 
@@ -234,11 +237,11 @@ namespace radx {
 
                 // validate masks
                 bool predicate = workgroup < WG_COUNT && radice < RADICES;
-                uint32_t mask = __ballot_sync(__activemask(), predicate);
-                uint32_t mostb = 31u - __clz(mask); // MSB
+                const uint32_t mask = __ballot_sync(__activemask(), predicate);
+                const uint32_t mostb = 31u - __clz(mask); // MSB
 
                 // prefix scan and sum
-                uint32_t cnt = predicate ? localCounts[radice] : 0u;
+                const uint32_t cnt = predicate ? localCounts[radice] : 0u;
                 uint32_t scan = 0u; WarpScan(temp_storage).ExclusiveSum(cnt, scan);
                 uint32_t sum = __shfl_sync(__activemask(), cnt + scan, mostb);
 

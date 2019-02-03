@@ -54,6 +54,7 @@ void main() {
         [[flatten]] if (radice < RADICES) localCounts[radice] = 0u;
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
+    subgroupBarrier();
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks

@@ -59,6 +59,8 @@ void main() {
 
     // permute blocks by partitions
     [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
+    subgroupBarrier();
+    
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         [[flatten]] if (w < VEC_SIZE) {
             keyM = keys[push_block.Shift&1].data[addrW],
