@@ -75,7 +75,7 @@ void main() {
         // critical block
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { uint cntl = 0u; // critically calculate partition offset
-            [[flatten]] if (fsLaneW == Lane_Idx && validAddress) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (fsLaneW == Lane_Idx) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtscnW += subgroupShuffle(cntl,fsLaneW);
         }};
 #else
