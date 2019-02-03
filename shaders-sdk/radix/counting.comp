@@ -23,9 +23,9 @@ shared bqualf uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define addrW addrL[Local_Idx]
-//#define prtscnW prtscnL[w][Lane_Idx]
-//#define prtsumW prtsumL[w][Lane_Idx]
-//#define fsLaneW fsLaneL[w][Lane_Idx]
+
+
+
 #define keyW keyL[w][Lane_Idx]
 #define keyM kymL[Local_Idx]
 //#define validAddress subgroupInverseBallot(validAddressM)

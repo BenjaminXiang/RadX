@@ -10,7 +10,7 @@
 #include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
-shared uint localPartitions[RADICES], localCounts[RADICES];
+shared uint localCounts[RADICES], localPartitions[RADICES];
 
 // 
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
