@@ -14,7 +14,7 @@
 const uint WG_COUNT = 128u;
 
 // shared memory of...
-shared uint localHistogram[RADICES];
+shared uint localPartitions[RADICES];
 
 // local size 
 const uint local_size_def = 1024u;
@@ -26,7 +26,7 @@ layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixS
 
 // X axis is workgroup count, Y is radices
 void main() {
-    [[flatten]] if (Local_Idx < RADICES) localHistogram[Local_Idx] = 0u;
+    [[flatten]] if (Local_Idx < RADICES) localPartitions[Local_Idx] = 0u;
     subgroupBarrier();
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
@@ -45,7 +45,7 @@ void main() {
                 scan = subgroupExclusiveAdd(histv), 
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
-            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(localHistogram[radice], sum); }; pref = readFLane(pref);
+            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(localPartitions[radice], sum); }; pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { partitions[workgroup][radice] = (pref + scan); };
         };
     };
@@ -64,7 +64,7 @@ void main() {
             const lowp uint radice = rk + Lane_Idx;
             const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
             const uint histv = 
-                subgroupInverseBallot(mask) ? localHistogram[radice] : 0u,
+                subgroupInverseBallot(mask) ? localPartitions[radice] : 0u,
                 scan = subgroupExclusiveAdd(histv),
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
