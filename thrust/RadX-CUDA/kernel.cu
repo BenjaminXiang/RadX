@@ -92,8 +92,9 @@ namespace radx {
 
             // counting in SM with atomics
             {
-                int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask; __syncwarp();
-                if (laneID == (__ffs(prtmask) - 1u)) {atomicAdd(&localCounts[keyW], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
+                int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW);
+                uint32_t cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u;
+                if (laneID == leader) {atomicAdd(&localCounts[keyW], cnt);}; //cnt = __shfl_sync(prtmask, cnt, leader);
             };
 
             addressW += blockDim.x;
@@ -141,22 +142,18 @@ namespace radx {
             if (laneID == 0u) validAddressL[waveID] = pmask_;
             const uint32_t& pmask = validAddressL[waveID];
 
-            // 
-            int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred);
-            __syncwarp();
-            { prefix = __popc(prtmask & pmask & cub::LaneMaskLt()), cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u; };
-            __syncthreads();
-
             // counting in SM with atomics
-            if (waveID == 0u) for (uint32_t w=0;w<VECSIZE;w++) { uint32_t sumt = 0u; 
-                auto& cnt = sumL[w][laneID]; 
-                auto& prefix = prefixL[w][laneID];
+            if (waveID == 0u) for (uint32_t w=0;w<VECSIZE;w++) {
                 auto& keyW = keysL[w][laneID];
-                auto& leader = flaneL[w][laneID];
 
-                if (laneID == leader) { sumt = localCounts[keyW]; localCounts[keyW] += cnt; };
-                prefix += __shfl_sync(prtmask, sumt, leader);
-                __syncwarp();
+                { // 
+                    int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW);
+                    uint32_t prefix = __popc(prtmask & pmask & cub::LaneMaskLt()), cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u;
+
+                    // 
+                    uint32_t sumt = 0u; if (laneID == leader) { sumt = localCounts[keyW]; localCounts[keyW] += cnt; };
+                    prefix += __shfl_sync(__activemask(), sumt, leader);
+                };
             };
             __syncthreads();
             
@@ -202,7 +199,7 @@ namespace radx {
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
                 uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum);//__shfl_sync(activem, cnt + scan, mostb);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = localCounts[radice]; localCounts[radice] += sum; }; pref = __shfl_sync(activem, pref, 0);
@@ -224,7 +221,7 @@ namespace radx {
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? localCounts[radice] : 0u;
                 uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum);//__shfl_sync(activem, cnt + scan, mostb);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = partsum, partsum += sum; }; pref = __shfl_sync(activem, pref, 0);
