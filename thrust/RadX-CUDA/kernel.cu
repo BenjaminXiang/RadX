@@ -92,7 +92,7 @@ namespace radx {
 
             // counting in SM with atomics
             {
-                int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW);
+                int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred);
                 uint32_t cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u;
                 if (laneID == leader) {atomicAdd(&localCounts[keyW], cnt);}; //cnt = __shfl_sync(prtmask, cnt, leader);
             };
@@ -147,7 +147,7 @@ namespace radx {
                 auto& keyW = keysL[w][laneID];
 
                 { // 
-                    int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW);
+                    int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred);
                     uint32_t prefix = __popc(prtmask & pmask & cub::LaneMaskLt()), cnt = __popc(prtmask & pmask), leader = __ffs(prtmask & pmask) - 1u;
 
                     // 
@@ -187,7 +187,7 @@ namespace radx {
 
         __syncthreads();
 
-        for (uint32_t rk=0u;rk<RADICES;rk+=16u) { uint32_t radice = rk + waveID;
+        for (uint32_t rk=0u;rk<RADICES;rk+=8u) { uint32_t radice = rk + waveID;
             for (uint32_t gp=0u;gp<WG_COUNT;gp+=WAVE_SIZE) { uint32_t workgroup = gp+laneID;
             
                 // validate masks
@@ -199,7 +199,7 @@ namespace radx {
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
                 uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = localCounts[radice]; localCounts[radice] += sum; }; pref = __shfl_sync(activem, pref, 0);
@@ -209,7 +209,7 @@ namespace radx {
 
         __syncthreads();
 
-        for (uint32_t gp=0u;gp<WG_COUNT;gp+=16u) { uint32_t workgroup = gp+waveID; uint32_t partsum = 0u;
+        for (uint32_t gp=0u;gp<WG_COUNT;gp+=8u) { uint32_t workgroup = gp+waveID; uint32_t partsum = 0u;
             for (uint32_t rk=0u;rk<RADICES;rk+=WAVE_SIZE) { uint32_t radice = rk+laneID;
 
                 // validate masks
@@ -221,7 +221,7 @@ namespace radx {
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? localCounts[radice] : 0u;
                 uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = partsum, partsum += sum; }; pref = __shfl_sync(activem, pref, 0);
@@ -251,7 +251,7 @@ namespace radx {
                 countMem, keysStorePtr
                 );
             //cudaDeviceSynchronize();
-            Partition<<< 1u, 512u>>>(countMem, partitionMem);
+            Partition<<< 1u, 256u>>>(countMem, partitionMem);
             //cudaDeviceSynchronize();
             Scattering<<< WG_COUNT, VECSIZE*WAVE_SIZE>>>(
                 p, bclk.count, bclk.size, bclk.limit,
