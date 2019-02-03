@@ -56,6 +56,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>compute_70,sm_70;compute_75,sm_75</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -75,10 +76,14 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>compute_70,sm_70;compute_75,sm_75</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="kernel.cu">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-arch=compute_75 -code=sm_75 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-arch=compute_75 -code=sm_75 %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
