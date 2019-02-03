@@ -11,11 +11,11 @@
 
 #include <cub/cub.cuh>
 
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
+//#include <thrust/host_vector.h>
+//#include <thrust/device_vector.h>
 //#include <thrust/generate.h>
 //#include <thrust/sort.h>
-#include <thrust/copy.h>
+//#include <thrust/copy.h>
 
 #include <chrono>
 #include <vector>
@@ -23,7 +23,7 @@
 #include <iostream>
 #include <algorithm>
 
-const size_t elementCount = 1 << 16;//(1 << 23);
+
 
 namespace radx {
     const uint32_t RADICES = 256u;
@@ -44,7 +44,6 @@ namespace radx {
         return sz <= 0 ? 0 : (sz / gmaxtile + sgn(sz % gmaxtile));
     }
 
-
     struct blocks_info { uint32_t count, size, limit, wkoffset; };
     __host__ blocks_info get_blocks_info(const uint32_t& n) {
         const uint32_t
@@ -57,27 +56,6 @@ namespace radx {
 
         return blocks_info{ block_count, block_size, n, 0u };
     };
-
-    // Template structure to pass to kernel
-    template <typename T>
-    struct KernelArray
-    {
-        T*  _array;
-        int _size;
-    };
-
-    // Function to convert device_vector to structure
-    template <typename T>
-    KernelArray<T> convertToKernel(thrust::device_vector<T>& dVec)
-    {
-        KernelArray<T> kArray;
-        kArray._array = thrust::raw_pointer_cast(&dVec[0]);
-        kArray._size = (int)dVec.size();
-
-        return kArray;
-    }
-
-
 
 //#define addressW addressL[threadIdx.x]
 //#define keyW keysL[waveID][laneID]
@@ -253,27 +231,28 @@ namespace radx {
         __syncthreads();
     };
 
+//namespace radx {
     // from second, used only begin iterator
-    __host__ void sort(thrust::device_vector<uint32_t>& keysStore, thrust::device_vector<uint32_t>& keysBackup) {
+    void sort(uint32_t *keysStorePtr, uint32_t *keysBackupPtr, size_t size) {
 
-        uint32_t *keysStorePtr = thrust::raw_pointer_cast(&keysStore[0]), *keysBackupPtr = thrust::raw_pointer_cast(&keysBackup[0]);
+        //uint32_t *keysStorePtr = thrust::raw_pointer_cast(&keysStore[0]), *keysBackupPtr = thrust::raw_pointer_cast(&keysBackup[0]);
         uint32_t *histogramMem;//, *keysBackupPtr;
         cudaMalloc(&histogramMem, RADICES*WG_COUNT * sizeof(uint32_t) * 2);
         //cudaMalloc(&keysBackupPtr, keysStore.size()*sizeof(uint32_t));
 
-        blocks_info bclk = get_blocks_info(uint32_t(keysStore.size()));
+        blocks_info bclk = get_blocks_info(uint32_t(size));
         uint32_t *countMem = histogramMem, *partitionMem = histogramMem + (RADICES*WG_COUNT);
 
         //cudaDeviceSynchronize();
         for (uint32_t p = 0u; p < 4u; p++) {
-            Counting << < WG_COUNT, VECSIZE*WAVE_SIZE >> > (
+            Counting<<< WG_COUNT, VECSIZE*WAVE_SIZE>>>(
                 p, bclk.count, bclk.size, bclk.limit,
                 countMem, keysStorePtr
                 );
             //cudaDeviceSynchronize();
-            Partition << < 1u, 512u >> > (countMem, partitionMem);
+            Partition<<< 1u, 512u>>>(countMem, partitionMem);
             //cudaDeviceSynchronize();
-            Scattering << < WG_COUNT, VECSIZE*WAVE_SIZE >> > (
+            Scattering<<< WG_COUNT, VECSIZE*WAVE_SIZE>>>(
                 p, bclk.count, bclk.size, bclk.limit,
                 partitionMem, keysStorePtr, keysBackupPtr
                 );
@@ -281,14 +260,13 @@ namespace radx {
             std::swap(keysStorePtr, keysBackupPtr);
         };
         //cudaDeviceSynchronize();
-        //cudaMemcpy(keysStorePtr, keysBackupPtr, sizeof(uint32_t) * keysStore.size(), cudaMemcpyDeviceToDevice);
-        //thrust::copy(keysBackup.begin(), keysBackup.end(), keysStore.begin());
+        //cudaMemcpy(keysStorePtr, keysBackupPtr, sizeof(uint32_t) * size, cudaMemcpyDeviceToDevice);
 
-        //cudaFree(histogramMem);
     }
 };
 
 
+const size_t elementCount = 1 << 8;//(1 << 23);
 
 int main() {
 
@@ -298,15 +276,23 @@ int main() {
     std::uniform_int_distribution<uint32_t> distr;
 
     // generate random numbers and copy to buffer
-    thrust::host_vector<uint32_t> randNumbers(elementCount);
-    thrust::device_vector<uint32_t> keysDev(elementCount);
-    thrust::device_vector<uint32_t> keysDevBackup(elementCount);
-    thrust::device_vector<uint32_t> valuesDev(elementCount);
-    thrust::host_vector<uint32_t> sortedNumbersThrust(elementCount);
+    //thrust::host_vector<uint32_t> randNumbers(elementCount);
+    //thrust::device_vector<uint32_t> keysDev(elementCount);
+    //thrust::device_vector<uint32_t> keysDevBackup(elementCount);
+    //thrust::device_vector<uint32_t> valuesDev(elementCount);
+    //thrust::host_vector<uint32_t> sortedNumbersThrust(elementCount);
+
+
+    std::vector<uint32_t> randNumbers(elementCount);
     std::vector<uint32_t> sortedNumbers(elementCount);
     for (uint32_t i = 0; i < randNumbers.size(); i++) { randNumbers[i] = i; };
     std::shuffle(randNumbers.begin(), randNumbers.end(), eng);
 
+
+    // cuda malloc
+    uint32_t *keysDev, *keysDevBackup;
+    cudaMalloc(&keysDev, elementCount*sizeof(uint32_t));
+    cudaMalloc(&keysDevBackup, elementCount * sizeof(uint32_t));
 
     // command and execution
     cudaDeviceSynchronize();
@@ -315,25 +301,22 @@ int main() {
     cudaEventCreate(&stop_event);
     float totalTime = 0;
 
-    thrust::copy(randNumbers.begin(), randNumbers.end(), keysDev.begin());
+    //thrust::copy(randNumbers.begin(), randNumbers.end(), keysDev.begin());
+    cudaMemcpy(keysDev, randNumbers.data(), sizeof(uint32_t)*elementCount, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
     cudaEventRecord(start_event, 0);
 
-    //thrust::copy(keysDevBackup.begin(), keysDevBackup.end(), keysDev.begin());
-    //thrust::stable_sort(keysDev.begin(), keysDev.end());
-
-    radx::sort(keysDev, keysDevBackup);
+    radx::sort(keysDev, keysDevBackup, elementCount);
 
     cudaEventRecord(stop_event, 0);
     cudaEventSynchronize(stop_event);
     cudaEventElapsedTime(&totalTime, start_event, stop_event);
     cudaDeviceSynchronize();
 
-    thrust::copy(keysDev.begin(), keysDev.end(), sortedNumbersThrust.begin());
+    cudaMemcpy(sortedNumbers.data(), keysDev, sizeof(uint32_t)*elementCount, cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     // copy from device to host (finally)
-    thrust::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
     std::cout << "Thrust sort measured in " << double(totalTime) << "ms" << std::endl;
     //std::cout << "Thrust sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
