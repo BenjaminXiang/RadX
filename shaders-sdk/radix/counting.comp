@@ -54,11 +54,12 @@ void main() {
         [[flatten]] if (radice < RADICES) localCounts[radice] = 0u;
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
-    subgroupBarrier();
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks
     [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
+    subgroupBarrier();
+
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         [[flatten]] if (w < VEC_SIZE) {
             keyW = utype_t(extractKey(keys[push_block.Shift&1].data[addrW], push_block.Shift)),

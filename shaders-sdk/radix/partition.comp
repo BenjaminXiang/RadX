@@ -17,7 +17,7 @@ const uint WG_COUNT = 128u;
 shared uint localPartitions[RADICES];
 
 // local size 
-const uint local_size_def = 1024u;
+const uint local_size_def = Wave_Size * 16u;
 layout ( local_size_x = local_size_def) in; // use many as possible
 
 // 
@@ -30,7 +30,7 @@ void main() {
     subgroupBarrier();
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-    [[unroll, dependency_length(8)]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
+    [[unroll, dependency_length(16)]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
 #else
     { lowp uint rk = 0u;
 #endif
@@ -51,7 +51,7 @@ void main() {
     };
     
     subgroupBarrier();
-    [[unroll, dependency_length(4)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
+    [[unroll, dependency_length(8)]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp + Wave_Idx;
 
         // calculate partition offsets of every radice
