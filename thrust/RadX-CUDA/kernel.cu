@@ -23,14 +23,14 @@
 #include <iostream>
 #include <algorithm>
 
-const size_t elementCount = 1 << 16;//(1 << 23);
+const size_t elementCount = 1 << 17;//(1 << 23);
 
 namespace radx {
     const uint32_t RADICES = 256u;
     const uint32_t VECSIZE = 4u;
     const uint32_t BIT_CNT = 8u;
     const uint32_t WAVE_SIZE = 32u;
-    const uint32_t WG_COUNT = 128u;
+    const uint32_t WG_COUNT = 64u;
 
     #define validAddress cub::BFE(validAddressL[waveID],laneID,1u)
 
@@ -55,9 +55,12 @@ namespace radx {
             block_limit = block_offset + block_size,
             block_count = tiled(block_size, block_tile);
 
-        return blocks_info{ block_count, block_size, std::min(block_limit, n), 0u };
+        return blocks_info{ block_count, block_size, n, 0u };
     };
 
+
+//#define addressW addressL[threadIdx.x]
+//#define keyW keysL[waveID][laneID]
 
     // 
     __global__ void Counting(
@@ -73,22 +76,23 @@ namespace radx {
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) {
             localCounts[r+threadIdx.x] = 0u;
         };
-        addressL[threadIdx.x] = threadIdx.x + (bsize*blockIdx.x);
+
+        auto& keyW = keysL[waveID][laneID];
+        auto& addressW = addressL[threadIdx.x];
         __syncthreads();
 
-        uint32_t& address = addressL[threadIdx.x];
-        uint8_t& key = keysL[waveID][laneID];
+        addressW = threadIdx.x + (bsize*blockIdx.x);
         for (uint32_t t=0;t<bcount;t++) {
-            key = cub::BFE(keysStorage[address],BIT_CNT*P,BIT_CNT);
-            validAddressL[waveID] = __ballot_sync(__activemask(), address < limit);
+            keyW = addressW < limit ? cub::BFE(keysStorage[addressW],BIT_CNT*P,BIT_CNT) : 0xFFu;
+            validAddressL[waveID] = __ballot_sync(__activemask(), addressW < limit);
 
             // counting in SM with atomics
-            int pred; uint32_t prtmask = __match_all_sync(__activemask(), key, &pred)&validAddressL[waveID]; {
+            int pred; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&validAddressL[waveID]; {
                 uint32_t leader = __ffs(prtmask) - 1u;
-                uint32_t cnt = 0u; if (laneID == leader) {cnt = atomicAdd(&localCounts[key], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
+                uint32_t cnt = 0u; if (laneID == leader) {cnt = atomicAdd(&localCounts[keyW], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
             };
 
-            address += blockDim.x;
+            addressW += blockDim.x;
         };
         __syncthreads();
 
@@ -112,32 +116,35 @@ namespace radx {
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) {
             localPartitions[r+threadIdx.x] = partitionsBuf[blockIdx.x * RADICES + (r+threadIdx.x)], localCounts[r+threadIdx.x] = 0u;
         };
-        addressL[threadIdx.x] = threadIdx.x + (bsize*blockIdx.x);
         __syncthreads();
 
+        auto& cnt = sumL[waveID][laneID], prefix = prefixL[waveID][laneID];
+        auto& keyW = keysL[waveID][laneID];
+        auto& addressW = addressL[threadIdx.x];
 
-        uint32_t& address = addressL[threadIdx.x];
-        uint8_t& key = keysL[waveID][laneID];
-        uint32_t& cnt = sumL[waveID][laneID], prefix = prefixL[waveID][laneID];
-
+        addressW = threadIdx.x + (bsize*blockIdx.x);
         for (uint32_t t=0;t<bcount;t++) {
-            key = cub::BFE(keysStorage[address],BIT_CNT*P,BIT_CNT);
-            validAddressL[waveID] = __ballot_sync(__activemask(), address < limit);
-        
-            int pred; uint32_t prtmask = __match_all_sync(__activemask(), key, &pred)&validAddressL[waveID];
+            keyW = addressW < limit ? cub::BFE(keysStorage[addressW], BIT_CNT*P, BIT_CNT) : 0xFFu;
+            validAddressL[waveID] = __ballot_sync(__activemask(), addressW < limit);
+
+            int pred; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&validAddressL[waveID];
             { prefix = __popc(prtmask & cub::LaneMaskLt()), cnt = __popc(prtmask); };
             __syncthreads();
 
             // counting in SM with atomics
-            if (waveID == 0u) for (uint32_t w=0;w<VECSIZE;w++) { uint32_t sumt = 0u; uint32_t& cnt = sumL[w][laneID], prefix = prefixL[w][laneID];
+            if (waveID == 0u) for (uint32_t w=0;w<VECSIZE;w++) { uint32_t sumt = 0u; 
+                auto& cnt = sumL[w][laneID]; 
+                auto& prefix = prefixL[w][laneID];
+                auto& keyW = keysL[w][laneID];
+
                 uint32_t leader = __ffs(prtmask) - 1u;
-                if (laneID == leader) {sumt = atomicAdd(&localCounts[key], cnt);}; prefix += __shfl_sync(prtmask, sumt, leader);
+                if (laneID == leader) {sumt = atomicAdd(&localCounts[keyW], cnt);}; prefix += __shfl_sync(prtmask, sumt, leader);
             };
             __syncthreads();
         
-            if (validAddress) keysBackup[ localPartitions[key] + prefix ] = keysStorage[address];
+            if (validAddress) keysBackup[ localPartitions[keyW] + prefix ] = keysStorage[addressW];
             __syncwarp();
-            address += blockDim.x;
+            addressW += blockDim.x;
         };
     
 
@@ -161,13 +168,13 @@ namespace radx {
                 // validate masks
                 bool predicate = workgroup < WG_COUNT && radice < RADICES;
                 uint32_t mask = __ballot_sync(__activemask(), predicate);
-                uint32_t mostb = 31 - __clz(mask); // MSB
+                uint32_t mostb = 31u - __clz(mask); // MSB
 
                 // 
                 uint32_t cnt = predicate ? countsBuf[workgroup*RADICES+radice] : 0u, scan = 0u;
             
                 // prefix scan and sum
-                WarpScan(temp_storage[0]).ExclusiveSum(cnt, scan);
+                WarpScan(temp_storage[0]).ExclusiveSum(scan, cnt);
                 uint32_t sum = __shfl_sync(mask, cnt+scan, mostb);
 
                 // complete phase
@@ -192,7 +199,7 @@ namespace radx {
                 uint32_t cnt = predicate ? localCounts[radice] : 0u, scan = 0u;
             
                 // prefix scan and sum
-                WarpScan(temp_storage[0]).ExclusiveSum(cnt, scan);
+                WarpScan(temp_storage[0]).ExclusiveSum(scan, cnt);
                 uint32_t sum = __shfl_sync(mask, cnt+scan, mostb);
 
                 // complete phase
@@ -212,7 +219,7 @@ namespace radx {
         blocks_info bclk = get_blocks_info(std::uint32_t(keysStore.size()));
         uint32_t *countMem = histogramMem, *partitionMem = histogramMem + (RADICES*WG_COUNT);
 
-        for (uint32_t p = 0; p < 4u; p++) {
+        for (uint32_t p = 0u; p < 4u; p++) {
             Counting << < WG_COUNT, VECSIZE*WAVE_SIZE >> > (
                 p, bclk.count, bclk.size, bclk.limit,
                 countMem, keyStorePtr
@@ -257,7 +264,6 @@ int main() {
     float totalTime = 0;
 
     thrust::copy(randNumbers.begin(), randNumbers.end(), keysDev.begin());
-
     cudaDeviceSynchronize();
     cudaEventRecord(start_event, 0);
     //thrust::copy(keysDevBackup.begin(), keysDevBackup.end(), keysDev.begin());
@@ -274,7 +280,7 @@ int main() {
     cudaDeviceSynchronize();
 
     // copy from device to host (finally)
-    std::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
+    thrust::copy(sortedNumbersThrust.begin(), sortedNumbersThrust.end(), sortedNumbers.begin()); // on-host copying (for debugging)
     std::cout << "Thrust sort measured in " << double(totalTime) << "ms" << std::endl;
     //std::cout << "Thrust sort measured in " << (double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()) / 1e6) << "ms" << std::endl;
 
