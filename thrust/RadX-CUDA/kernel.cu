@@ -114,9 +114,8 @@ namespace radx {
 
             // counting in SM with atomics
             {
-                int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
+                int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&pmask; __syncwarp();
                 if (laneID == (__ffs(prtmask) - 1u)) {atomicAdd(&localCounts[keyW], __popc(prtmask));}; //cnt = __shfl_sync(prtmask, cnt, leader);
-                __syncwarp();
             };
 
             addressW += blockDim.x;
@@ -165,9 +164,9 @@ namespace radx {
             const uint32_t& pmask = validAddressL[waveID];
 
             // 
-            int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
-            { prefix = __popc(prtmask & cub::LaneMaskLt()), cnt = __popc(prtmask), leader = __ffs(prtmask) - 1u; };
+            int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&pmask;
             __syncwarp();
+            { prefix = __popc(prtmask & cub::LaneMaskLt()), cnt = __popc(prtmask), leader = __ffs(prtmask) - 1u; };
             __syncthreads();
 
             // counting in SM with atomics
@@ -177,10 +176,10 @@ namespace radx {
                 auto& keyW = keysL[w][laneID];
                 auto& leader = flaneL[w][laneID];
 
-                if (laneID == leader) {sumt = atomicAdd(&localCounts[keyW], cnt);}; 
+                if (laneID == leader) { sumt = localCounts[keyW]; localCounts[keyW] += cnt; };
                 prefix += __shfl_sync(prtmask, sumt, leader);
+                __syncwarp();
             };
-            __syncwarp();
             __syncthreads();
             
             if (predicate) {
@@ -266,7 +265,7 @@ namespace radx {
         uint32_t *countMem = histogramMem, *partitionMem = histogramMem + (RADICES*WG_COUNT);
 
         //cudaDeviceSynchronize();
-        for (uint32_t p = 0u; p < 1u; p++) {
+        for (uint32_t p = 0u; p < 4u; p++) {
             Counting << < WG_COUNT, VECSIZE*WAVE_SIZE >> > (
                 p, bclk.count, bclk.size, bclk.limit,
                 countMem, keysStorePtr
@@ -282,7 +281,7 @@ namespace radx {
             std::swap(keysStorePtr, keysBackupPtr);
         };
         //cudaDeviceSynchronize();
-        cudaMemcpy(keysStorePtr, keysBackupPtr, sizeof(uint32_t) * keysStore.size(), cudaMemcpyDeviceToDevice);
+        //cudaMemcpy(keysStorePtr, keysBackupPtr, sizeof(uint32_t) * keysStore.size(), cudaMemcpyDeviceToDevice);
         //thrust::copy(keysBackup.begin(), keysBackup.end(), keysStore.begin());
 
         //cudaFree(histogramMem);
