@@ -27,7 +27,7 @@ shared blocks_info blocks;
 
 
 #define keyW keyL[w][Lane_Idx]
-#define keyM kymL[Local_Idx]
+#define keyM keys[push_block.Shift&1].data[addrW]//kymL[Local_Idx]
 //#define validAddress subgroupInverseBallot(validAddressM)
 #define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
@@ -63,7 +63,7 @@ void main() {
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         [[flatten]] if (w < VEC_SIZE) {
-            keyW = utype_t(extractKey(keys[push_block.Shift&1].data[addrW], push_block.Shift)),
+            keyW = utype_t(extractKey(keyM, push_block.Shift)),
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
         };
         IFALL(all(not(validAddress))) break;
