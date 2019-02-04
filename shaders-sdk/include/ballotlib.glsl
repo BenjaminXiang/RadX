@@ -5,7 +5,7 @@
 
 // for constant maners
 #ifndef Wave_Size
-    #if (defined(AMD_PLATFORM) || defined(ENABLE_TURING_INSTRUCTION_SET))
+    #if (defined(AMD_PLATFORM))
         #define Wave_Size 64u
         #define bqualf highp
     #else
