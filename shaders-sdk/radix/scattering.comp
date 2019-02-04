@@ -114,11 +114,11 @@ void main() {
         // 
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
-#ifdef RTX_HACK
-            #define validAddressM prtmask
-#else
+//#ifdef RTX_HACK
+//            #define validAddressM prtmask
+//#else
             #define validAddressM validAddressL[w]
-#endif
+//#endif
             //IFALL (all(not( subgroupInverseBallot(validAddressM)))) break;
             [[flatten]] if (subgroupInverseBallot(validAddressM)) {
                 keys[1-(push_block.Shift&1)].data[prtscnW + localPartitions[uint(keyW)]] = keyM;
