@@ -22,6 +22,7 @@ GPU sorting shaders dedication from vRt project.
 
 ## Materials 
 
+- https://github.com/eloj/radix-sorting (basics of)
 - http://www.heterogeneouscompute.org/wordpress/wp-content/uploads/2011/06/RadixSort.pdf (principles)
 - https://vgc.poly.edu/~csilva/papers/cgf.pdf (partially)
 - https://devblogs.nvidia.com/using-cuda-warp-level-primitives/ (planned real CUDA version)
