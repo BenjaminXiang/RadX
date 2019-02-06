@@ -40,10 +40,8 @@
 
 #ifdef READ_U8
 #define keytp_t u8vec4
-#define extractKey(a,s) a[s] //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #else
 #define keytp_t uint32_t
-#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
 
@@ -77,7 +75,7 @@
 #define utype_t u8x1_t
 
 // internal vector typing (experimental, Ampere support planned)
-#ifdef false //ENABLE_TURING_INSTRUCTION_SET
+#ifdef false//ENABLE_TURING_INSTRUCTION_SET
 #define ivectr 2
 #define bshift 1
 #define utype_v u8x2_t
@@ -88,6 +86,15 @@
 #define addrw_seq uvec2(0,1)
 #define INTERLEAVED_PARTITION
 lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
+
+#ifdef READ_U8
+#define keytp_t u8vec4
+#define extractKey(a,s) utype_v(a[0][s],a[1][s]) //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#else
+#define keytp_t uint32_t
+#define extractKey(a,s) utype_v(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#endif
+
 #else
 #define ivectr 1
 #define bshift 0
@@ -98,6 +105,15 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #define keytp_v keytp_t
 #define addrw_seq 0u
 #define sumV uint
+
+#ifdef READ_U8
+#define keytp_t u8vec4
+#define extractKey(a,s) utype_v(a[s]) //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#else
+#define keytp_t uint32_t
+#define extractKey(a,s) utype_v(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#endif
+
 #endif
 
 

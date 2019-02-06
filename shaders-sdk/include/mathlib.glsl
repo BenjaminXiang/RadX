@@ -406,6 +406,7 @@ highp u16x2_t u16x2unpack(in u32x1_t a) { return u16x2_t(a&0xFFFFu,a>>16u); };
 #define u8x1_t uint8_t
 #define u8x4pack pack32
 #define u8x2pack pack16
+#define u8x4unpack unpack8
 #else
 #define u8x4_t u16x4_t
 #define u8x2_t u16x2_t
@@ -413,6 +414,7 @@ highp u16x2_t u16x2unpack(in u32x1_t a) { return u16x2_t(a&0xFFFFu,a>>16u); };
               const m8pq u8x2_t bshift16 = {0u,8u}; const m8pq u8x4_t bshift32 = bshift16.xyxy;
 u16x1_t u8x2pack(in m8pq u8x2_t v2) { v2 <<= bshift16; return u16x1_t(v2[0]|v2[1]); };
 u32x1_t u8x4pack(in m8pq u8x4_t v4) { v4 <<= bshift32; return p32x1_t(v4.xz|v4.yw); };
+ u8x4_t u8x4unpack(in u32x1_t u4) { return u8x4_t(u4.x>>0u,u4>>8u,u4>>16u,u4>>24u)&u8x1_t(0xFFu); };
 #endif
 
 // coding library (16-bit)
@@ -456,8 +458,6 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
                 r = (r | (r << 3us.xx)) & 0x1111us.xx;          // ---7 ---6  ---5 ---4  ---3 ---2 ---1 ---0
         return u16x2pack(r);
     };
-    u32x1_t encodeMorton(in m8pq u8x4_t a) { return u32x1_t((splitBy4(a.x) << 0u) | (splitBy4(a.y) << 1u) | (splitBy4(a.z) << 2u) | (splitBy4(a.w) << 3u)); };
-    u32x1_t encodeMorton(in u32x1_t a) { return encodeMorton(u8x4_t(bitfieldExtract(a, 0, 8), bitfieldExtract(a, 8, 8), bitfieldExtract(a, 16, 8), bitfieldExtract(a, 24, 8))); };
 #else
     u32x1_t splitBy4(in lowp uint a) {
         u32x1_t r = (a | (a << 12u)) & 0x000F000Fu; // ---- ----  ---- 7654  ---- ---- ---- 3210
@@ -465,8 +465,6 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
                 r = (r | (r <<  3u)) & 0x11111111u; // ---7 ---6  ---5 ---4  ---3 ---2 ---1 ---0
         return r;
     };
-    u32x1_t encodeMorton(in lowp uvec4 a) { return u32x1_t((splitBy4(a.x) << 0u) | (splitBy4(a.y) << 1u) | (splitBy4(a.z) << 2u) | (splitBy4(a.w) << 3u)); };
-    u32x1_t encodeMorton(in u32x1_t a) { return encodeMorton(uvec4(bitfieldExtract(a, 0, 8), bitfieldExtract(a, 8, 8), bitfieldExtract(a, 16, 8), bitfieldExtract(a, 24, 8))); };
 #endif
 
     u32x1_t splitBy2(in highp uint a) {
@@ -476,25 +474,28 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
                 r = (r | (r << 1u)) & 0x55555555u;
         return r;
     };
-    u32x1_t encodeMorton16(in highp uvec2 a) { return u32x1_t((splitBy2(a.x) << 0u) | (splitBy2(a.y) << 1u)); };
-    u32x1_t encodeMorton16(in u32x1_t a) { return encodeMorton16(uvec2(bitfieldExtract(a,0,16), bitfieldExtract(a,16,16))); };
+
+    u32x1_t encodeMorton8x4(in m8pq u8x4_t a) { return u32x1_t((splitBy4(a.x) << 0u) | (splitBy4(a.y) << 1u) | (splitBy4(a.z) << 2u) | (splitBy4(a.w) << 3u)); };
+    u32x1_t encodeMorton8x4(in u32x1_t a) { return encodeMorton8x4(u8x4unpack(a)); };
+    u32x1_t encodeMorton16x2(in highp uvec2 a) { return u32x1_t((splitBy2(a.x) << 0u) | (splitBy2(a.y) << 1u)); };
+    u32x1_t encodeMorton16x2(in u32x1_t a) { return encodeMorton16x2(u16x2unpack(a)); };
 
 
     // encode new morton code by four 32-bit elements
-    u32x4_t encodeMorton128(in u32x4_t a) {
+    u32x4_t encodeMorton32x4(in u32x4_t a) {
         return u32x4_t(
-            encodeMorton(u8x4pack(u8x4_t(a>> 0u)&u8x1_t(0xFFu))),
-            encodeMorton(u8x4pack(u8x4_t(a>> 8u)&u8x1_t(0xFFu))),
-            encodeMorton(u8x4pack(u8x4_t(a>>16u)&u8x1_t(0xFFu))),
-            encodeMorton(u8x4pack(u8x4_t(a>>24u)&u8x1_t(0xFFu)))
+            encodeMorton8x4(u8x4pack(u8x4_t(a>> 0u)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t(a>> 8u)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t(a>>16u)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t(a>>24u)&u8x1_t(0xFFu)))
         );
     };
 
     // encode new morton code by two 32-bit elements
-    u32x4_t encodeMorton64 (in u32x4_t a) {
+    u32x4_t encodeMorton32x2(in u32x4_t a) {
         return u32x4_t(
-            encodeMorton16(u16x2pack(u16x2_t(a.xy>> 0u)&u16x1_t(0xFFFFu))),
-            encodeMorton16(u16x2pack(u16x2_t(a.xy>>16u)&u16x1_t(0xFFFFu))),
+            encodeMorton16x2(u16x2pack(u16x2_t(a.xy>> 0u)&u16x1_t(0xFFFFu))),
+            encodeMorton16x2(u16x2pack(u16x2_t(a.xy>>16u)&u16x1_t(0xFFFFu))),
             0u.xx
         );
     };

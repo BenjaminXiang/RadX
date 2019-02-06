@@ -47,6 +47,7 @@
 #extension GL_KHR_memory_scope_semantics : enable // no actual support
 
 // 
+#extension GL_ARB_gpu_shader_int64 : enable
 #extension GL_EXT_shader_explicit_arithmetic_types : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_float32 : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_float16 : enable

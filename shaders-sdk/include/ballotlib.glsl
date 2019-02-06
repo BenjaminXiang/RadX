@@ -98,25 +98,40 @@ void fname(in  uint WHERE) {\
 
 
 bqualf uvec4 sgr_blt(in bool k) { return subgroupBallot(k); };
-highp uvec4 sgr_blt(in bvec2 k) { return encodeMorton64(u32x4_t(subgroupBallot(k[0])[0],subgroupBallot(k[1])[0],0u.xx)); };
-uvec4 sgr_blt(in bvec4 k) { return encodeMorton128(u32x4_t(subgroupBallot(k[0])[0],subgroupBallot(k[1])[0],subgroupBallot(k[2])[0],subgroupBallot(k[3])[0])); };
 
+#ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
+highp uvec4 sgr_blt(in bvec2 k) { return encodeMorton32x2(u32x4_t(
+    subgroupBallot(k[0]).x,
+    subgroupBallot(k[1]).x,
+    0u.xx
+));};
+uvec4 sgr_blt(in bvec4 k) { return encodeMorton32x4(u32x4_t(
+    subgroupBallot(k[0]).x,
+    subgroupBallot(k[1]).x,
+    subgroupBallot(k[2]).x,
+    subgroupBallot(k[3]).x
+));};
+#endif
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 bqualf uvec4 sgr_prt(in m8pq u8x1_t k) { return subgroupPartitionNV(k); };
-highp uvec4 sgr_prt(in m8pq u8x2_t k) { return encodeMorton64(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],0u.xx)); };
-uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton128(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],subgroupPartitionNV(k[2])[0],subgroupPartitionNV(k[3])[0])); };
+highp uvec4 sgr_prt(in m8pq u8x2_t k) { return encodeMorton32x2(u32x4_t(
+    subgroupPartitionNV(k[0]).x,
+    subgroupPartitionNV(k[1]).x,
+    0u.xx
+));};
+uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton32x4(u32x4_t(
+    subgroupPartitionNV(k[0]).x,
+    subgroupPartitionNV(k[1]).x,
+    subgroupPartitionNV(k[2]).x,
+    subgroupPartitionNV(k[3]).x
+));};
 #endif
 
-
-uvec4 genLtNMask(const lowp uint S){
-    return uvec4(
-        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-0 ,0),32)),
-        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-32,0),32)),
-        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-64,0),32)),
-        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-96,0),32))
-    );
-};
+// 64-bit/64-lane bitfield mask only supported 
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+highp uvec4 genLt2Mask() { return encodeMorton32x2(gl_SubgroupLtMask.xxxx)|uvec4(0u,0u,0u.xx); };
+#endif
 
 bqualf uvec4 genLtMask(){ return gl_SubgroupLtMask; };
 

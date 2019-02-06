@@ -69,43 +69,23 @@ void main() {
 
         [[flatten]] if (w < VEC_SIZE) {
             //keyM = keys[push_block.Shift&1].data[addrW],
-            keyW = utype_v(extractKey(keyM, push_block.Shift)),
-            validAddressL[w] = sgr_blt(predicate);
+            keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate);
             prtsumW = addrw_v(0u), prtscnW = addrw_v(0u);
             //prtscnW = offsets[0].data[addrW];
         };
         IFALL(all(not(predicate))) break;
 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
-#ifdef INTERLEAVED_PARTITION
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            const highp uvec4 prtmask = (encodeMorton64(sgr_prt(keyW[i]))<<i)&validAddressL[w];
-            prtscnW[i] = bitcnt(prtmask&genLtNMask(bshift)), prtsumW[i] = bitcnt(prtmask), fsLaneW[i] = lsb(prtmask);
-        }};
-
-        // critical block (interleaving currently not supported)
-        subgroupBarrier();
-        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-            // backup counter before
-            addrw_v cnt = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) cnt[i] = localCounts[uint(keyW[i])];
-
-            // calculate next-prefix
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                [[flatten]] if (fsLaneW[i] == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW[i] = cnt[i];
-            };
-        }};
-#else
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
         const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w]; // TODO: hardware bitcount for AMD
-        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(bitcnt(prtmask&genLtNMask(bshift))), prtsumW = addrw_v(bitcnt(prtmask)), fsLaneW = addrw_v(lsb(prtmask)); };
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(bitcnt(prtmask&genLtMask())), prtsumW = addrw_v(bitcnt(prtmask)), fsLaneW = addrw_v(lsb(prtmask)); };
         
-        // critical block (interleaving currently not supported)
+        // critical block 
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             uint count = localCounts[uint(keyW)];
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count;
         }};
-#endif
 #else
         // 
         subgroupBarrier();
