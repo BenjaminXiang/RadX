@@ -173,11 +173,12 @@ namespace radx {
     // TODO: development with CUB
     __global__ void Partition(const uint32_t * countsBuf, uint32_t * partitionsBuf) {
         const uint32_t& laneID = cub::LaneId(), waveID = cub::WarpId();
+        const uint32_t waveCount = 8u;
 
         typedef cub::WarpScan<uint32_t> WarpScan;
         typedef cub::WarpReduce<uint32_t> WarpReduce;
-        __shared__ typename WarpScan::TempStorage scanStorage;
-        __shared__ typename WarpReduce::TempStorage reduceStorage;
+        __shared__ typename WarpScan::TempStorage scanStorage[waveCount];
+        __shared__ typename WarpReduce::TempStorage reduceStorage[waveCount];
 
         __shared__ uint32_t localCounts[RADICES];
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) {
@@ -187,7 +188,7 @@ namespace radx {
 
         __syncthreads();
 
-        for (uint32_t rk=0u;rk<RADICES;rk+=8u) { uint32_t radice = rk + waveID;
+        for (uint32_t rk=0u;rk<RADICES;rk+= waveCount) { uint32_t radice = rk + waveID;
             for (uint32_t gp=0u;gp<WG_COUNT;gp+=WAVE_SIZE) { uint32_t workgroup = gp+laneID;
             
                 // validate masks
@@ -198,8 +199,8 @@ namespace radx {
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
-                uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t scan = 0u; WarpScan(scanStorage[waveID]).ExclusiveSum(cnt, scan);
+                uint32_t sum = 0u; WarpReduce(reduceStorage[waveID]).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = localCounts[radice]; localCounts[radice] += sum; }; pref = __shfl_sync(activem, pref, 0);
@@ -209,7 +210,7 @@ namespace radx {
 
         __syncthreads();
 
-        for (uint32_t gp=0u;gp<WG_COUNT;gp+=8u) { uint32_t workgroup = gp+waveID; uint32_t partsum = 0u;
+        for (uint32_t gp=0u;gp<WG_COUNT;gp+= waveCount) { uint32_t workgroup = gp+waveID; uint32_t partsum = 0u;
             for (uint32_t rk=0u;rk<RADICES;rk+=WAVE_SIZE) { uint32_t radice = rk+laneID;
 
                 // validate masks
@@ -220,8 +221,8 @@ namespace radx {
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? localCounts[radice] : 0u;
-                uint32_t scan = 0u; WarpScan(scanStorage).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(reduceStorage).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t scan = 0u; WarpScan(scanStorage[waveID]).ExclusiveSum(cnt, scan);
+                uint32_t sum = 0u; WarpReduce(reduceStorage[waveID]).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = 0u; if (laneID == 0u) { pref = partsum, partsum += sum; }; pref = __shfl_sync(activem, pref, 0);
