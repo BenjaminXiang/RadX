@@ -139,7 +139,7 @@ namespace radx {
         virtual VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override;
 
     public:
-        Radix() { this->groupX = 128u; };
+        Radix() { this->groupX = 144u; };
 
         friend Sort<Radix>;
         virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override;
