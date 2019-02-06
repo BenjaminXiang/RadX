@@ -104,8 +104,8 @@ uvec4 sgr_blt(in bvec4 k) { return encodeMorton128(u32x4_t(subgroupBallot(k[0])[
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 bqualf uvec4 sgr_prt(in m8pq u8x1_t k) { return subgroupPartitionNV(k); };
-uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton128(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],subgroupPartitionNV(k[2])[0],subgroupPartitionNV(k[3])[0])); };
 highp uvec4 sgr_prt(in m8pq u8x2_t k) { return encodeMorton64(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],0u.xx)); };
+uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton128(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],subgroupPartitionNV(k[2])[0],subgroupPartitionNV(k[3])[0])); };
 #endif
 
 

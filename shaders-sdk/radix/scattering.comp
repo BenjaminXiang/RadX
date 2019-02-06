@@ -38,7 +38,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 // 
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
   layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { keytp_v data[]; } keys[];
-  layout ( binding = 0, set = InputKeys, scalar )          subgroupcoherent buffer KeysOutB { uint32_t data[]; } keysOut[];
+  layout ( binding = 0, set = InputKeys, scalar )          subgroupcoherent buffer KeysOutB { keytp_t data[]; } keysOut[];
 
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
@@ -80,24 +80,30 @@ void main() {
 #ifdef INTERLEAVED_PARTITION
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             const highp uvec4 prtmask = (encodeMorton64(sgr_prt(keyW[i]))<<i)&validAddressL[w];
-            prtscnW[i] = subgroupBallotBitCount(prtmask&genLtNMask(bshift)), prtsumW[i] = subgroupBallotBitCount(prtmask), fsLaneW[i] = subgroupBallotFindLSB(prtmask);
+            prtscnW[i] = bitcnt(prtmask&genLtNMask(bshift)), prtsumW[i] = bitcnt(prtmask), fsLaneW[i] = lsb(prtmask);
         }};
 
         // critical block (interleaving currently not supported)
         subgroupBarrier();
-        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { // critically calculate partition offset
-            [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtsumW[i] = atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW[i] = subgroupShuffle(prtsumW[i],fsLaneW[i]);
-            //prtscnW += prtsumW;
-        }}};
+        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
+            // backup counter before
+            addrw_v cnt = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) cnt[i] = localCounts[uint(keyW[i])];
+
+            // calculate next-prefix
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+                [[flatten]] if (fsLaneW[i] == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW[i] = cnt[i];
+            };
+        }};
 #else
-        const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
-        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(subgroupBallotBitCount(prtmask&genLtNMask(bshift))), prtsumW = addrw_v(subgroupBallotBitCount(prtmask)), fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask)); };
+        const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w]; // TODO: hardware bitcount for AMD
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(bitcnt(prtmask&genLtNMask(bshift))), prtsumW = addrw_v(bitcnt(prtmask)), fsLaneW = addrw_v(lsb(prtmask)); };
         
         // critical block (interleaving currently not supported)
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-            [[flatten]] if (fsLaneW == Lane_Idx) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW = subgroupShuffle(prtsumW,fsLaneW);
-            //prtscnW += prtsumW;
+            uint count = localCounts[uint(keyW)];
+            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            prtsumW = count;
         }};
 #endif
 #else
@@ -108,10 +114,10 @@ void main() {
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
                 [[flatten]] if (keyW == (r + Wave_Idx)) {
                     const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
+                    prtsumW = utype_t(bitcnt(prtmask));
 
                     [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotBitCount(prtmask&genLtMask()));
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(bitcnt(prtmask&genLtMask()));
                     //prtscnW += prtsumW;
                 }};
     #else
@@ -119,10 +125,10 @@ void main() {
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
+                    prtsumW = utype_t(bitcnt(prtmask));
 
                     [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotBitCount(prtmask&genLtMask()));
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(bitcnt(prtmask&genLtMask()));
                     //prtscnW += prtsumW;
                 };
                 [[flatten]] if ( subgroupAll(found) ) { break; };
@@ -135,11 +141,9 @@ void main() {
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
 #ifdef INTERLEAVED_PARTITION
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                [[flatten]] if (predicate[i]) { 
-                    keysOut[1-(push_block.Shift&1)].data[prtscnW[i] + prtsumW[i] + localPartitions[uint(keyW[i])]] = keyM[i]; 
-                }; // copy from backup to inner store
-            };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { [[flatten]] if (predicate[i]) { // copy from backup to inner store
+                keysOut[1-(push_block.Shift&1)].data[prtscnW[i] + prtsumW[i] + localPartitions[uint(keyW[i])]] = keyM[i]; 
+            };};
 #else
             [[flatten]] if (predicate) { keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; }; // copy from backup to inner store
 #endif

@@ -22,9 +22,8 @@
 #define BITS_PER_PASS 8u
 #define RADICES 256u
 #define RADICES_MASK 0xFFu
-#define SIMPLER_READ_U8
 #define SHF8B 0
-#define RTX_HACK
+#define READ_U8
 #else
 //#define BITS_PER_PASS 4u
 //#define RADICES 16u
@@ -37,6 +36,14 @@
 #define RADICES_MASK 0x3u
 #define SIMPLER_SORT
 #define SHF8B 2
+#endif
+
+#ifdef READ_U8
+#define keytp_t u8vec4
+#define extractKey(a,s) a[s] //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#else
+#define keytp_t uint32_t
+#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
 
@@ -70,14 +77,14 @@
 #define utype_t u8x1_t
 
 // internal vector typing (experimental, Ampere support planned)
-#ifdef false//ENABLE_TURING_INSTRUCTION_SET
+#ifdef false //ENABLE_TURING_INSTRUCTION_SET
 #define ivectr 2
 #define bshift 1
 #define utype_v u8x2_t
 #define btype_v bvec2
 #define addrw_v uvec2
 #define addrw_t uint
-#define keytp_v u32vec2
+#define keytp_v keytp_t[2]
 #define addrw_seq uvec2(0,1)
 #define INTERLEAVED_PARTITION
 lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
@@ -88,7 +95,7 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #define btype_v bool
 #define addrw_v uint
 #define addrw_t uint
-#define keytp_v uint32_t
+#define keytp_v keytp_t
 #define addrw_seq 0u
 #define sumV uint
 #endif
@@ -141,7 +148,7 @@ blocks_info get_blocks_info(in uint n) {
     return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
 };
 
-#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+
 
 #ifdef PREFER_UNPACKED
 #define upfunc(x) (x)

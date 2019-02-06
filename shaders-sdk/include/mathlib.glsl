@@ -279,7 +279,6 @@ uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
 uint bitcnt(in uvec2 lh) { ivec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
 uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(U2P(lh)); return uint(bic.x+bic.y); }
 
-
 // bit measure utils
 int lsb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
@@ -299,6 +298,10 @@ int msb(in uvec2 pair) {
 #endif
 };
 
+
+lowp uint lsb(in uvec4 quadr){ return lsb(quadr.xy); };
+lowp uint msb(in uvec4 quadr){ return msb(quadr.xy); };
+lowp uint bitcnt(in uvec4 quadr){ return bitcnt(quadr.xy); };
 
 
 // bit insert and extract
@@ -466,6 +469,17 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
     u32x1_t encodeMorton(in u32x1_t a) { return encodeMorton(uvec4(bitfieldExtract(a, 0, 8), bitfieldExtract(a, 8, 8), bitfieldExtract(a, 16, 8), bitfieldExtract(a, 24, 8))); };
 #endif
 
+    u32x1_t splitBy2(in highp uint a) {
+        u32x1_t r = (a | (a << 8u)) & 0x00FF00FFu; // 
+                r = (r | (r << 4u)) & 0x0F0F0F0Fu; // 
+                r = (r | (r << 2u)) & 0x33333333u; // 
+                r = (r | (r << 1u)) & 0x55555555u;
+        return r;
+    };
+    u32x1_t encodeMorton16(in highp uvec2 a) { return u32x1_t((splitBy2(a.x) << 0u) | (splitBy2(a.y) << 1u)); };
+    u32x1_t encodeMorton16(in u32x1_t a) { return encodeMorton16(uvec2(bitfieldExtract(a,0,16), bitfieldExtract(a,16,16))); };
+
+
     // encode new morton code by four 32-bit elements
     u32x4_t encodeMorton128(in u32x4_t a) {
         return u32x4_t(
@@ -479,8 +493,8 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
     // encode new morton code by two 32-bit elements
     u32x4_t encodeMorton64 (in u32x4_t a) {
         return u32x4_t(
-            encodeMorton(u16x2pack(u16x2_t(a.xy>> 0u)&u16x1_t(0xFFFFu))),
-            encodeMorton(u16x2pack(u16x2_t(a.xy>>16u)&u16x1_t(0xFFFFu))),
+            encodeMorton16(u16x2pack(u16x2_t(a.xy>> 0u)&u16x1_t(0xFFFFu))),
+            encodeMorton16(u16x2pack(u16x2_t(a.xy>>16u)&u16x1_t(0xFFFFu))),
             0u.xx
         );
     };
