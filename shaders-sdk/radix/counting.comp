@@ -74,9 +74,17 @@ void main() {
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported)
         [[flatten]] if (w < VEC_SIZE) {
+#ifdef INTERLEAVED_PARTITION
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+                const highp uvec4 prtmask = (encodeMorton64(sgr_prt(keyW[i]))<<i)&validAddressL[w];
+                const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
+                [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            };
+#else
             const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
             const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+#endif
         };
 #else
         subgroupBarrier();

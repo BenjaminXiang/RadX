@@ -76,8 +76,10 @@
 #define utype_v u8x2_t
 #define btype_v bvec2
 #define addrw_v uvec2
+#define addrw_t uint
 #define keytp_v u32vec2
 #define addrw_seq uvec2(0,1)
+#define INTERLEAVED_PARTITION
 lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #else
 #define ivectr 1
@@ -85,6 +87,7 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #define utype_v u8x1_t
 #define btype_v bool
 #define addrw_v uint
+#define addrw_t uint
 #define keytp_v uint32_t
 #define addrw_seq 0u
 #define sumV uint
