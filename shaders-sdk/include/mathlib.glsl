@@ -375,6 +375,7 @@ vec4 textureHQ(in sampler2D SMP, in vec2 TXL, in int LOD) {
 
 // uint32_t 
 #define u32x1_t uint32_t
+#define u32x2_t u32vec2
 #define u32x4_t u32vec4
 #define p32x1_t(a) u16x2pack(u16x2_t(a))
 
@@ -472,6 +473,14 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
             encodeMorton(u8x4pack(u8x4_t(a>> 8u)&u8x1_t(0xFFu))),
             encodeMorton(u8x4pack(u8x4_t(a>>16u)&u8x1_t(0xFFu))),
             encodeMorton(u8x4pack(u8x4_t(a>>24u)&u8x1_t(0xFFu)))
+        );
+    };
+
+    // encode new morton code by two 32-bit elements
+    u32x2_t encodeMorton64 (in u32x2_t a) {
+        return u32x2_t(
+            encodeMorton(u16x2pack(u16x2_t(a>> 0u)&u16x1_t(0xFFFFu))),
+            encodeMorton(u16x2pack(u16x2_t(a>>16u)&u16x1_t(0xFFFFu)))
         );
     };
 
