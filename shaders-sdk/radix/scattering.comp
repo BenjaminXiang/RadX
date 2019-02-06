@@ -16,8 +16,8 @@ shared uint localCounts[RADICES], localPartitions[RADICES];
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
 shared uint kymL[VEC_SIZE*Wave_Size];
 
-shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
-shared lowp uint prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
+shared uint addrL[VEC_SIZE*Wave_Size], prtsumL[VEC_SIZE][Wave_Size];
+shared lowp uint prtscnL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared bqualf uvec4[VEC_SIZE] validAddressL;
 
 shared blocks_info blocks;
@@ -66,6 +66,7 @@ void main() {
             //keyM = keys[push_block.Shift&1].data[addrW],
             keyW = utype_t(extractKey(keyM,push_block.Shift)),
             validAddressL[w] = subgroupBallot(lessThan(addrW, blocks.limit));
+            prtsumW = 0u, prtscnW = 0u;
             //prtscnW = offsets[0].data[addrW];
         };
         IFALL(all(not(validAddress))) break;
@@ -76,9 +77,9 @@ void main() {
         
         // critical block
         subgroupBarrier();
-        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { uint cntl = 0u; // critically calculate partition offset
-            [[flatten]] if (fsLaneW == Lane_Idx) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            prtscnW += subgroupShuffle(cntl,fsLaneW);
+        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
+            [[flatten]] if (fsLaneW == Lane_Idx) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW = subgroupShuffle(prtsumW,fsLaneW);
+            //prtscnW += prtsumW;
         }};
 #else
         // 
@@ -88,22 +89,22 @@ void main() {
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
                 [[flatten]] if (keyW == (r + Wave_Idx) && validAddress) {
                     const bqualf uvec4 prtmask = subgroupBallot(true)&validAddressL[w];
-                    const lowp uint prtsumS = utype_t(subgroupBallotBitCount(prtmask));
+                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
 
-                    uint cntl = 0u;
-                    [[flatten]] if (subgroupElect()) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumS, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)) + readFLane(cntl);
+                    [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
+                    //prtscnW += prtsumW;
                 }};
     #else
             bool found = !validAddress || keyW<Wr || keyW>=(Wr+Wc);
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const bqualf uvec4 prtmask = subgroupBallot(true)&validAddressL[w];
-                    const lowp uint prtsumS = utype_t(subgroupBallotBitCount(prtmask));
+                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
 
-                    uint cntl = 0u;
-                    [[flatten]] if (subgroupElect()) { cntl = atomicAdd(localCounts[uint(keyW)], prtsumS, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask)) + readFLane(cntl);
+                    [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
+                    //prtscnW += prtsumW;
                 };
                 [[flatten]] if ( subgroupAll(found) ) { break; };
             };
@@ -121,7 +122,7 @@ void main() {
 //#endif
             //IFALL (all(not( subgroupInverseBallot(validAddressM)))) break;
             [[flatten]] if (subgroupInverseBallot(validAddressM)) {
-                keys[1-(push_block.Shift&1)].data[prtscnW + localPartitions[uint(keyW)]] = keyM;
+                keys[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM;
             }; // copy from backup to inner store
             subgroupBarrier(); // barrier faster memory operation
             addrW += ( Wave_Size_RT << VEC_SHIF );
