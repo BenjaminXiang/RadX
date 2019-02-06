@@ -95,4 +95,28 @@ void fname(in  uint WHERE) {\
     if (subgroupElect()) {atomicAdd(mem, T(pfx.x) * T(by), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed);};\
 };
 
+
+
+uvec4 sgr_blt(in bvec4 k) { return encodeMorton128(u32x4_t(subgroupBallot(k[0])[0],subgroupBallot(k[1])[0],subgroupBallot(k[2])[0],subgroupBallot(k[3])[0])); };
+bqualf uvec4 sgr_blt(in bool k) { return subgroupBallot(k); };
+
+
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+bqualf uvec4 sgr_prt(in m8pq u8x1_t k) { return subgroupPartitionNV(k); };
+uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton128(u32x4_t(subgroupPartitionNV(k[0])[0],subgroupPartitionNV(k[1])[0],subgroupPartitionNV(k[2])[0],subgroupPartitionNV(k[3])[0])); };
+#endif
+
+
+uvec4 genLtNMask(const lowp uint S){
+    return uvec4(
+        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-0 ,0),32)),
+        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-32,0),32)),
+        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-64,0),32)),
+        bitfieldExtract(0xFFFFFFFFu, 0, min(max(int(Lane_Idx<<S)-96,0),32))
+    );
+};
+
+bqualf uvec4 genLtMask(){ return gl_SubgroupLtMask; };
+
+
 #endif
