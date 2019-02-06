@@ -13,10 +13,10 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES];
 
 // 
-shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
+shared m8pq utype_v keyL[VEC_SIZE][Wave_Size];
 
 
-shared uint addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
+shared addrw_v addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
 //shared lowp uint prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared bqualf uvec4[VEC_SIZE] validAddressL;
 
@@ -27,7 +27,7 @@ shared blocks_info blocks;
 
 
 #define keyW keyL[w][Lane_Idx]
-#define keyM keys[push_block.Shift&1].data[addrW]//kymL[Local_Idx]
+#define keyM keys[push_block.Shift&1].data[addrW.x>>bshift]//kymL[Local_Idx]
 //#define validAddress subgroupInverseBallot(validAddressM)
 //#define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
@@ -37,7 +37,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform readonly workgroupcoherent uimageBuffer keys[];
-  layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { uint data[]; } keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { keytp_v data[]; } keys[];
 
 // 
 layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { uint counts[][RADICES]; };
@@ -58,19 +58,21 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks
-    [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
+    [[flatten]] if (w < VEC_SIZE) { 
+        addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset;
+    };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        bool predicate = lessThan(addrW, blocks.limit);
+        btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
 
         [[flatten]] if (w < VEC_SIZE) {
-            keyW = utype_t(extractKey(keyM, push_block.Shift)),
+            keyW = utype_v(extractKey(keyM, push_block.Shift)),
             validAddressL[w] = sgr_blt(predicate);
         };
         IFALL(all(not(predicate))) break;
 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported)
         [[flatten]] if (w < VEC_SIZE) {
             const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
             const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
@@ -105,7 +107,7 @@ void main() {
 
         [[flatten]] if (w < VEC_SIZE) {
             //[[flatten]] if (fsLaneW == Lane_Idx && validAddress) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            addrW += ( Wave_Size_RT << VEC_SHIF );
+            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         };
     };
     subgroupBarrier();

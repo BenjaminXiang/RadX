@@ -13,11 +13,11 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES], localPartitions[RADICES];
 
 // 
-shared m8pq utype_t keyL[VEC_SIZE][Wave_Size];
-shared uint kymL[VEC_SIZE*Wave_Size];
+shared m8pq utype_v keyL[VEC_SIZE][Wave_Size];
+shared keytp_v kymL[VEC_SIZE*Wave_Size];
 
-shared uint addrL[VEC_SIZE*Wave_Size], prtsumL[VEC_SIZE][Wave_Size];
-shared lowp uint prtscnL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
+shared addrw_v addrL[VEC_SIZE*Wave_Size], prtsumL[VEC_SIZE][Wave_Size];
+shared lowp addrw_v prtscnL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
 shared bqualf uvec4[VEC_SIZE] validAddressL;
 
 shared blocks_info blocks;
@@ -27,7 +27,7 @@ shared blocks_info blocks;
 #define prtsumW prtsumL[w][Lane_Idx]
 #define fsLaneW fsLaneL[w][Lane_Idx]
 #define keyW keyL[w][Lane_Idx]
-#define keyM keys[push_block.Shift&1].data[addrW]//kymL[Local_Idx]
+#define keyM keys[push_block.Shift&1].data[addrW.x>>bshift]//kymL[Local_Idx]
 //#define validAddress subgroupInverseBallot(validAddressM)
 //#define validAddress subgroupInverseBallot(validAddressL[w])
 #define bcount blocks.count
@@ -37,7 +37,8 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
-  layout ( binding = 0, set = InputKeys, scalar ) subgroupcoherent buffer KeysB { uint data[]; } keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { keytp_v data[]; } keys[];
+  layout ( binding = 0, set = InputKeys, scalar )          subgroupcoherent buffer KeysOutB { uint32_t data[]; } keysOut[];
 
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
@@ -58,26 +59,28 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { addrW = Local_Idx + blocks.offset; };
+    [[flatten]] if (w < VEC_SIZE) { 
+        addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset;
+    };
     subgroupBarrier();
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-        bool predicate = lessThan(addrW, blocks.limit);
+        btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
 
         [[flatten]] if (w < VEC_SIZE) {
             //keyM = keys[push_block.Shift&1].data[addrW],
-            keyW = utype_t(extractKey(keyM,push_block.Shift)),
+            keyW = utype_v(extractKey(keyM, push_block.Shift)),
             validAddressL[w] = sgr_blt(predicate);
-            prtsumW = 0u, prtscnW = 0u;
+            prtsumW = addrw_v(0u), prtscnW = addrw_v(0u);
             //prtscnW = offsets[0].data[addrW];
         };
         IFALL(all(not(predicate))) break;
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now 
         const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
-        [[flatten]] if (w < VEC_SIZE) { prtscnW = utype_t(subgroupBallotBitCount(prtmask&genLtMask())), prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask)); };
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(subgroupBallotBitCount(prtmask&genLtNMask(bshift))), prtsumW = addrw_v(subgroupBallotBitCount(prtmask)), fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask)); };
         
-        // critical block
+        // critical block (interleaving currently not supported)
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             [[flatten]] if (fsLaneW == Lane_Idx) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); }; prtsumW = subgroupShuffle(prtsumW,fsLaneW);
@@ -117,17 +120,15 @@ void main() {
         // 
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
-//#ifdef RTX_HACK
-//            #define validAddressM prtmask
-//#else
-//            #define validAddressM validAddressL[w]
-//#endif
-            //IFALL (all(not( subgroupInverseBallot(validAddressM)))) break;
-            [[flatten]] if (predicate) {
-                keys[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM;
-            }; // copy from backup to inner store
+#ifdef false//ENABLE_TURING_INSTRUCTION_SET
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+                [[flatten]] if (predicate[i]) { keysOut[1-(push_block.Shift&1)].data[prtscnW[i] + prtsumW[i] + localPartitions[uint(keyW[i])]] = keyM[i]; }; // copy from backup to inner store
+            };
+#else
+            [[flatten]] if (predicate) { keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; }; // copy from backup to inner store
+#endif
             subgroupBarrier(); // barrier faster memory operation
-            addrW += ( Wave_Size_RT << VEC_SHIF );
+            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         };
     };
 };

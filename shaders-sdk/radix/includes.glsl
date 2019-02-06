@@ -44,26 +44,10 @@
 #define Wave_Size_RX Wave_Size_RT
 #define Wave_Count_RX Wave_Count_RT 
 
-
-//#if defined(ENABLE_TURING_INSTRUCTION_SET)
-    #define VEC_SIZE 4u
-    #define VEC_MULT VEC_SIZE
-    #define VEC_SHIF 2u
-    #define VEC_SEQU WPTRX(Wave_Idx) // yes, yes!
-    #define KTYPE utype_v//utype_t[VEC_SIZE]
-    #define ATYPE uvec4
-
-/*
-    #define VEC_SIZE 2u
-    #define VEC_MULT VEC_SIZE
-    #define VEC_SHIF 1u
-    #define VEC_SEQU WPTRX(Wave_Idx) // yes, yes!
-    #define KTYPE utype_v//utype_t[VEC_SIZE]
-    #define ATYPE uvec2
-*/
-
-    #define WPTRX uint
-    #define BOOLX bool
+// SM configuration
+#define VEC_SIZE 4u
+#define VEC_MULT VEC_SIZE
+#define VEC_SHIF 2u
 
 // 
 //#ifdef ENABLE_SUBGROUP_PARTITION_SORT
@@ -84,7 +68,28 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
-#define utype_v u8x4_t
+
+// internal vector typing (experimental, Ampere support planned)
+#ifdef false//ENABLE_TURING_INSTRUCTION_SET
+#define ivectr 2
+#define bshift 1
+#define utype_v u8x2_t
+#define btype_v bvec2
+#define addrw_v uvec2
+#define keytp_v u32vec2
+#define addrw_seq uvec2(0,1)
+lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
+#else
+#define ivectr 1
+#define bshift 0
+#define utype_v u8x1_t
+#define btype_v bool
+#define addrw_v uint
+#define keytp_v uint32_t
+#define addrw_seq 0u
+#define sumV uint
+#endif
+
 
 #ifdef USE_MORTON_32
 #define KEYTYPE uint32_t
@@ -123,7 +128,7 @@ layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 struct blocks_info { uint count, limit, offset, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
-        block_tile = Wave_Size_RT << VEC_SHIF, 
+        block_tile = (Wave_Size_RT<<bshift) << VEC_SHIF, 
         block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,
