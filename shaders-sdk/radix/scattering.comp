@@ -66,6 +66,7 @@ void main() {
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
+        IFALL(all(not(predicate))) break;
 
         [[flatten]] if (w < VEC_SIZE) {
             //keyM = keys[push_block.Shift&1].data[addrW],
@@ -73,11 +74,10 @@ void main() {
             prtsumW = addrw_v(0u), prtscnW = addrw_v(0u);
             //prtscnW = offsets[0].data[addrW];
         };
-        IFALL(all(not(predicate))) break;
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
         const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w]; // TODO: hardware bitcount for AMD
-        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(bitcnt(prtmask&genLtMask())), prtsumW = addrw_v(bitcnt(prtmask)), fsLaneW = addrw_v(lsb(prtmask)); };
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(subgroupBallotExclusiveBitCount(prtmask)), prtsumW = addrw_v(subgroupBallotBitCount(prtmask)), fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask)); };
         
         // critical block 
         subgroupBarrier();
@@ -94,10 +94,10 @@ void main() {
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
                 [[flatten]] if (keyW == (r + Wave_Idx)) {
                     const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(bitcnt(prtmask));
+                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
 
                     [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(bitcnt(prtmask&genLtMask()));
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
                     //prtscnW += prtsumW;
                 }};
     #else
@@ -105,10 +105,10 @@ void main() {
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(bitcnt(prtmask));
+                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
 
                     [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(bitcnt(prtmask&genLtMask()));
+                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
                     //prtscnW += prtsumW;
                 };
                 [[flatten]] if ( subgroupAll(found) ) { break; };
@@ -121,11 +121,11 @@ void main() {
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
 #ifdef INTERLEAVED_PARTITION
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { [[flatten]] if (predicate[i]) { // copy from backup to inner store
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { [[flatten]] if (subgroupInverseBallot(predicate[i])) { // copy from backup to inner store
                 keysOut[1-(push_block.Shift&1)].data[prtscnW[i] + prtsumW[i] + localPartitions[uint(keyW[i])]] = keyM[i]; 
             };};
 #else
-            [[flatten]] if (predicate) { keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; }; // copy from backup to inner store
+            [[flatten]] if (subgroupInverseBallot(validAddressL[w])) { keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; }; // copy from backup to inner store
 #endif
             subgroupBarrier(); // barrier faster memory operation
             addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );

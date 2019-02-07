@@ -62,16 +62,14 @@ void main() {
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
-
-        [[flatten]] if (w < VEC_SIZE) {
-            keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate);
-        };
         IFALL(all(not(predicate))) break;
+
+        [[flatten]] if (w < VEC_SIZE) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
         [[flatten]] if (w < VEC_SIZE) {
             const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
-            const lowp uint prtsumW = utype_t(bitcnt(prtmask)), fsLaneW = utype_t(lsb(prtmask));
+            const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
 #else
@@ -81,7 +79,7 @@ void main() {
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
                 [[flatten]] if (keyW == (r + Wave_Idx)) {
                     const bqualf uvec4 prtmask = sgr_blt(true);
-                    const lowp uint prtsumW = utype_t(bitcnt(prtmask));
+                    const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask));
                     [[flatten]] if (subgroupElect()) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
                     //const uint fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
                 }};
@@ -90,7 +88,7 @@ void main() {
             for (lowp uint t=0;t<BSIZE;t+=1u) {
                 [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
                     const bqualf uvec4 prtmask = sgr_blt(true);
-                    const lowp uint prtsumW = utype_t(bitcnt(prtmask));
+                    const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask));
                     [[flatten]] if (subgroupElect()) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
                     //fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
                 };
