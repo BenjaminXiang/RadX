@@ -78,11 +78,15 @@ void main() {
             //prtscnW = offsets[0].data[addrW];
         };
 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
-#ifdef INTERLEAVED_PARTITION
-#define prtmask prtmaskM[i]
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
+    #ifndef INTERLEAVED_PARTITION
+        [[flatten]] if (w < VEC_SIZE) {
+            const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w]; // 
+            [[flatten]] if ((fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask))) == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
+        };
+    #else // subgroup interleaving support (NVIDIA)
+        #define prtmask prtmaskM[i]
         uvec4 prtmaskM[4];
-
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             prtmask = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w];
             [[flatten]] if (w < VEC_SIZE) { fsLaneW[i] = addrw_t(lsb(prtmask)), prtsumW[i] = addrw_t(bitcnt(prtmask)); };
@@ -91,7 +95,29 @@ void main() {
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             [[flatten]] if ((fsLaneW[i]>>bshift) == Lane_Idx) { prtMskW[uint(keyW[i])] |= prtmask; };
         };
+    #endif
+#else
+        // 
+        [[flatten]] if (w < VEC_SIZE) {
+            [[unroll]] for (lowp uint r=0;r<RADICES;r+=1u) { [[flatten]] if (keyW == r) {
+                const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
+                [[flatten]] if ((fsLaneW = readFLane(Lane_Idx)) == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
+            };};
+        };
+#endif
 
+#ifndef INTERLEAVED_PARTITION
+        // 
+        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(subgroupBallotExclusiveBitCount(prtMskW[uint(keyW)])), prtsumW = addrw_v(subgroupBallotBitCount(prtMskW[uint(keyW)])); };
+
+        // critical block 
+        subgroupBarrier();
+        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
+            uint count = localCounts[uint(keyW)];
+            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            prtsumW = count;
+        }};
+#else   // subgroup interleaving support (NVIDIA)
         // calculate bitcount and bitscan (for bitscan required re-form above)
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             const highp uvec4 ltmask = genLt2Mask(i);
@@ -106,51 +132,6 @@ void main() {
                 prtsumW[i] = count[i];
             };
         }};
-#else
-        const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w]; // TODO: hardware bitcount for AMD
-        [[flatten]] if (w < VEC_SIZE) { fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask)); };
-        [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
-
-        // 
-        [[flatten]] if (w < VEC_SIZE) { prtscnW = addrw_v(subgroupBallotExclusiveBitCount(prtMskW[uint(keyW)])), prtsumW = addrw_v(subgroupBallotBitCount(prtMskW[uint(keyW)])); };
-
-        // critical block 
-        subgroupBarrier();
-        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-            uint count = localCounts[uint(keyW)];
-            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            prtsumW = count;
-        }};
-#endif
-#else
-        // 
-        subgroupBarrier();
-        [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
-    #ifdef SIMPLER_SORT
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=Wave_Count_RT) {
-                [[flatten]] if (keyW == (r + Wave_Idx)) {
-                    const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-
-                    [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
-                    //prtscnW += prtsumW;
-                }};
-    #else
-            bool found = !subgroupInverseBallot(validAddressL[w]) || keyW<Wr || keyW>=(Wr+Wc);
-            for (lowp uint t=0;t<BSIZE;t+=1u) {
-                [[flatten]] if (!found && (found = subgroupMin(keyW)==keyW)) {
-                    const bqualf uvec4 prtmask = sgr_blt(true)&validAddressL[w];
-                    prtsumW = utype_t(subgroupBallotBitCount(prtmask));
-
-                    [[flatten]] if (subgroupElect()) { prtsumW = atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-                    prtsumW = readFLane(prtsumW), prtscnW = utype_t(subgroupBallotExclusiveBitCount(prtmask));
-                    //prtscnW += prtsumW;
-                };
-                [[flatten]] if ( subgroupAll(found) ) { break; };
-            };
-    #endif
-        };
 #endif
 
         // 
