@@ -484,18 +484,18 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
     // encode new morton code by four 32-bit elements
     u32x4_t encodeMorton32x4(in u32x4_t a) {
         return u32x4_t(
-            encodeMorton8x4(u8x4pack(u8x4_t(a>> 0u)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t(a>> 8u)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t(a>>16u)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t(a>>24u)&u8x1_t(0xFFu)))
+            encodeMorton8x4(u8x4pack(u8x4_t((a>> 0u)&0xFFu)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t((a>> 8u)&0xFFu)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t((a>>16u)&0xFFu)&u8x1_t(0xFFu))),
+            encodeMorton8x4(u8x4pack(u8x4_t((a>>24u)&0xFFu)&u8x1_t(0xFFu)))
         );
     };
 
     // encode new morton code by two 32-bit elements
     u32x4_t encodeMorton32x2(in u32x4_t a) {
         return u32x4_t(
-            encodeMorton16x2(u16x2pack(u16x2_t(a.xy>> 0u)&u16x1_t(0xFFFFu))),
-            encodeMorton16x2(u16x2pack(u16x2_t(a.xy>>16u)&u16x1_t(0xFFFFu))),
+            encodeMorton16x2(u16x2pack(u16x2_t((a.xy>> 0u)&0xFFFFu)&u16x1_t(0xFFFFu))),
+            encodeMorton16x2(u16x2pack(u16x2_t((a.xy>>16u)&0xFFFFu)&u16x1_t(0xFFFFu))),
             0u.xx
         );
     };

@@ -75,7 +75,7 @@
 #define utype_t u8x1_t
 
 // internal vector typing (experimental, Ampere support planned)
-#ifdef false//ENABLE_TURING_INSTRUCTION_SET
+#if false//defined(ENABLE_TURING_INSTRUCTION_SET)
 #define ivectr 2
 #define bshift 1
 #define utype_v u8x2_t
@@ -85,6 +85,7 @@
 #define keytp_v keytp_t[2]
 #define addrw_seq uvec2(0,1)
 #define INTERLEAVED_PARTITION
+#define vqualf highp
 lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 
 #ifdef READ_U8
@@ -105,6 +106,7 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #define keytp_v keytp_t
 #define addrw_seq 0u
 #define sumV uint
+#define vqualf bqualf
 
 #ifdef READ_U8
 #define keytp_t u8vec4

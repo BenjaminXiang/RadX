@@ -6,7 +6,7 @@
 #include "../include/mathlib.glsl"
 #include "../include/ballotlib.glsl"
 
-#define HISTOGRAM_STAGE
+#define COUNTING_STAGE
 #include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
@@ -67,11 +67,20 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
+#ifdef INTERLEAVED_PARTITION
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+            //const bqualf uvec4 prtmask = sgr_prt(keyW[i])&validAddressL[w];
+            const highp uvec4 prtmask = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w];
+            const lowp uint prtsumW = utype_t(bitcnt(prtmask)), fsLaneW = utype_t(lsb(prtmask));
+            [[flatten]] if ((fsLaneW>>bshift) == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+        };};
+#else
         [[flatten]] if (w < VEC_SIZE) {
             const bqualf uvec4 prtmask = sgr_prt(keyW)&validAddressL[w];
             const lowp uint prtsumW = utype_t(subgroupBallotBitCount(prtmask)), fsLaneW = utype_t(subgroupBallotFindLSB(prtmask));
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
+#endif
 #else
         subgroupBarrier();
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {

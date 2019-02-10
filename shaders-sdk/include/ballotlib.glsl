@@ -130,7 +130,11 @@ uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton32x4(u32x4_t(
 
 // 64-bit/64-lane bitfield mask only supported 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-highp uvec4 genLt2Mask() { return encodeMorton32x2(gl_SubgroupLtMask.xxxx)|uvec4(0u,0u,0u.xx); };
+highp uvec4 genLt2Mask(in uint N) {
+    const lowp uint cthread = ((Lane_Idx << 1u) + N);
+    const uint64_t tmask = (1ul << uint64_t(cthread))-1ul;
+    return uvec4(unpack32(tmask),0u.xx);
+};
 #endif
 
 bqualf uvec4 genLtMask(){ return gl_SubgroupLtMask; };

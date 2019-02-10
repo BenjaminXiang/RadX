@@ -252,7 +252,7 @@ namespace radx {
                 countMem, keysStorePtr
                 );
             //cudaDeviceSynchronize();
-            Partition<<< 1u, 256u>>>(countMem, partitionMem);
+            Partition<<< 1u, 256u >>>(countMem, partitionMem);
             //cudaDeviceSynchronize();
             Scattering<<< WG_COUNT, VECSIZE*WAVE_SIZE>>>(
                 p, bclk.count, bclk.size, bclk.limit,
