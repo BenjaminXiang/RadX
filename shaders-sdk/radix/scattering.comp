@@ -84,11 +84,11 @@ void main() {
         uvec4 prtmaskM[ivectr];
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             prtmask = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w];
-            [[flatten]] if (w < VEC_SIZE) { fsLaneW[i] = addrw_t(lsb(prtmask)), prtsumW[i] = addrw_t(bitcnt(prtmask)); };
-            [[flatten]] if ((fsLaneW[i]>>bshift) == Lane_Idx) { prtMskW[uint(keyW[i])] = uvec4(0u); };
+            [[flatten]] if (w < VEC_SIZE) { fsLaneW[i] = addrw_t(lsb(prtmask)), prtsumW[i] = addrw_t(bitcnt(prtmask))>>bshift; };
+            [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtMskW[uint(keyW[i])] = uvec4(0u); };
         };
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            [[flatten]] if ((fsLaneW[i]>>bshift) == Lane_Idx) { prtMskW[uint(keyW[i])] |= prtmask; };
+            [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtMskW[uint(keyW[i])] |= prtmask; };
         };
     #endif
 #else
@@ -113,15 +113,14 @@ void main() {
 #else   // subgroup interleaving support (NVIDIA)
         // calculate bitcount and bitscan (for bitscan required re-form above)
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            const highp uvec4 ltmask = genLt2Mask(i);
-            [[flatten]] if (w < VEC_SIZE) { prtscnW[i] = addrw_t(bitcnt(prtMskW[uint(keyW[i])]&ltmask)); };
+            [[flatten]] if (w < VEC_SIZE) { prtscnW[i] = addrw_t(bitcnt(prtMskW[uint(keyW[i])]&genLt2Mask(i))); };
         };
 
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) count[i] = localCounts[uint(keyW[i])];
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                [[flatten]] if ((fsLaneW[i]>>bshift) == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                [[flatten]] if (fsLaneW[i] == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
                 prtsumW[i] = count[i];
             };
         }};
