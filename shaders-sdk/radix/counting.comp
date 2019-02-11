@@ -64,7 +64,12 @@ void main() {
         btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
         [[flatten]] if (w < VEC_SIZE) { prtsumW = addrw_v(0u); };
         IFALL(all(not(predicate))) break;
-        [[flatten]] if (w < VEC_SIZE) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate); };
+
+#ifndef INTERLEAVED_PARTITION
+        [[flatten]] if (w < VEC_SIZE && predicate) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(true); };
+#else
+        [[flatten]] if (w < VEC_SIZE) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(keyW); };
+#endif
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
     #ifndef INTERLEAVED_PARTITION
