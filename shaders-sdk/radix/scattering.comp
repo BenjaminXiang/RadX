@@ -86,7 +86,7 @@ void main() {
         };
     #else // subgroup interleaving support (NVIDIA)
         #define prtmask prtmaskM[i]
-        uvec4 prtmaskM[4];
+        uvec4 prtmaskM[ivectr];
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             prtmask = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w];
             [[flatten]] if (w < VEC_SIZE) { fsLaneW[i] = addrw_t(lsb(prtmask)), prtsumW[i] = addrw_t(bitcnt(prtmask)); };
