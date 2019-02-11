@@ -69,14 +69,9 @@ void main() {
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = lessThan(addrW, addrw_v(blocks.limit));
+        [[flatten]] if (w < VEC_SIZE) { prtsumW = addrw_v(0u), prtscnW = addrw_v(0u); };
         IFALL(all(not(predicate))) break;
-
-        [[flatten]] if (w < VEC_SIZE) {
-            //keyM = keys[push_block.Shift&1].data[addrW],
-            keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate);
-            prtsumW = addrw_v(0u), prtscnW = addrw_v(0u);
-            //prtscnW = offsets[0].data[addrW];
-        };
+        [[flatten]] if (w < VEC_SIZE) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate); };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
     #ifndef INTERLEAVED_PARTITION
