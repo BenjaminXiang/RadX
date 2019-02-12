@@ -117,31 +117,30 @@ void main() {
         };};
 #endif
 
-#ifndef INTERLEAVED_PARTITION
         subgroupBarrier();
+#ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             uint count = localCounts[uint(keyW)];
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count;
         }};
 #else   // subgroup interleaving support (NVIDIA)
-        {const uint i = Wave_Idx; addrw_t count = 0u;
+        /*{const uint i = Wave_Idx; addrw_t count = 0u;
         [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
-            subgroupBarrier();
-            [[flatten]] if (i < ivectr) { count = localCounts[uint(keyW)]; };
-            subgroupBarrier();
+            [[flatten]] if (i < ivectr) { count = localCounts[uint(keyW)]; }; subgroupBarrier();
             [[flatten]] if (i < ivectr) {
                 [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
                 prtsumW = count;
             };
-        };};
+            subgroupBarrier();
+        };};*/
 
-        //[[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-        //addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { count[i] = localCounts[uint(keyW)]; };
-        //[[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-        //    [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-        //    prtsumW = count[i];
-        //};
+        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
+        addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { count[i] = localCounts[uint(keyW)]; };
+        [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            prtsumW = count[i];
+        };};};
 #endif
 
         subgroupBarrier();
