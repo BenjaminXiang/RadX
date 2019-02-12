@@ -53,6 +53,8 @@
 #define VEC_SIZE 4u
 #define VEC_MULT VEC_SIZE
 #define VEC_SHIF 2u
+#define VEC_MASK 3u
+#define wcmsk w&VEC_MASK
 
 // 
 //#ifdef ENABLE_SUBGROUP_PARTITION_SORT

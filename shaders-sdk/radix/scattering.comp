@@ -29,13 +29,13 @@ shared blocks_info blocks;
 //#define prtscnW prtscnL[w][Lane_Idx]
 
 #ifndef INTERLEAVED_PARTITION
-#define prtsumW prtsumL[w][Lane_Idx]
-#define fsLaneW fsLaneL[w][Lane_Idx]
-#define keyW keyL[w][Lane_Idx]
+#define prtsumW prtsumL[wcmsk][Lane_Idx]
+#define fsLaneW fsLaneL[wcmsk][Lane_Idx]
+#define keyW keyL[wcmsk][Lane_Idx]
 #else
-#define prtsumW prtsumL[w][Lane_Idx][i]
-#define fsLaneW fsLaneL[w][Lane_Idx][i]
-#define keyW keyL[w][Lane_Idx][i]
+#define prtsumW prtsumL[wcmsk][Lane_Idx][i]
+#define fsLaneW fsLaneL[wcmsk][Lane_Idx][i]
+#define keyW keyL[wcmsk][Lane_Idx][i]
 #endif
 
 
@@ -60,7 +60,7 @@ layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer Prefix
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + w);
     //const lowp uint w = Wave_Idx, Wr = Wc * w;
-    const lowp uint w = Wave_Idx, Wr = Wc * w, Wx = tiled(Wave_Size_RT, Wave_Count_RT);
+    const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF;
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
@@ -81,12 +81,17 @@ void main() {
 
 #ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w < VEC_SIZE && predicate) { keyW = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(true); };
+    #ifdef ENABLE_SUBGROUP_PARTITION_SORT
         bqualf uvec4 prtmask = uvec4(0u);
+    #else
+        #define prtmask prtMskW[uint(keyW)]
+    #endif
 #else
         [[flatten]] if (w < VEC_SIZE) { keyL[w][Lane_Idx] = extractKey(keyM, push_block.Shift), validAddressL[w] = sgr_blt(predicate); };
         highp uvec4 prtmskM[ivectr];
-#define prtmask prtmskM[i]
+        #define prtmask prtmskM[i]
 #endif
+
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
     #ifndef INTERLEAVED_PARTITION
@@ -105,10 +110,11 @@ void main() {
         };
     #endif
 #else
-        [[flatten]] if (w < VEC_SIZE) {[[unroll]] for (lowp uint r=0;r<RADICES;r+=1u) { [[flatten]] if (keyW == r && predicate) {
-            prtmask = sgr_blt(true), prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = readFLane(Lane_Idx);
-            [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
-        };};};
+        [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT) && subgroupInverseBallot(validAddressL[wcmsk])) {
+            const bqualf uvec4 prtmskM = sgr_blt(true);
+            prtsumW = subgroupBallotBitCount(prtmskM), fsLaneW = readFLane(Lane_Idx);
+            [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = prtmskM; };
+        };};
 #endif
 
         // critical block 
