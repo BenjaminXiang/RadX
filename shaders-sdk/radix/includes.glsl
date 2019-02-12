@@ -75,7 +75,7 @@
 #define utype_t u8x1_t
 
 // internal vector typing (experimental, Ampere support planned)
-#if false//defined(ENABLE_TURING_INSTRUCTION_SET)
+#if defined(ENABLE_TURING_INSTRUCTION_SET)
 #define ivectr 2
 #define bshift 1
 #define utype_v u8x2_t

@@ -276,7 +276,8 @@ u32vec2 packUnorm4x16(in  vec4 floats) { return u32vec2(packUnorm2x16(floats.xy)
 int lsb(in uint vlc) { return findLSB(vlc); }
 int msb(in uint vlc) { return findMSB(vlc); }
 uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
-uint bitcnt(in uvec2 lh) { ivec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
+uint bitcnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
+//uint bitcnt(in uvec2 lh) { return bitCount(P2U(lh)); }
 uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(U2P(lh)); return uint(bic.x+bic.y); }
 
 // bit measure utils
@@ -284,8 +285,8 @@ int lsb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
     return findLSB(P2U(pair));
 #else
-    const ivec2 hl = findLSB(pair); 
-    return mix(32 + hl.y, hl.x, hl.x >= 0);
+    const ivec2 hl = findLSB(pair);
+    return hl.x >= 0 ? hl.x : 32 + hl.y;
 #endif
 };
 
@@ -293,8 +294,8 @@ int msb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
     return findMSB(P2U(pair));
 #else
-    const ivec2 hl = findMSB(pair); 
-    return mix(hl.x, 32 + hl.y, hl.y >= 0);
+    const ivec2 hl = findMSB(pair);
+    return hl.y >= 0 ? 32 + hl.y : hl.x;
 #endif
 };
 
