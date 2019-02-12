@@ -62,9 +62,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { 
-        addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset;
-    };
+    [[flatten]] if (w < VEC_SIZE) { addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset; };
     subgroupBarrier();
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
@@ -81,39 +79,42 @@ void main() {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now
     #ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w < VEC_SIZE) {
-            const bqualf uvec4 prtmask = sgr_prt(keyW) & validAddressL[w]; prtsumW = addrw_t(subgroupBallotBitCount(prtmask));
-            [[flatten]] if ((fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask))) == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
+            const bqualf uvec4 prtmask = sgr_prt(keyW) & validAddressL[w]; 
+            prtsumW = addrw_t(subgroupBallotBitCount(prtmask)), fsLaneW = addrw_v(subgroupBallotFindLSB(prtmask));
+            [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
         };
     #else // subgroup interleaving support (NVIDIA)
         highp uvec4 prtmskM[ivectr];
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            prtmskM[i] = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w], prtsumW[i] = addrw_t(bitcnt(prtmskM[i]));
-            [[flatten]] if ((fsLaneW[i] = addrw_t(lsb(prtmskM[i]))>>bshift) == Lane_Idx) { prtMskW[uint(keyW[i])] = uvec4(0u); };
-        };};
-        [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtMskW[uint(keyW[i])] |= prtmskM[i]; };
+        [[flatten]] if (w < VEC_SIZE) {
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+                prtmskM[i] = (encodeMorton32x2(sgr_prt(keyW[i]))<<i) & validAddressL[w];
+                prtsumW[i] = addrw_t(bitcnt(prtmskM[i])), fsLaneW[i] = addrw_t(lsb(prtmskM[i]))>>bshift;
+                [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtMskW[uint(keyW[i])] = uvec4(0u); };
+            };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+                [[flatten]] if (fsLaneW[i] == Lane_Idx) { prtMskW[uint(keyW[i])] |= prtmskM[i]; };
+            };
         };
     #endif
 #else
-        // 
         [[flatten]] if (w < VEC_SIZE) {[[unroll]] for (lowp uint r=0;r<RADICES;r+=1u) { [[flatten]] if (keyW == r && predicate) {
-            const bqualf uvec4 prtmask = sgr_blt(true); prtsumW = addrw_v(subgroupBallotBitCount(prtmask));
-            [[flatten]] if ((fsLaneW = readFLane(Lane_Idx)) == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
+            const bqualf uvec4 prtmask = sgr_blt(true); 
+            prtsumW = addrw_v(subgroupBallotBitCount(prtmask)), fsLaneW = readFLane(Lane_Idx);
+            [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = prtmask; };
         };};};
 #endif
 
-#ifndef INTERLEAVED_PARTITION
         // critical block 
         subgroupBarrier();
+#ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             uint count = localCounts[uint(keyW)];
             [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count;
         }};
 #else   // subgroup interleaving support (NVIDIA)
-        subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-            addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) count[i] = localCounts[uint(keyW[i])];
+            addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { count[i] = localCounts[uint(keyW[i])]; };
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
                 [[flatten]] if (fsLaneW[i] == Lane_Idx) { atomicAdd(localCounts[uint(keyW[i])], prtsumW[i], gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
                 prtsumW[i] = count[i];
@@ -121,7 +122,6 @@ void main() {
         }};
 #endif
 
-        // 
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
 #ifdef INTERLEAVED_PARTITION
@@ -130,12 +130,12 @@ void main() {
                 keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW[i] + localPartitions[uint(keyW[i])]] = keyM[i]; 
             };};
 #else
-            [[flatten]] if (subgroupInverseBallot(validAddressL[w])) {
+            [[flatten]] if (predicate) {
                 const uint prtscnW = addrw_v(subgroupBallotExclusiveBitCount(prtMskW[uint(keyW)]));
                 keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; 
             }; // copy from backup to inner store
 #endif
-            subgroupBarrier(); // barrier faster memory operation
+            //subgroupBarrier(); // barrier faster memory operation
             addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         };
     };

@@ -55,9 +55,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // calculate blocks
-    [[flatten]] if (w < VEC_SIZE) { 
-        addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset;
-    };
+    [[flatten]] if (w < VEC_SIZE) { addrW = ((Local_Idx)<<bshift) + addrw_seq + blocks.offset; };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
