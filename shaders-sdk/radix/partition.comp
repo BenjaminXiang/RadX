@@ -16,6 +16,7 @@ const uint WG_COUNT = 144u;
 
 // shared memory of...
 shared uint localPartitions[RADICES];
+shared uint localPartSum[16u];
 
 // local size 
 const uint local_size_def = Wave_Size * 16u;
@@ -42,7 +43,7 @@ void main() {
                 scan = subgroupExclusiveAdd(histv), 
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
-            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(localPartitions[radice], sum); }; pref = readFLane(pref);
+            uint pref = localPartitions[radice]; [[flatten]] if (electedInvoc()) { localPartitions[radice] += sum; }; //pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { partitions[workgroup][radice] = (pref + scan); };
         };
     };
@@ -52,6 +53,8 @@ void main() {
         const lowp uint workgroup = gp + Wave_Idx;
 
         // calculate partition offsets of every radice
+//#define partsum localPartSum[Wave_Idx]
+        //if (electedInvoc()) { partsum = 0u; };
         uint partsum = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
             const lowp uint radice = rk + Lane_Idx;
@@ -61,7 +64,7 @@ void main() {
                 scan = subgroupExclusiveAdd(histv),
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 
-            uint pref = 0u; [[flatten]] if (electedInvoc()) { pref = add(partsum, sum); }; pref = readFLane(pref);
+            uint pref = readFLane(partsum); [[flatten]] if (electedInvoc()) { partsum += sum; }; //pref = readFLane(pref);
             [[flatten]] if (subgroupInverseBallot(mask)) { partitions[workgroup][radice] += (pref + scan); };
         };
     };
