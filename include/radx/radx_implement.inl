@@ -274,11 +274,11 @@ namespace radx {
 
         // create pipeline layout 
         this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::counting, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::partition, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::scattering, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::indiction, *device->getPhysicalHelper()), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, radx::paths::getCorrectPath(radx::paths::permutation, *device->getPhysicalHelper()), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::counting   ), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::partition  ), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::scattering ), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::indiction  ), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::permutation), pipelineLayout, *device));
 
         // return shared_ptr when needed
         return VK_SUCCESS;
@@ -299,7 +299,7 @@ namespace radx {
         //commandBarrier(cmdBuf);
 
         // radix sort phases
-        const uint32_t stageCount = radx::Vendor(*device->getPhysicalHelper()) == radx::Vendor::NV_TURING ? 4u : 16u;
+        const uint32_t stageCount = device->getDriverName() == "turing" ? 4u : 16u;
         for (auto I = 0u; I < stageCount; I++) { // TODO: add support variable stage length
 
             std::array<uint32_t, 4> stageC = { I,0,0,0 };

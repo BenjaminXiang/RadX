@@ -82,6 +82,7 @@ namespace radx {
             groupX = 1,//64,
             groupY = 1;
         std::vector<vk::Pipeline> pipelines = {};
+        
         vk::PipelineLayout pipelineLayout;
 
         // internal methods (for devs)

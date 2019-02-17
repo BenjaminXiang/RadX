@@ -1,5 +1,6 @@
 #pragma once 
 #include "radx_core.hpp"
+#include "radx_shaders.hpp"
 
 // TODO: 
 // - getting features and properties
@@ -7,32 +8,6 @@
 // - detecting what is GPU
 
 namespace radx {
-
-    enum Vendor {
-        UNIVERSAL = 0,
-        AMD,
-        NVIDIA,
-        INTEL,
-
-        RX_VEGA,
-        NV_TURING,
-    };
-
-    inline auto getVendorName( const uint32_t& vendorID ) {
-        auto shaderDir = radx::Vendor::UNIVERSAL;
-        switch (vendorID) {
-        case 4318:
-            shaderDir = radx::Vendor::NVIDIA;
-            break;
-        case 4098:
-            shaderDir = radx::Vendor::AMD;
-            break;
-        case 32902:
-            shaderDir = radx::Vendor::INTEL;
-            break;
-        };
-        return shaderDir;
-    };
 
     class PhysicalDeviceHelper : public std::enable_shared_from_this<PhysicalDeviceHelper> {
     protected:
@@ -43,7 +18,7 @@ namespace radx {
         VmaAllocator allocator = {};
 
         // required (if there is no, will generated)
-        radx::Vendor vendor = radx::Vendor::NV_TURING;
+        std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
         
         virtual VkResult getFeaturesWithProperties(){
             this->features = physicalDevice.getFeatures2();
@@ -52,11 +27,7 @@ namespace radx {
         };
 
         virtual VkResult getVendorName(){
-            this->vendor = radx::getVendorName(this->properties.properties.vendorID);
-            if (this->features.features.shaderInt16) {
-                if (this->vendor == radx::Vendor::AMD) this->vendor = radx::Vendor::RX_VEGA;
-                if (this->vendor == radx::Vendor::NVIDIA) this->vendor = radx::Vendor::NV_TURING;
-            };
+            driverWrap = paths::getNamedDriver(this->properties.properties.vendorID, this->features.features.shaderInt16);
             return VK_SUCCESS;
         };
 
@@ -74,16 +45,10 @@ namespace radx {
             this->allocator = allocator;
         };
 
-        // don't need to do anything 
-        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice, const VmaAllocator& allocator, const radx::Vendor& vendor) : physicalDevice(physicalDevice), vendor(vendor), allocator(allocator) {
-            this->physicalDevice = physicalDevice, this->getFeaturesWithProperties();
-            this->allocator = allocator;
-            this->vendor = vendor;
-        };
-
         // getter of vendor name 
-        operator radx::Vendor&() { return vendor; };
-        operator const radx::Vendor&() const { return vendor; };
+        operator const std::shared_ptr<paths::DriverWrapBase>&() const { return driverWrap; };
+        std::string getPath(const std::string fpath) const { return driverWrap->getPath(fpath); };
+        std::string getDriverName() const { return driverWrap->getDriverName(); };
 
         // vk::PhysicalDevice caster
         operator vk::PhysicalDevice&() { return physicalDevice; };
@@ -131,6 +96,15 @@ namespace radx {
         // get physical device helper
         std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper(){ return *this; };
         const std::shared_ptr<radx::PhysicalDeviceHelper>& getPhysicalHelper() const { return *this; };
+
+        // 
+        operator const std::shared_ptr<paths::DriverWrapBase>& () const { return *physicalHelper; };
+        std::string getPath(const std::string fpath) const { return physicalHelper->getPath(fpath); };
+        std::string getDriverName() const { return physicalHelper->getDriverName(); }
+
+        // vk::PhysicalDevice caster
+        operator vk::PhysicalDevice& () { return *physicalHelper; };
+        operator const vk::PhysicalDevice& () const { return *physicalHelper; };
 
         // vk::DescriptorPool caster
         operator vk::DescriptorPool&() { return descriptorPool; };
