@@ -14,10 +14,7 @@ shared uint localCounts[RADICES];
 
 // 
 shared m8pq utype_v keyL[VEC_SIZE][Wave_Size];
-
-
-shared addrw_v addrL[VEC_SIZE*Wave_Size], prtscnL[VEC_SIZE][Wave_Size];
-shared lowp addrw_v prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size];
+shared addrw_v prtsumL[VEC_SIZE][Wave_Size], fsLaneL[VEC_SIZE][Wave_Size], addrL[VEC_SIZE*Wave_Size];
 shared bqualf uvec4[VEC_SIZE] validAddressL;
 
 shared blocks_info blocks;

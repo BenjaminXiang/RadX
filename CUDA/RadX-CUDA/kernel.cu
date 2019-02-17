@@ -66,16 +66,18 @@ namespace radx {
 #define leadrW flaneL[w][laneID]
 #define countW sumL[w][laneID]
 #define prfixW prefixL[w][laneID]
+//#define keyM keysStorage[addressW]
 
     // 
     __global__ void Counting(
         const uint32_t P, const uint32_t bcount, const uint32_t bsize, const uint32_t limit, 
         uint32_t * countsBuf, const uint32_t * keysStorage
     ) {
-        const uint32_t& laneID = cub::LaneId(), waveID = cub::WarpId();
+        const uint32_t laneID = cub::LaneId(), waveID = cub::WarpId();
         __shared__ uint32_t localCounts[RADICES];
         __shared__ uint32_t addressL[VECSIZE*WAVE_SIZE];
         __shared__ uint8_t keysL[WAVE_SIZE][VECSIZE];
+        __shared__ uint32_t sumL[WAVE_SIZE][VECSIZE], flaneL[WAVE_SIZE][VECSIZE];
         __shared__ uint32_t validAddressL[VECSIZE];
 
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) { const uint32_t radice = r + threadIdx.x; localCounts[radice] = 0u; };
@@ -86,22 +88,20 @@ namespace radx {
 
         for (uint32_t t=0;t<bcount;t++) {
             const bool predicate = addressW < limit;
-            const auto& keyM = keysStorage[addressW];
+            const auto keyM = keysStorage[addressW];
             keyW = predicate ? cub::BFE(keyM, BIT_CNT*P, BIT_CNT) : 0xFFu;
 
             // predicate mask in local group
-            uint32_t& pmask = validAddressL[w];
             if (predicate) {
                 const uint32_t pmask_ = __activemask();
-                if (laneID == 0u) pmask = pmask_;
+                if (laneID == 0u) validAddressL[w] = pmask_;
             };
 
             // counting in SM with atomics
-            int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
-            const uint32_t countM = __popc(prtmask), leadrM = __ffs(prtmask) - 1u;
-
-            // counting in SM with atomics
-            if (laneID == leadrM) { atomicAdd(&localCounts[keyW], countM); };
+            int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&validAddressL[w];
+            countW = __popc(prtmask), leadrW = __ffs(prtmask) - 1u;
+            //if (waveID == 0u) for (uint32_t w = 0; w < VECSIZE; w++) { if (laneID == leadrW) localCounts[keyW] += countW; };
+            if (laneID == leadrW) { atomicAdd(&localCounts[keyW], countW); };
 
             // 
             addressW += blockDim.x;
@@ -109,7 +109,8 @@ namespace radx {
         __syncthreads();
 
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) { const uint32_t radice = r + threadIdx.x;
-            countsBuf[blockIdx.x * RADICES + radice] = localCounts[radice];
+            const auto count = localCounts[radice];
+            countsBuf[blockIdx.x * RADICES + radice] = count;
         };
     };
 
@@ -118,7 +119,7 @@ namespace radx {
         const uint32_t P, const uint32_t bcount, const uint32_t bsize, const uint32_t limit, 
         const uint32_t * partitionsBuf, const uint32_t * keysStorage, uint32_t * keysBackup
     ) {
-        const uint32_t& laneID = cub::LaneId(), waveID = cub::WarpId();
+        const uint32_t laneID = cub::LaneId(), waveID = cub::WarpId();
         __shared__ uint32_t localCounts[RADICES], localPartitions[RADICES];
         __shared__ uint32_t addressL[VECSIZE*WAVE_SIZE];
         __shared__ uint8_t keysL[WAVE_SIZE][VECSIZE];
@@ -136,18 +137,17 @@ namespace radx {
 
         for (uint32_t t=0;t<bcount;t++) {
             const bool predicate = addressW < limit;
-            const auto& keyM = keysStorage[addressW];
+            const auto keyM = keysStorage[addressW];
             keyW = predicate ? cub::BFE(keyM, BIT_CNT*P, BIT_CNT) : 0xFFu;
 
             // predicate mask in local group
-            uint32_t& pmask = validAddressL[w];
             if (predicate) {
                 const uint32_t pmask_ = __activemask();
-                if (laneID == 0u) pmask = pmask_;
+                if (laneID == 0u) validAddressL[w] = pmask_;
             };
 
             // counting in SM with atomics
-            int pred = false; uint32_t prtmask = __match_all_sync(__activemask(), keyW, &pred)&pmask;
+            int pred = false; uint32_t prtmask = __match_any_sync(__activemask(), keyW)&validAddressL[w];
             countW = __popc(prtmask), leadrW = __ffs(prtmask) - 1u;
             
             // critically calculate WARP offset
@@ -172,19 +172,22 @@ namespace radx {
 
     // TODO: development with CUB
     __global__ void Partition(const uint32_t * countsBuf, uint32_t * partitionsBuf) {
-        const uint32_t& laneID = cub::LaneId(), waveID = cub::WarpId();
+        const uint32_t laneID = cub::LaneId(), waveID = cub::WarpId();
         const uint32_t waveCount = 8u;
 
         typedef cub::WarpScan<uint32_t> WarpScan;
         typedef cub::WarpReduce<uint32_t> WarpReduce;
-        __shared__ typename WarpScan::TempStorage scanStorage[waveCount];
-        __shared__ typename WarpReduce::TempStorage reduceStorage[waveCount];
+        
         __shared__ uint32_t localCounts[RADICES];
         __shared__ uint32_t localPartSm[waveCount];
 
-        auto& scanStor = scanStorage[waveID];
-        auto& redcStor = reduceStorage[waveID];
-        auto& partsum = localPartSm[waveID];
+        // 
+        __shared__ typename WarpScan::TempStorage scanStorage[waveCount];
+        __shared__ typename WarpReduce::TempStorage reduceStorage[waveCount];
+
+        //auto& scanStor = scanStorage[waveID];
+        //auto& redcStor = reduceStorage[waveID];
+        //auto& partsum = localPartSm[waveID];
 
         for (uint32_t r=0;r<RADICES;r+=blockDim.x) {
             const uint32_t radice = r + threadIdx.x;
@@ -204,8 +207,8 @@ namespace radx {
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? countsBuf[workgroup*RADICES + radice] : 0u;
-                uint32_t scan = 0u; WarpScan(scanStor).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(redcStor).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t scan = 0u; WarpScan(scanStorage[waveID]).ExclusiveSum(cnt, scan);
+                uint32_t sum = 0u; WarpReduce(reduceStorage[waveID]).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
                 uint32_t pref = localCounts[radice]; if (laneID == 0u) { localCounts[radice] += sum; };
@@ -216,7 +219,7 @@ namespace radx {
         __syncthreads();
 
         for (uint32_t gp = 0u; gp < WG_COUNT; gp += waveCount) {
-            uint32_t workgroup = gp + waveID; if (laneID == 0u) { partsum = 0u; };
+            uint32_t workgroup = gp + waveID; if (laneID == 0u) { localPartSm[waveID] = 0u; };
             for (uint32_t rk=0u;rk<RADICES;rk+=WAVE_SIZE) { uint32_t radice = rk+laneID;
 
                 // validate masks
@@ -227,11 +230,11 @@ namespace radx {
 
                 // prefix scan and sum
                 const uint32_t cnt = predicate ? localCounts[radice] : 0u;
-                uint32_t scan = 0u; WarpScan(scanStor).ExclusiveSum(cnt, scan);
-                uint32_t sum = 0u; WarpReduce(redcStor).Sum(cnt, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
+                uint32_t scan = cnt; WarpScan(scanStorage[waveID]).ExclusiveSum(scan, scan);
+                uint32_t sum = cnt; WarpReduce(reduceStorage[waveID]).Sum(sum, sum); //sum = __shfl_sync(activem, cnt + scan, mostb);
 
                 // complete phase
-                uint32_t pref = partsum; if (laneID == 0u) { partsum += sum; };
+                uint32_t pref = localPartSm[waveID]; if (laneID == 0u) { localPartSm[waveID] += sum; };
                 if (predicate) { partitionsBuf[workgroup*RADICES+radice] += pref + scan; };
             };
         };
@@ -265,10 +268,9 @@ namespace radx {
                 p, bclk.count, bclk.size, bclk.limit,
                 partitionMem, keysStorePtr, keysBackupPtr
                 );
-            //cudaDeviceSynchronize();
 
             cudaMemcpy(countVector.data(), countMem, countVector.size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-            //cudaDeviceSynchronize();
+            cudaMemcpy(partitionVector.data(), partitionMem, partitionVector.size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
             std::swap(keysStorePtr, keysBackupPtr);
         };

@@ -262,7 +262,7 @@ u32vec4 U4P(in u64vec2 pckg) { return u32vec4(U2P(pckg.x ), U2P(pckg.y )); };
 u64vec2 P4U(in u32vec4 pckg) { return u64vec2(P2U(pckg.xy), P2U(pckg.zw)); };
 
 // float packing
-u32vec2 packHalf4x16(in highp vec4 floats) { return u32vec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)); };
+   u32vec2 packHalf4x16(in highp vec4 floats) { return u32vec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)); };
 highp vec4 unpackHalf4x16(in u32vec2 hilo) { return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y)); };
 
 u32vec2 packSnorm4x16(in  vec4 floats) { return u32vec2(packSnorm2x16(floats.xy), packSnorm2x16(floats.zw)); };
@@ -273,15 +273,15 @@ u32vec2 packUnorm4x16(in  vec4 floats) { return u32vec2(packUnorm2x16(floats.xy)
 
 
 // bit utils
-int lsb(in uint vlc) { return findLSB(vlc); }
-int msb(in uint vlc) { return findMSB(vlc); }
-uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
-uint bitcnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
+lowp int lsb(in uint vlc) { return findLSB(vlc); }
+lowp int msb(in uint vlc) { return findMSB(vlc); }
+lowp uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
+lowp uint bitcnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
 //uint bitcnt(in uvec2 lh) { return bitCount(P2U(lh)); }
-uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(U2P(lh)); return uint(bic.x+bic.y); }
+lowp uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(U2P(lh)); return uint(bic.x+bic.y); }
 
 // bit measure utils
-int lsb(in uvec2 pair) {
+lowp int lsb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
     return findLSB(P2U(pair));
 #else
@@ -290,7 +290,7 @@ int lsb(in uvec2 pair) {
 #endif
 };
 
-int msb(in uvec2 pair) {
+lowp int msb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
     return findMSB(P2U(pair));
 #else
@@ -300,8 +300,8 @@ int msb(in uvec2 pair) {
 };
 
 
-lowp uint lsb(in uvec4 quadr){ return lsb(quadr.xy); };
-lowp uint msb(in uvec4 quadr){ return msb(quadr.xy); };
+lowp int lsb(in uvec4 quadr){ return lsb(quadr.xy); };
+lowp int msb(in uvec4 quadr){ return msb(quadr.xy); };
 lowp uint bitcnt(in uvec4 quadr){ return bitcnt(quadr.xy); };
 
 

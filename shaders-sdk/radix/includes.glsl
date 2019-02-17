@@ -101,10 +101,10 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #else
 #define ivectr 1
 #define bshift 0
-#define utype_v u8x1_t
+#define utype_v utype_t
 #define btype_v bool
-#define addrw_v uint
 #define addrw_t uint
+#define addrw_v addrw_t
 #define keytp_v keytp_t
 #define addrw_seq 0u
 #define sumV uint

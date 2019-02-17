@@ -114,13 +114,13 @@ uvec4 sgr_blt(in bvec4 k) { return encodeMorton32x4(u32x4_t(
 #endif
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-bqualf uvec4 sgr_prt(in m8pq u8x1_t k) { return subgroupPartitionNV(k); };
-highp uvec4 sgr_prt(in m8pq u8x2_t k) { return encodeMorton32x2(u32x4_t(
+bqualf uvec4 sgr_prt(in lowp uint k) { return subgroupPartitionNV(k); };
+highp uvec4 sgr_prt(in lowp uvec2 k) { return encodeMorton32x2(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     0u.xx
 ));};
-uvec4 sgr_prt(in m8pq u8x4_t k) { return encodeMorton32x4(u32x4_t(
+uvec4 sgr_prt(in lowp uvec4 k) { return encodeMorton32x4(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     subgroupPartitionNV(k[2]).x,
