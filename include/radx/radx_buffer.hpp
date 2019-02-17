@@ -16,7 +16,7 @@ namespace radx {
         );
 
 		~VmaAllocatedBuffer() {
-			vmaDestroyBuffer(*device, buffer, allocation);
+			vmaDestroyBuffer(*device, *this, allocation);
 		};
 
         // Get mapped memory
@@ -28,6 +28,7 @@ namespace radx {
         // vk::Device caster
         //operator vk::Buffer&() { return buffer; };
         operator const vk::Buffer&() const { return buffer; };
+        operator const VkBuffer&() const { return (VkBuffer&)buffer; };
 
         // Allocation
         //operator VmaAllocation&() { return allocation; };
@@ -55,7 +56,7 @@ namespace radx {
 	class BufferRegion {
 	public:
 		BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
-			bufInfo.buffer = *buffer;
+			bufInfo.buffer = (vk::Buffer)*buffer;
 			bufInfo.offset = offset;
 			bufInfo.range = size * sizeof(T);
 			//this->map();

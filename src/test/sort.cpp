@@ -93,7 +93,7 @@ namespace rad {
 
 		instance = vk::createInstance(cinstanceinfo);
 #ifdef VOLK_H_
-		volkLoadInstance(instance);
+		volkLoadInstance(VkInstance(instance));
 #endif
 
 		// enumerate physical devices

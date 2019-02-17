@@ -76,12 +76,12 @@ namespace radx {
         if (!this->allocator)
         {
             // load API calls for context
-            volkLoadDevice(vk::Device(*this));
+            volkLoadDevice(VkDevice(*this));
 
             // create VMA memory allocator (with Volk support)
 #ifdef VOLK_H_
             VolkDeviceTable vktable;
-            volkLoadDeviceTable(&vktable, vk::Device(*this));
+            volkLoadDeviceTable(&vktable, VkDevice(*this));
 
             // VMA functions with Volk compatibility
             VmaVulkanFunctions vfuncs = {};
@@ -109,8 +109,8 @@ namespace radx {
 #ifdef VOLK_H_
             allocatorInfo.pVulkanFunctions = &vfuncs;
 #endif
-            allocatorInfo.physicalDevice = vk::PhysicalDevice(*this->physicalHelper);
-            allocatorInfo.device = vk::Device(*this);
+            allocatorInfo.physicalDevice = VkPhysicalDevice(*this->physicalHelper);
+            allocatorInfo.device = VkDevice(*this);
             allocatorInfo.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);
             allocatorInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || VMA_ALLOCATION_CREATE_MAPPED_BIT;
             allocatorInfo.pAllocationCallbacks = nullptr;
@@ -187,12 +187,12 @@ namespace radx {
 
 
         // if no has buffer, set it!
-        if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = *bufferMemory;
-        if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = *bufferMemory;
-        if (!this->keysBackupBufferInfo.buffer) this->keysBackupBufferInfo.buffer = *bufferMemory;
-        if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = *bufferMemory;
-        if (!this->histogramBufferInfo.buffer) this->histogramBufferInfo.buffer = *bufferMemory;
-        if (!this->prefixScansBufferInfo.buffer) this->prefixScansBufferInfo.buffer = *bufferMemory;
+        if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->keysBackupBufferInfo.buffer) this->keysBackupBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->histogramBufferInfo.buffer) this->histogramBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->prefixScansBufferInfo.buffer) this->prefixScansBufferInfo.buffer = (vk::Buffer)*bufferMemory;
 
         // write into descriptor set
         const auto writeTmpl = vk::WriteDescriptorSet(this->descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);

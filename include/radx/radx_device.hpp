@@ -88,6 +88,10 @@ namespace radx {
         // vk::PhysicalDevice caster
         operator vk::PhysicalDevice&() { return physicalDevice; };
         operator const vk::PhysicalDevice&() const { return physicalDevice; };
+
+
+        operator VkPhysicalDevice&() { return (VkPhysicalDevice&)physicalDevice; };
+        operator const VkPhysicalDevice&() const { return (VkPhysicalDevice&)physicalDevice; };
     };
 
     class Device : public std::enable_shared_from_this<Device> {
@@ -139,6 +143,10 @@ namespace radx {
         // vk::Device caster
         operator vk::Device&() { return device; };
         operator const vk::Device&() const { return device; };
+
+        // vk::Device caster
+        operator VkDevice&() { return (VkDevice&)device; };
+        operator const VkDevice&() const { return (VkDevice&)device; };
 
         // VmaAllocator caster
         operator VmaAllocator&() { return allocator; };
