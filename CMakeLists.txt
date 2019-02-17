@@ -91,6 +91,7 @@ endif()
 if (ArrayFire_OpenCL_FOUND)
     set (INC_DIR ${INC_DIR} ${ArrayFire_INCLUDE_DIRS})
     set (LIBS ${LIBS} ${ArrayFire_OpenCL_LIBRARIES})
+    set (DEFINES ${DEFINES} -DENABLE_ARRAYFIRE_BENCHMARK) 
 endif()
 
 # 

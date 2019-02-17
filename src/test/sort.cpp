@@ -456,12 +456,6 @@ namespace rad {
 		//std::copy(keysToHostVector.begin(), keysToHostVector.end(), sortedNumbers.data());
 		memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range()); // copy
 		//memcpy(sortedNumbers.data(), keysToHostVector.map(), keysToHostVector.range());
-		
-
-	 // thrust sorting
-#ifdef ENABLE_THRUST_BENCHMARK
-		this->testSortingThrust();
-#endif
 
 		//
 		std::cout << "Sorting Finished" << std::endl;
