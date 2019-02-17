@@ -86,25 +86,25 @@ namespace radx {
             switch (vendorID) {
             case 4318:
                 if (modifier) {
-                    return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<NVIDIA<NVTuring>>>(directory));
+                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<NVIDIA<NVTuring>>>(directory));
                 }
                 else {
-                    return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<NVIDIA<NVLegacy>>>(directory));
+                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<NVIDIA<NVLegacy>>>(directory));
                 }
                 break;
             case 4098:
                 if (modifier) {
-                    return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDVega14>>>(directory));
+                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDVega14>>>(directory));
                 }
                 else {
-                    return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDLegacy>>>(directory));
+                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDLegacy>>>(directory));
                 }
                 break;
             case 32902:
-                return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<Intel>>(directory));
+                return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<Intel>>(directory));
                 break;
             default:
-                return std::static_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<UniversalType>>(directory));
+                return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<UniversalType>>(directory));
             };
         };
     };
