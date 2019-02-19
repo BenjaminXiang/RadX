@@ -5,7 +5,7 @@
 
 namespace radx {
     namespace paths {
-        static inline const std::array<std::string, 6> pathNames{ "universal", "amdg", "nvidia", "intel", "vega", "turing" };
+        static inline const std::array<std::string, 6> pathNames{ "universal", "amdgpu", "nvidia", "intel", "vega10", "turing" };
 
         static inline constexpr const auto permutation = "radix/permutation.comp";
         static inline constexpr const auto partition = "radix/partition.comp";
@@ -28,8 +28,8 @@ namespace radx {
         class NVLegacy : public Generation { public: NVLegacy(const std::string& mod = "nvidia") { this->mod = mod; }; };
         class NVTuring : public Generation { public: NVTuring(const std::string& mod = "turing") { this->mod = mod; }; };
 
-        class AMDLegacy : public Generation { public: AMDLegacy(const std::string& mod = "amdg") { this->mod = mod; }; };
-        class AMDVega14 : public Generation { public: AMDVega14(const std::string& mod = "vega") { this->mod = mod; }; };
+        class AMDLegacy : public Generation { public: AMDLegacy(const std::string& mod = "amdgpu") { this->mod = mod; }; };
+        class AMDVega10 : public Generation { public: AMDVega10(const std::string& mod = "vega10") { this->mod = mod; }; };
 
 
         class UniversalType {
@@ -94,7 +94,7 @@ namespace radx {
                 break;
             case 4098:
                 if (modifier) {
-                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDVega14>>>(directory));
+                    return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDVega10>>>(directory));
                 }
                 else {
                     return std::dynamic_pointer_cast<DriverWrapBase>(std::make_shared<DriverWrap<AMD<AMDLegacy>>>(directory));

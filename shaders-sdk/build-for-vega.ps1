@@ -3,7 +3,7 @@
  $CFLAGSV="--target-env spirv1.3 -V -d -t --aml --nsf -DUSE_MORTON_32 -DUSE_F32_BVH -DAMD_PLATFORM -DENABLE_VEGA_INSTRUCTION_SET"
 #$CFLAGSV="--target-env spirv1.3 -V -d -t --aml --nsf -DUSE_MORTON_32 -DUSE_F16_BVH -DAMD_PLATFORM -DENABLE_VEGA_INSTRUCTION_SET"
 
-$VNDR="vega"
+$VNDR="vega10"
 . "./shaders-list.ps1"
 
 BuildAllShaders ""
