@@ -27,4 +27,4 @@ GPU sorting shaders dedication from vRt project.
 - https://vgc.poly.edu/~csilva/papers/cgf.pdf (partially)
 - https://devblogs.nvidia.com/using-cuda-warp-level-primitives/ (planned real CUDA version)
 - https://github.com/KhronosGroup/GLSL/blob/master/extensions/nv/GL_NV_shader_subgroup_partitioned.txt
-- https://probablydance.com/2016/12/27/i-wrote-a-faster-sorting-algorithm/ (Ska Sort)
+- https://probablydance.com/2016/12/27/i-wrote-a-faster-sorting-algorithm/
