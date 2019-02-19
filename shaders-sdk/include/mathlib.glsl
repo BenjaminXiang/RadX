@@ -493,7 +493,7 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
     };
 
     // encode new morton code by two 32-bit elements
-    u32x4_t encodeMorton32x2(in u32x4_t a) {
+    highp u32x4_t encodeMorton32x2(in highp u32x4_t a) {
         return u32x4_t(
             encodeMorton16x2(u16x2pack(u16x2_t((a.xy>> 0u)&0xFFFFu)&u16x1_t(0xFFFFu))),
             encodeMorton16x2(u16x2pack(u16x2_t((a.xy>>16u)&0xFFFFu)&u16x1_t(0xFFFFu))),
