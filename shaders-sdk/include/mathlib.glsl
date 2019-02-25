@@ -390,13 +390,13 @@ vec4 textureHQ(in sampler2D SMP, in vec2 TXL, in int LOD) {
 #define u16x2_t u16vec2
 #define u16x2pack pack32
 #define u16x2unpack unpack16
-#define m8pq  
+#define m16pq  
 #else
 #define u16x1_t uint
 #define u16x4_t uvec4
 #define u16x2_t uvec2
-#define m8pq lowp
-u32x1_t u16x2pack  (in highp u16x2_t a) { return (a.y<<16u)|a.x; };
+#define m16pq highp
+      u32x1_t u16x2pack  (in highp u16x2_t a) { return (a.y<<16u)|a.x; };
 highp u16x2_t u16x2unpack(in u32x1_t a) { return u16x2_t(a&0xFFFFu,a>>16u); };
 #endif
 
@@ -408,10 +408,19 @@ highp u16x2_t u16x2unpack(in u32x1_t a) { return u16x2_t(a&0xFFFFu,a>>16u); };
 #define u8x4pack pack32
 #define u8x2pack pack16
 #define u8x4unpack unpack8
+#define m8pq  
 #else
 #define u8x4_t u16x4_t
 #define u8x2_t u16x2_t
 #define u8x1_t u16x1_t
+
+// 8-bit precision qualifier
+#ifdef ENABLE_INT16_SUPPORT
+#define m8pq  
+#else
+#define m8pq lowp
+#endif
+
               const m8pq u8x2_t bshift16 = {0u,8u}; const m8pq u8x4_t bshift32 = bshift16.xyxy;
 u16x1_t u8x2pack(in m8pq u8x2_t v2) { v2 <<= bshift16; return u16x1_t(v2[0]|v2[1]); };
 u32x1_t u8x4pack(in m8pq u8x4_t v4) { v4 <<= bshift32; return p32x1_t(v4.xz|v4.yw); };
@@ -425,7 +434,7 @@ u32x1_t p2x_16(in highp uvec2 a) { return bitfieldInsert(a.x,a.y,16,16); };
 #else
 #define p2x_16 u16x2pack
 #endif
-#define up2x_16 u16x2unpack
+//#define up2x_16 u16x2unpack
 
 // coding library (8-bit)
 const lowp uvec4 u8x4shf = {0u,8u,16u,24u};
@@ -476,18 +485,19 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
         return r;
     };
 
-    u32x1_t encodeMorton8x4(in m8pq u8x4_t a) { return u32x1_t((splitBy4(a.x) << 0u) | (splitBy4(a.y) << 1u) | (splitBy4(a.z) << 2u) | (splitBy4(a.w) << 3u)); };
-    u32x1_t encodeMorton8x4(in u32x1_t a) { return encodeMorton8x4(u8x4unpack(a)); };
-    u32x1_t encodeMorton16x2(in highp uvec2 a) { return u32x1_t((splitBy2(a.x) << 0u) | (splitBy2(a.y) << 1u)); };
-    u32x1_t encodeMorton16x2(in u32x1_t a) { return encodeMorton16x2(u16x2unpack(a)); };
-    
     // scatter 32-bit number (two 16-bit) into 64-bit number
     u32x2_t splitBy2(in highp uvec2 a) { return u32x2_t(splitBy2(a.x),splitBy2(a.y)); };
 
-    // encode morton code with 2x64 numbers
+    // 
+    u32x1_t interleave8x4(in m8pq u8x4_t a) { return u32x1_t((splitBy4(a.x) << 0u) | (splitBy4(a.y) << 1u) | (splitBy4(a.z) << 2u) | (splitBy4(a.w) << 3u)); };
+    u32x1_t interleave8x4(in u32x1_t a) { return interleave8x4(u8x4unpack(a)); };
+    u32x1_t interleave16x2(in m16pq u16x2_t a) { return u32x1_t((splitBy2(a.x) << 0u) | (splitBy2(a.y) << 1u)); };
+    u32x1_t interleave16x2(in u32x1_t a) { return interleave16x2(u16x2unpack(a)); };
+
+    // encode new morton code by two 64-bit elements
     u32x4_t interleave64x2(in u32x4_t a){
-        u16x4_t _a = u16x4_t(unpack16(a.x),unpack16(a.y)), _b = u16x4_t(unpack16(a.z),unpack16(a.w));
-        u32x4_t 
+        const m16pq u16x4_t _a = u16x4_t(u16x2unpack(a.x),u16x2unpack(a.y)), _b = u16x4_t(u16x2unpack(a.z),u16x2unpack(a.w));
+        const u32x4_t 
             interleave_a = u32x4_t(splitBy2(_a.xy),splitBy2(_a.zw)),
             interleave_b = u32x4_t(splitBy2(_b.xy),splitBy2(_b.zw));
         return u32x4_t((interleave_a<<0u)|(interleave_b<<1u));
@@ -496,18 +506,18 @@ m8pq u8x2_t up2x_8(in mediump uint a)  { return u8x2_t((a.xx>>u8x2shf)&0xFFu); }
     // encode new morton code by four 32-bit elements
     u32x4_t interleave32x4(in u32x4_t a) {
         return u32x4_t(
-            encodeMorton8x4(u8x4pack(u8x4_t((a>> 0u)&0xFFu)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t((a>> 8u)&0xFFu)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t((a>>16u)&0xFFu)&u8x1_t(0xFFu))),
-            encodeMorton8x4(u8x4pack(u8x4_t((a>>24u)&0xFFu)&u8x1_t(0xFFu)))
+            interleave8x4(u8x4pack(u8x4_t((a>> 0u)&0xFFu)&u8x1_t(0xFFu))),
+            interleave8x4(u8x4pack(u8x4_t((a>> 8u)&0xFFu)&u8x1_t(0xFFu))),
+            interleave8x4(u8x4pack(u8x4_t((a>>16u)&0xFFu)&u8x1_t(0xFFu))),
+            interleave8x4(u8x4pack(u8x4_t((a>>24u)&0xFFu)&u8x1_t(0xFFu)))
         );
     };
 
     // encode new morton code by two 32-bit elements
     highp u32x4_t interleave32x2(in highp u32x4_t a) {
         return u32x4_t(
-            encodeMorton16x2(u16x2pack(u16x2_t((a.xy>> 0u)&0xFFFFu)&u16x1_t(0xFFFFu))),
-            encodeMorton16x2(u16x2pack(u16x2_t((a.xy>>16u)&0xFFFFu)&u16x1_t(0xFFFFu))),
+            interleave16x2(u16x2pack(u16x2_t((a.xy>> 0u)&0xFFFFu)&u16x1_t(0xFFFFu))),
+            interleave16x2(u16x2pack(u16x2_t((a.xy>>16u)&0xFFFFu)&u16x1_t(0xFFFFu))),
             0u.xx
         );
     };
