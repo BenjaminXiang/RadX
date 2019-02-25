@@ -79,7 +79,6 @@ void main() {
         #define prtmask prtmskM[i]
 #endif
 
-
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // subgroup partition supported now (interleaving currently not supported, need HW support)
     #ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w < VEC_SIZE) {
@@ -88,13 +87,13 @@ void main() {
     #else
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             prtmask = (interleave32x2(sgr_prt(keyW))<<i) & validAddressL[w], prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask)>>bshift;
-        };};
+        }};
     #endif
 #else
         [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT) && subgroupInverseBallot(validAddressL[wcmsk])) {
             const bqualf uvec4 prtmskM = sgr_blt(true);
             prtsumW = subgroupBallotBitCount(prtmskM), fsLaneW = readFLane(Lane_Idx);
-        };};
+        }};
 #endif
 
         [[flatten]] if (w < VEC_SIZE) {
