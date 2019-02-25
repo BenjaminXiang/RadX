@@ -99,7 +99,7 @@ void main() {
     #else // subgroup interleaving support (NVIDIA)
         [[flatten]] if (w < VEC_SIZE) {
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                prtmask = (encodeMorton32x2(sgr_prt(keyW))<<i) & validAddressL[w], prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask)>>bshift;
+                prtmask = (interleave32x2(sgr_prt(keyW))<<i) & validAddressL[w], prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask)>>bshift;
                 [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = uvec4(0u); };
             };
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {

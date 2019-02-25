@@ -100,12 +100,12 @@ void fname(in  uint WHERE) {\
 bqualf uvec4 sgr_blt(in bool k) { return subgroupBallot(k); };
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
-highp uvec4 sgr_blt(in bvec2 k) { return encodeMorton32x2(u32x4_t(
+highp uvec4 sgr_blt(in bvec2 k) { return interleave32x2(u32x4_t(
     subgroupBallot(k[0]).x,
     subgroupBallot(k[1]).x,
     0u.xx
 ));};
-uvec4 sgr_blt(in bvec4 k) { return encodeMorton32x4(u32x4_t(
+uvec4 sgr_blt(in bvec4 k) { return interleave32x4(u32x4_t(
     subgroupBallot(k[0]).x,
     subgroupBallot(k[1]).x,
     subgroupBallot(k[2]).x,
@@ -115,12 +115,12 @@ uvec4 sgr_blt(in bvec4 k) { return encodeMorton32x4(u32x4_t(
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 bqualf uvec4 sgr_prt(in lowp uint k) { return subgroupPartitionNV(k); };
-highp uvec4 sgr_prt(in lowp uvec2 k) { return encodeMorton32x2(u32x4_t(
+highp uvec4 sgr_prt(in lowp uvec2 k) { return interleave32x2(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     0u.xx
 ));};
-uvec4 sgr_prt(in lowp uvec4 k) { return encodeMorton32x4(u32x4_t(
+uvec4 sgr_prt(in lowp uvec4 k) { return interleave32x4(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     subgroupPartitionNV(k[2]).x,
