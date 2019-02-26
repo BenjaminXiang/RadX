@@ -187,7 +187,7 @@ namespace radx {
 
 
         // if no has buffer, set it!
-        if (!this->referencesBufferInfo.buffer) this->referencesBufferInfo.buffer = (vk::Buffer)*bufferMemory;
+        if (!this->countMaximBufferInfo.buffer) this->countMaximBufferInfo.buffer = (vk::Buffer)*bufferMemory;
         if (!this->keysStoreBufferInfo.buffer) this->keysStoreBufferInfo.buffer = (vk::Buffer)*bufferMemory;
         if (!this->keysBackupBufferInfo.buffer) this->keysBackupBufferInfo.buffer = (vk::Buffer)*bufferMemory;
         if (!this->keysCacheBufferInfo.buffer) this->keysCacheBufferInfo.buffer = (vk::Buffer)*bufferMemory;
@@ -202,7 +202,7 @@ namespace radx {
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(2).setPBufferInfo(&this->keysCacheBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(3).setPBufferInfo(&this->histogramBufferInfo),
             vk::WriteDescriptorSet(writeTmpl).setDstBinding(4).setPBufferInfo(&this->prefixScansBufferInfo),
-            vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->referencesBufferInfo),
+            vk::WriteDescriptorSet(writeTmpl).setDstBinding(5).setPBufferInfo(&this->countMaximBufferInfo),
 
             //vk::WriteDescriptorSet(writeTmpl).setDstBinding(7).setDescriptorType(vk::DescriptorType::eStorageTexelBuffer).setPTexelBufferView(&this->keyExtraBufferViewStore),
             //vk::WriteDescriptorSet(writeTmpl).setDstBinding(8).setDescriptorType(vk::DescriptorType::eUniformTexelBuffer).setPTexelBufferView(&this->keyExtraBufferViewU8x4),
@@ -289,15 +289,6 @@ namespace radx {
         std::vector<vk::DescriptorSet> descriptors = { *internalInterface, *inputInterface };
         cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
 
-        // due we working directly, doesn't needs
-        //cmdBuf.copyBuffer(inputInterface->keysBufferInfo.buffer, internalInterface->keysStoreBufferInfo.buffer, { vk::BufferCopy{ inputInterface->keysBufferInfo.offset, internalInterface->keysStoreBufferInfo.offset, inputInterface->keysBufferInfo.range } });
-        //commandBarrier(cmdBuf);
-
-        // generate indices and copy to 
-        //cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->copyhack]);
-        //cmdBuf.dispatch(this->groupX, 1u, 1u);
-        //commandBarrier(cmdBuf);
-
         // radix sort phases
         const uint32_t stageCount = device->getDriverName() == "turing" ? 4u : 16u;
         for (auto I = 0u; I < stageCount; I++) { // TODO: add support variable stage length
@@ -319,15 +310,6 @@ namespace radx {
 
         };
 
-        // due we working directly, doesn't needs
-        //cmdBuf.copyBuffer(internalInterface->keysStoreBufferInfo.buffer, inputInterface->keysBufferInfo.buffer, { vk::BufferCopy{ internalInterface->keysStoreBufferInfo.offset, inputInterface->keysBufferInfo.offset, inputInterface->keysBufferInfo.range } });
-        //commandBarrier(cmdBuf);
-
-        // resolve radix sorting
-        //cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->pipelines[this->transposer]);
-        //cmdBuf.dispatch(this->groupX, 1u, 1u);
-        //commandBarrier(cmdBuf);
-
         return VK_SUCCESS;
     };
 
@@ -340,8 +322,8 @@ namespace radx {
             keysSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keysBkpSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
             keyCacheSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
-            referencesSize = 256ull,//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
-            histogramsSize = 256ull * (this->groupX + 1) * sizeof(uint32_t),
+            referencesSize = 256ull * (this->groupX + 1) * sizeof(uint32_t),//tiled(maxElementCount, tileFix) * tileFix * sizeof(uint32_t),
+            histogramsSize = referencesSize,
             prefixScanSize = histogramsSize
             ;
 
@@ -362,7 +344,7 @@ namespace radx {
         internalInterface->setKeysStoreBufferInfo(vk::DescriptorBufferInfo(nullptr, keysOffset, keysSize));
         internalInterface->setKeysBackupBufferInfo(vk::DescriptorBufferInfo(nullptr, keysBkpOffset, keysBkpSize));
         internalInterface->setKeysCacheBufferInfo(vk::DescriptorBufferInfo(nullptr, keyCacheOffset, keyCacheSize));
-        internalInterface->setReferencesBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize)); // with work-group local prefix-scans
+        internalInterface->setCountMaximBufferInfo(vk::DescriptorBufferInfo(nullptr, referencesOffset, referencesSize)); // with work-group local prefix-scans
 
         // still required for effective sorting 
         internalInterface->setHistogramBufferInfo(vk::DescriptorBufferInfo(nullptr, histogramsOffset, histogramsSize));

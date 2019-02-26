@@ -52,7 +52,6 @@ const uint BSIZE = min(Wc,Wave_Size);
 
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
-//layout ( binding = 5, set = 0, scalar ) readonly workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
 // 
 void main() {

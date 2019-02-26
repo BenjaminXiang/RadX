@@ -52,14 +52,12 @@ void main() {
         const lowp uint workgroup = gp + Wave_Idx;
 
         // calculate partition offsets of every radice
-//#define partsum localPartSum[Wave_Idx]
-        //if (electedInvoc()) { partsum = 0u; };
         uint partsum = 0u;
         [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
             const lowp uint radice = rk + Lane_Idx;
             const highp uvec4 mask = subgroupBallot(workgroup < WG_COUNT && radice < RADICES);
-            const uint histv = 
-                subgroupInverseBallot(mask) ? localPartitions[radice] : 0u,
+            const uint 
+                histv = subgroupInverseBallot(mask) ? localPartitions[radice] : 0u,
                 scan = subgroupExclusiveAdd(histv),
                 sum = subgroupShuffle(histv + scan, subgroupBallotFindMSB(mask));
 

@@ -24,7 +24,7 @@ namespace radx {
 		// TODO: use std::vector instead of 
 		vk::DescriptorBufferInfo 
 			keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
-			keysCacheBufferInfo = {}, referencesBufferInfo = {},
+			keysCacheBufferInfo = {}, countMaximBufferInfo = {},
 			histogramBufferInfo = {}, prefixScansBufferInfo = {};
 
         // deprecated stuff
@@ -33,7 +33,7 @@ namespace radx {
         virtual InternalInterface& setKeysCacheBufferInfo(const vk::DescriptorBufferInfo& keysCache = {}){ this->keysCacheBufferInfo = keysCache; return *this; };
 
         // current cache stuff
-        virtual InternalInterface& setReferencesBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->referencesBufferInfo = references; return *this; };
+        virtual InternalInterface& setCountMaximBufferInfo(const vk::DescriptorBufferInfo& references = {}){ this->countMaximBufferInfo = references; return *this; };
         virtual InternalInterface& setHistogramBufferInfo(const vk::DescriptorBufferInfo& histogram = {}){ this->histogramBufferInfo = histogram; return *this; };
         virtual InternalInterface& setPrefixScansBufferInfo(const vk::DescriptorBufferInfo& prefixScans = {}){ this->prefixScansBufferInfo = prefixScans; return *this; };
         virtual InternalInterface& setMaxElementCount(const size_t& elementCount = 0) { this->maxElementCount = maxElementCount; return *this; };
