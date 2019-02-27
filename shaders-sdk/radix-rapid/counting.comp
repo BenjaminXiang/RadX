@@ -13,13 +13,13 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES];
 
 // 
-shared m8pq utype_t keyL[Wave_Size * VEC_SIZE];
-shared addrw_t prtsumL[VEC_SIZE * Wave_Size], fsLaneL[VEC_SIZE * Wave_Size], addrL[VEC_SIZE * Wave_Size];
-shared bqualf uvec4[VEC_SIZE] validAddressL;
+shared m8pq utype_t keyL[Wave_Size * VEC_SIZE * ivectr];
+shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr], fsLaneL[VEC_SIZE * Wave_Size * ivectr], addrL[VEC_SIZE * Wave_Size * ivectr];
+shared vqualf uvec4[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
-#define addrW addrL[(Local_Idx<<bshift)+i]
-#define keyM keys[push_block.Shift&1].data[addrW.x>>bshift]//kymL[Local_Idx]
+#define addrW addrL[(Local_Idx<<bshift)|i]
+#define keyM keys[push_block.Shift&1].data[addrW]
 
 #ifndef INTERLEAVED_PARTITION
 #define prtsumW prtsumL[wack]
@@ -58,18 +58,18 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW = blocks.offset + (Local_Idx<<bshift) + i; }; };
+    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW = blocks.offset + ((Local_Idx<<bshift)|i); }; };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = lessThan(make_v(addrL,Local_Idx), addrw_v(blocks.limit));
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift) + i;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
             prtsumW = addrw_t(0u);
         }};
         IFALL(all(not(predicate))) break;
 
         // planned RX Vega support
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift) + i;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
             if (predicate[i]) keyW = extractKey(keyM, push_block.Shift);
         }; validAddressL[w] = sgr_blt(predicate); };
 
@@ -93,7 +93,7 @@ void main() {
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+            addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
     };
     subgroupBarrier();

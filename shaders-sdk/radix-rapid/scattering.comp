@@ -13,17 +13,17 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES], localPartitions[RADICES];
 
 // 
-shared keytp_v kymL[VEC_SIZE*Wave_Size];
+//shared keytp_v kymL[VEC_SIZE*Wave_Size];
 
-shared m8pq utype_t keyL[Wave_Size * VEC_SIZE];
-shared addrw_t prtsumL[VEC_SIZE * Wave_Size], fsLaneL[VEC_SIZE * Wave_Size], addrL[VEC_SIZE * Wave_Size];
-shared bqualf uvec4[VEC_SIZE] validAddressL;
+shared m8pq utype_t keyL[Wave_Size * VEC_SIZE * ivectr];
+shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr], fsLaneL[VEC_SIZE * Wave_Size * ivectr], addrL[VEC_SIZE * Wave_Size * ivectr];
+shared vqualf uvec4[VEC_SIZE] validAddressL;
 shared vqualf uvec4 prtMskL[VEC_SIZE][RADICES];
 shared blocks_info blocks;
 
 #define prtMskW prtMskL[w]
-#define addrW addrL[(Local_Idx<<bshift)+i]
-#define keyM keys[push_block.Shift&1].data[addrW.x]//kymL[Local_Idx]
+#define addrW addrL[(Local_Idx<<bshift)|i]
+#define keyM keys[push_block.Shift&1].data[addrW]
 
 #ifndef INTERLEAVED_PARTITION
 #define prtsumW prtsumL[wack]
@@ -64,38 +64,38 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW = blocks.offset + (Local_Idx<<bshift) + i; }; };
+    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW = blocks.offset + ((Local_Idx<<bshift)|i); }; };
     subgroupBarrier();
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = lessThan(make_v(addrL,Local_Idx), addrw_v(blocks.limit));
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift) + i;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
             prtsumW = addrw_t(0u);
         }};
         IFALL(all(not(predicate))) break;
 
         // planned RX Vega support
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift) + i;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
             if (predicate[i]) keyW = extractKey(keyM, push_block.Shift);
         }; validAddressL[w] = sgr_blt(predicate); };
         
         // 
-        bqualf uvec4 prtmskM[ivectr];
+        highp uvec4 prtmskM;
         #define prtmask prtmskM[i]
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; prtMskW[uint(keyW)] = uvec4(0u); };};
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // 
             [[flatten]] if (w < VEC_SIZE) {
-                prtmask = sgr_prt(keyW) & uvec4(validAddressL[wcmsk][i],0u,0u,0u);
-                prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = subgroupBallotFindLSB(prtmask);
-                prtMskW[uint(keyW)][i] = prtmask[0]; // 
+                prtmask = sgr_prt(keyW).x & validAddressL[wcmsk][i];
+                prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
+                prtMskW[uint(keyW)][i] |= prtmask; // 
             };
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                prtmask = sgr_blt(true) & uvec4(validAddressL[wcmsk][i],0u,0u,0u); // planned RX Vega support (incorrect laning)
+                prtmask = sgr_blt(true).x & validAddressL[wcmsk][i]; // planned RX Vega support (incorrect laning)
                 prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = readFLane(Lane_Idx);
-                prtMskW[uint(keyW)][i] = prtmask[0]; // planned RX Vega support (incorrect laning)
+                prtMskW[uint(keyW)][i] |= prtmask; // planned RX Vega support (incorrect laning)
             };
 #endif
         };
@@ -111,11 +111,11 @@ void main() {
 
         subgroupBarrier();
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { 
-            const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx, addrM = addrL[wacki];
-            const bqualf uvec4 prtmsk = uvec4(prtMskW[uint(keyW)][i],0u,0u,0u);
-            [[flatten]] if ( subgroupInverseBallot(prtmsk) ) {
-                const lowp uint prtscnW = subgroupBallotExclusiveBitCount(prtmsk);
-                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrM.x];
+            const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
+            const uint prtmsk = prtMskW[uint(keyW)][i]; // partition mask of behalf
+            [[flatten]] if ( subgroupInverseBallot(uvec4(prtmsk,0u,0u,0u)) ) {
+                const lowp uint prtscnW = subgroupBallotExclusiveBitCount(uvec4(prtmsk,0u,0u,0u));
+                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrL[wacki]];
             };
             addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
