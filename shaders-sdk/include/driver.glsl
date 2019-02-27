@@ -35,6 +35,7 @@
 #extension GL_AMD_texture_gather_bias_lod : enable
 #extension GL_AMD_shader_image_load_store_lod : enable
 #extension GL_AMD_gcn_shader : enable
+#extension GL_AMD_shader_ballot : enable
 #endif
 
 // 
