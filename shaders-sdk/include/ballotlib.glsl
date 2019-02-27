@@ -6,11 +6,21 @@
 // for constant maners
 #ifndef Wave_Size
     #if (defined(AMD_PLATFORM))
+        #define bqtype_t uint64_t
+        #define bqtype2 u64vec2
         #define Wave_Size 64u
         #define bqualf highp
+        bqtype_t ext_blt(in uvec4 blt){return pack64(blt.xy);};
+        bqtype2 ext_blt2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
+        bool blt_inv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); const u32vec2 bhalf = unpack32(a); return (l < 32 ? bitfieldExtract(bhalf.x,l,1) : bitfieldExtract(bhalf.y,l,1)) == 1; };
     #else
+        #define bqtype_t uint32_t
+        #define bqtype2 u32vec2
         #define Wave_Size 32u
         #define bqualf lowp
+        bqtype_t ext_blt(in uvec4 blt){return blt.x;};
+        bqtype2 ext_blt2(in uvec4 blt){return blt.xy;};
+        bool blt_inv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); return bitfieldExtract(a,l,1) == 1; };
     #endif
 #endif
 

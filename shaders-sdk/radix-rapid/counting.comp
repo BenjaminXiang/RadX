@@ -15,7 +15,7 @@ shared uint localCounts[RADICES];
 // 
 shared m8pq utype_t keyL[Wave_Size * VEC_SIZE * ivectr];
 shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr], fsLaneL[VEC_SIZE * Wave_Size * ivectr], addrL[VEC_SIZE * Wave_Size * ivectr];
-shared uvec2[VEC_SIZE] validAddressL;
+shared bqtype2[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define addrW addrL[(Local_Idx<<bshift)|i]
@@ -68,19 +68,19 @@ void main() {
         }};
         IFALL(all(not(predicate))) break;
 
-        // planned RX Vega support
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgr_blt(predicate).xy; [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
+        // 
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate)); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift)|i;
             if (predicate[i]) { keyW = extractKey(keyM, push_block.Shift); };
         }};
 
         // 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
-            const uint prtmask = sgr_prt(keyW).x & validAddressL[wcmsk][i];
+            const bqtype_t prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[wcmsk][i];
             prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                uint prtmask = sgr_blt(true).x & validAddressL[wcmsk][i]; // planned RX Vega support (incorrect laning)
+                const bqtype_t prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i];
                 prtsumW = bitcnt(prtmask), fsLaneW = readFLane(Lane_Idx);
             };
 #endif
