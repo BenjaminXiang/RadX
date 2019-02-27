@@ -74,24 +74,24 @@ void main() {
         }; validAddressL[w] = sgr_blt(predicate); };
 
         // 
-        bqualf uvec4 prtmskM[ivectr];
+        highp uvec4 prtmskM;
         #define prtmask prtmskM[i]
 
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             [[flatten]] if (w < VEC_SIZE) {
-                prtmask = sgr_prt(keyW) & uvec4(validAddressL[wcmsk][i],0u,0u,0u);
-                prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = subgroupBallotFindLSB(prtmask&prtmask);
+                prtmask = sgr_prt(keyW).x & validAddressL[wcmsk][i];
+                prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
             };
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                prtmask = sgr_blt(true) & uvec4(validAddressL[wcmsk][i],0u,0u,0u); // planned RX Vega support (incorrect laning)
-                prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = readFLane(Lane_Idx);
+                prtmask = sgr_blt(true).x & validAddressL[wcmsk][i]; // planned RX Vega support (incorrect laning)
+                prtsumW = bitcnt(prtmask), fsLaneW = readFLane(Lane_Idx);
             };
 #endif
         };
 
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
+        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; [[flatten]] if (w < VEC_SIZE) {
             [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};

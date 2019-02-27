@@ -118,14 +118,14 @@ void main() {
 #ifndef INTERLEAVED_PARTITION
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
             uint count = localCounts[uint(keyW)];
-            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count;
         }};
 #else   // subgroup interleaving support (NVIDIA)
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
         addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { count[i] = localCounts[uint(keyW)]; };
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            [[flatten]] if (fsLaneW == Lane_Idx) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count[i];
         }}};
 #endif

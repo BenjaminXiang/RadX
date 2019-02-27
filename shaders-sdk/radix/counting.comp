@@ -101,7 +101,7 @@ void main() {
             [[flatten]] if (fsLaneW == Lane_Idx && subgroupInverseBallot(validAddressL[wcmsk])) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
 #else
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                [[flatten]] if (fsLaneW == Lane_Idx && predicate[i]) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };};
+                [[flatten]] if (fsLaneW == Lane_Idx && predicate[i] && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };};
 #endif
             addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         };
