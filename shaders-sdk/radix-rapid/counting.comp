@@ -88,8 +88,8 @@ void main() {
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };
     subgroupBarrier();
     

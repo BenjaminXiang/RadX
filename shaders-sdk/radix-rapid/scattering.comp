@@ -98,13 +98,26 @@ void main() {
         // subgroup interleaving support (NVIDIA)
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
+        //addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; count[i] = localCounts[uint(keyW)]; };
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             addrw_t count = localCounts[uint(keyW)];
             [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0u) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            prtsumW = count;
+            prtsumW = count;//count[i];
         }}};
 
         subgroupBarrier();
+
+        // NVIDIA Turing supported only, but can be faster
+        /*[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
+            const uint wacki = (wack<<bshift)|i;
+            const bqtype2 prtmsk = prtMskW[uint(keyW)]; // partition mask of behalf
+            [[flatten]] if (predicate[i]) {
+                const lowp uint prtscnW = bitcnt(prtMskW[uint(keyW)]&ext_blt2(genLt2Mask(i)));
+                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrW];
+            };
+            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+        }};*/
+
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             const bqtype_t prtmsk = prtMskW[uint(keyW)][i]; // partition mask of behalf
