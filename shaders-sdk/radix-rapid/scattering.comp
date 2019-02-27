@@ -109,7 +109,7 @@ void main() {
             const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             const bqtype_t prtmsk = prtMskW[uint(keyW)][i]; // partition mask of behalf
             [[flatten]] if (blt_inv(prtmsk)) {
-                const lowp uint prtscnW = bitcnt(gl_SubgroupLtMask.x&prtmsk);
+                const lowp uint prtscnW = bitcnt(ext_blt(gl_SubgroupLtMask)&prtmsk);
                 keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrL[wacki]];
             };
             addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
