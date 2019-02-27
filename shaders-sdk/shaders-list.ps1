@@ -5,7 +5,7 @@
 $INDIR="./"
 $OUTDIR="../prebuilt/shaders/$VNDR/"
 $HRDDIR="../prebuilt/intrusive/$VNDR/"
-$RDXI="radix/"
+$RDXO="radix/"
 
 $CMPPROF="-S comp"
 $OPTFLAGS="-O --skip-validation --strip-debug --inline-entry-points-exhaustive --strength-reduction --vector-dce --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
@@ -38,7 +38,7 @@ function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName =
     $process.Close()
 }
 
-function OptimizeMainline($Pfx = "") {
+function OptimizeMainline($Pfx = "", $RDXI="radix/") {
     # optimize radix sort
     
     Optimize "counting.comp"      "$HRDDIR$RDXI"
@@ -50,22 +50,22 @@ function OptimizeMainline($Pfx = "") {
 }
 
 
-function BuildAllShaders($Pfx = "") {
+function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
     #[System.Threading.Thread]::CurrentThread.Priority = 'Highest'
 
-    new-item -Name $HRDDIR$RDXI -itemtype directory  -Force | Out-Null
+    new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
 
     # radix sort
-    BuildCompute "counting.comp"     "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "partition.comp"    "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "scattering.comp"   "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "counting.comp"     "$INDIR$RDXI" "$HRDDIR$RDXO"
+    BuildCompute "partition.comp"    "$INDIR$RDXI" "$HRDDIR$RDXO"
+    BuildCompute "scattering.comp"   "$INDIR$RDXI" "$HRDDIR$RDXO"
     
-    BuildCompute "indiction.comp"    "$INDIR$RDXI" "$HRDDIR$RDXI"
-    BuildCompute "permutation.comp"  "$INDIR$RDXI" "$HRDDIR$RDXI"
+    BuildCompute "indiction.comp"    "$INDIR$RDXI" "$HRDDIR$RDXO"
+    BuildCompute "permutation.comp"  "$INDIR$RDXI" "$HRDDIR$RDXO"
 
     # optimize built shaders
-    OptimizeMainline
+    OptimizeMainline $RDXO
 }
 
 

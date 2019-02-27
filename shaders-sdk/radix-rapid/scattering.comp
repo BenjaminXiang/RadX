@@ -64,13 +64,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) {
-        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { 
-            const uint wacki = (wack<<bshift) + i;
-            addrW = blocks.offset + (Local_Idx<<bshift) + i;
-        };
-    };
+    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW = blocks.offset + (Local_Idx<<bshift) + i; }; };
     subgroupBarrier();
     
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
@@ -86,40 +80,44 @@ void main() {
         }; validAddressL[w] = sgr_blt(predicate); };
         
         // 
-        highp uvec4 prtmskM[ivectr];
+        bqualf uvec4 prtmskM[ivectr];
         #define prtmask prtmskM[i]
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; prtMskW[uint(keyW)] = uvec4(0u); };};
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
+        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // 
-            prtmask = subgroupPartitionNV(keyW) & uvec4(validAddressL[w][i],0u,0u,0u);
-            prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask&prtmask);
-            prtMskW[uint(keyW)][i] = prtmask[0]; // Turing support only, planned for AMD (incorrect laning)
+            [[flatten]] if (w < VEC_SIZE) {
+                prtmask = sgr_prt(keyW) & uvec4(validAddressL[wcmsk][i],0u,0u,0u);
+                prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = subgroupBallotFindLSB(prtmask);
+                prtMskW[uint(keyW)][i] = prtmask[0]; // 
+            };
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                prtmask = sgr_blt(true) & uvec4(validAddressL[w][i],0u,0u,0u); // planned RX Vega support (incorrect laning)
+                prtmask = sgr_blt(true) & uvec4(validAddressL[wcmsk][i],0u,0u,0u); // planned RX Vega support (incorrect laning)
                 prtsumW = subgroupBallotBitCount(prtmask), fsLaneW = readFLane(Lane_Idx);
-                rtMskW[uint(keyW)][i] = prtmask[0]; // planned RX Vega support (incorrect laning)
+                prtMskW[uint(keyW)][i] = prtmask[0]; // planned RX Vega support (incorrect laning)
             };
 #endif
-        }};
+        };
 
-         // subgroup interleaving support (NVIDIA)
+        // subgroup interleaving support (NVIDIA)
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
-            addrw_t count = 0u;
+            addrw_t count = localCounts[uint(keyW)];
             [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0u) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             prtsumW = count;
         }}};
 
         subgroupBarrier();
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = (wack<<bshift) + i; 
-            [[flatten]] if (predicate[i]) { // copy from backup to inner store
-                const lowp uint prtscnW = bitcnt(prtMskW[uint(keyW)]&genLt2Mask(i));
-                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { 
+            const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx, addrM = addrL[wacki];
+            const bqualf uvec4 prtmsk = uvec4(prtMskW[uint(keyW)][i],0u,0u,0u);
+            [[flatten]] if ( subgroupInverseBallot(prtmsk) ) {
+                const lowp uint prtscnW = subgroupBallotExclusiveBitCount(prtmsk);
+                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrM.x];
             };
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+            addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
     };
 };
