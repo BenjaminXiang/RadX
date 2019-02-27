@@ -80,7 +80,7 @@ void main() {
         }; validAddressL[w] = sgr_blt(predicate); };
         
         // 
-        highp uvec4 prtmskM;
+        highp uvec2 prtmskM;
         #define prtmask prtmskM[i]
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; prtMskW[uint(keyW)] = uvec4(0u); }};
