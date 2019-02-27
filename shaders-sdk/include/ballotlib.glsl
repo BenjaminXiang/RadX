@@ -12,7 +12,7 @@
         #define bqualf highp
         bqtype_t ext_blt(in uvec4 blt){return pack64(blt.xy);};
         bqtype2 ext_blt2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
-        bool blt_inv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); const u32vec2 bhalf = unpack32(a); return (l < 32 ? bitfieldExtract(bhalf.x,l,1) : bitfieldExtract(bhalf.y,l,1)) == 1; };
+        bool blt_inv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); const u32vec2 bhalf = unpack32(a); return (l < 32 ? bitfieldExtract(bhalf.x,l,1) : bitfieldExtract(bhalf.y,l-32,1)) == 1; };
     #else
         #define bqtype_t uint32_t
         #define bqtype2 u32vec2
@@ -109,8 +109,12 @@ void fname(in  uint WHERE) {\
 
 bqualf uvec4 sgr_blt(in bool k) { return subgroupBallot(k); };
 
-#ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
+//#ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
+#if (defined(AMD_PLATFORM))
+highp uvec4 sgr_blt(in bvec2 k) { return interleave64x2(u32x4_t(
+#else
 highp uvec4 sgr_blt(in bvec2 k) { return interleave32x2(u32x4_t(
+#endif
     subgroupBallot(k[0]).x,
     subgroupBallot(k[1]).x,
     0u.xx
@@ -121,7 +125,7 @@ uvec4 sgr_blt(in bvec4 k) { return interleave32x4(u32x4_t(
     subgroupBallot(k[2]).x,
     subgroupBallot(k[3]).x
 ));};
-#endif
+//#endif
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
 bqualf uvec4 sgr_prt(in lowp uint k) { return subgroupPartitionNV(k); };
