@@ -86,12 +86,12 @@ void main() {
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // 
             const bqtype_t prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[wcmsk][i];
             prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
-            prtMskW[uint(keyW)][i] |= prtmask; // 
+            [[flatten]] if (fsLaneW == Lane_Idx) prtMskW[uint(keyW)][i] |= prtmask; // 
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
                 const bqtype_t prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i]; // 
                 prtsumW = bitcnt(prtmask)), fsLaneW = readFLane(Lane_Idx);
-                prtMskW[uint(keyW)][i] |= prtmask; // 
+                [[flatten]] if (fsLaneW == Lane_Idx) prtMskW[uint(keyW)][i] |= prtmask; // 
             };
 #endif
         }};
