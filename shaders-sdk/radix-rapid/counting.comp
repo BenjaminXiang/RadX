@@ -83,7 +83,7 @@ void main() {
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
                 prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i];
-            };
+            }};
 #endif
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
