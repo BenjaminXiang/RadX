@@ -80,14 +80,11 @@
 
 #define ivectr 2
 #define bshift 1
-#define utype_v u8x2_t
 #define btype_v bvec2
-#define addrw_v uvec2
 #define addrw_t uint
-#define keytp_v keytp_t[2]
-#define addrw_seq uvec2(0,1)
+#define wmI [i]
 #define INTERLEAVED_PARTITION
-#define vqualf highp
+
 
 #ifdef READ_U8
 #define keytp_t u8vec4
