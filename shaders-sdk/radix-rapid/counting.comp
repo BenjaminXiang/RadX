@@ -14,8 +14,8 @@ shared uint localCounts[RADICES];
 
 // 
 shared m8pq utype_t keyL[Wave_Size * VEC_SIZE * ivectr];
-shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr], fsLaneL[VEC_SIZE * Wave_Size * ivectr];
 shared addrw_t addrL[VEC_SIZE * Wave_Size * ivectr];
+shared bqtype2 prtMskL[VEC_SIZE * Wave_Size];
 shared bqtype2[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
@@ -65,32 +65,31 @@ void main() {
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = btype_v(false);
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = (wack<<bshift)|i;
-            predicate wmI = lessThan(addrW, addrw_t(blocks.limit)), prtsumW = 0u;
+            predicate wmI = lessThan(addrW, addrw_t(blocks.limit));
         }};
         IFALL(all(not(predicate))) break;
 
         // 
         [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate)); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = (wack<<bshift)|i;
             if (predicate wmI) { keyW = extractKey(keyM, push_block.Shift); };
+            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
 
         // 
+#define prtmask prtMskL[wack][i]
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
-            const bqtype_t prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[wcmsk][i];
-            prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
+            prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[wcmsk][i];
 #else
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                const bqtype_t prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i];
-                prtsumW = bitcnt(prtmask), fsLaneW = readFLane(Lane_Idx);
+                prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i];
             };
 #endif
+        //}};
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
+            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         }};
-
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
-            [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-        }};
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };
     subgroupBarrier();
     

@@ -6,23 +6,20 @@
 #include "../include/mathlib.glsl"
 #include "../include/ballotlib.glsl"
 
-#include "./includes.glsl"
 
+#include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES], localPartitions[RADICES];
 
 // 
-//shared keytp_v kymL[VEC_SIZE*Wave_Size];
-
 shared m8pq utype_t keyL[Wave_Size * VEC_SIZE * ivectr];
-shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr], fsLaneL[VEC_SIZE * Wave_Size * ivectr];
+shared addrw_t prtsumL[VEC_SIZE * Wave_Size * ivectr];
 shared addrw_t addrL[VEC_SIZE * Wave_Size * ivectr];
+shared bqtype2 prtMskL[VEC_SIZE * Wave_Size];
 shared bqtype2[VEC_SIZE] validAddressL;
-shared bqtype2 prtMskL[VEC_SIZE][RADICES];
 shared blocks_info blocks;
 
-#define prtMskW prtMskL[w]
 #define addrW addrL[(Local_Idx<<bshift)|i]
 #define keyM keys[push_block.Shift&1].data[addrW]
 
@@ -71,7 +68,7 @@ void main() {
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = btype_v(false);
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = (wack<<bshift)|i;
-            predicate wmI = lessThan(addrW, addrw_t(blocks.limit)), prtsumW = 0u;
+            predicate wmI = lessThan(addrW, addrw_t(blocks.limit));
         }};
         IFALL(all(not(predicate))) break;
 
@@ -80,58 +77,32 @@ void main() {
             if (predicate wmI) { keyW = extractKey(keyM, push_block.Shift); };
         }};
         
-        // 
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; prtMskW[uint(keyW)] = bqtype2(0u); }};
+#define prtmask prtMskL[wack][i]
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // 
-            const bqtype_t prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[wcmsk][i];
-            prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask);
-            [[flatten]] if (fsLaneW == Lane_Idx) prtMskW[uint(keyW)][i] |= prtmask; // 
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT // nvidia Turing support
+            prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[w][i];
 #else
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) {
-                const bqtype_t prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i]; // 
-                prtsumW = bitcnt(prtmask)), fsLaneW = readFLane(Lane_Idx);
-                [[flatten]] if (fsLaneW == Lane_Idx) prtMskW[uint(keyW)][i] |= prtmask; // 
-            };
+            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) { // fallback method (execution mask)
+                prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i]; // 
+            }};
 #endif
         }};
 
-        // subgroup interleaving support (NVIDIA)
+        // subgroup interleaving support
         subgroupBarrier();
         [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-        //addrw_v count = addrw_v(0u); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx; count[i] = localCounts[uint(keyW)]; };
-        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
+        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint wack = w*Wave_Size + Lane_Idx, wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
             addrw_t count = localCounts[uint(keyW)];
-            [[flatten]] if (fsLaneW == Lane_Idx && prtsumW > 0u) { atomicAdd(localCounts[uint(keyW)], prtsumW, gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            prtsumW = count;//count[i];
+            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            prtsumW = count;
         }}};
 
         subgroupBarrier();
-
-        // NVIDIA Turing supported only, but can be faster
-        /*[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            const uint wacki = (wack<<bshift)|i;
-            const bqtype2 prtmsk = prtMskW[uint(keyW)]; // partition mask of behalf
-            [[flatten]] if (predicate[i]) {
-                const lowp uint prtscnW = bitcnt(prtMskW[uint(keyW)]&ext_blt2(genLt2Mask(i)));
-                keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrW];
-            };
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
-        }};*/
-
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx;
-            const bqtype_t prtmsk = prtMskW[uint(keyW)][i]; // partition mask of behalf
-            [[flatten]] if (blt_inv(prtmsk)) {
-                const lowp addrw_t prtscnW = 
-#ifdef ENABLE_VEGA_INSTRUCTION_SET
-                    mbcntAMD(prtmsk);
-#else
-                    bitcnt(ext_blt(gl_SubgroupLtMask)&prtmsk);
-#endif
-                keysOut[1-(push_block.Shift&1)].data[(prtscnW + prtsumW) + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrL[wacki]];
+            const lowp uint wacki = w*Wave_Size*ivectr + i*Wave_Size + Lane_Idx, addrM = addrL[wacki]; addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+            [[flatten]] if (blt_inv(prtmask)) { const lowp uint prtscnW = bitcnt(ext_blt(gl_SubgroupLtMask)&prtmask); // planned better `mbcntAMD` support
+                keysOut[1-(push_block.Shift&1)].data[(prtscnW + prtsumW) + localPartitions[uint(keyW)]] = keys[push_block.Shift&1].data[addrM];
             };
-            addrL[wacki] += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};
     };
 };
