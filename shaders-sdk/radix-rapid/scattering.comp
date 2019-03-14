@@ -21,7 +21,7 @@ shared bqtype2[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define addrW addrL[w][li]
-#define keyM keys[push_block.Shift&1].data[addrW]
+#define keyM keysIn[push_block.Shift&1].data[addrW]
 
 #ifndef INTERLEAVED_PARTITION
 #define prtsumW prtsumL[w][ln]
@@ -41,6 +41,7 @@ const uint BSIZE = min(Wc,Wave_Size);
 // 
 //layout ( binding = 0, set = InputKeys, rgba8ui ) uniform workgroupcoherent uimageBuffer keys[];
   layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysB { keytp_t data[]; } keys[];
+  layout ( binding = 0, set = InputKeys, scalar ) readonly subgroupcoherent buffer KeysInB { keytp_t data[]; } keysIn[];
   layout ( binding = 0, set = InputKeys, scalar )          subgroupcoherent buffer KeysOutB { keytp_t data[]; } keysOut[];
 
 // 
@@ -73,9 +74,8 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate)); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i;
-            if (predicate wmI) { keyW = extractKey(keyM, push_block.Shift); };
-        }};
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate));
+        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); }};
         
         // subgroup interleaving support
 #define prtmask prtMskL[w][ln][i]
@@ -100,7 +100,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
             const lowp uint li = i*Wave_Size + Lane_Idx;
             [[flatten]] if (blt_inv(prtmask)) { const lowp uint prtscnW = bitcnt(ext_blt(gl_SubgroupLtMask)&prtmask); // planned better `mbcntAMD` support
-                keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtscnW + prtsumW)] = keys[push_block.Shift&1].data[addrW];
+                keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtscnW + prtsumW)] = keyM;
             };
             addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
         }};

@@ -75,6 +75,7 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
+#define utype_v u8x2_t
 
 // internal vector typing (experimental, Ampere support planned)
 
@@ -82,18 +83,19 @@
 #define bshift 1
 #define btype_v bvec2
 #define addrw_t uint
+#define addrw_v uvec2
 #define wmI [i]
 #define INTERLEAVED_PARTITION
 
-
 #ifdef READ_U8
 #define keytp_t u8vec4
-#define extractKey(a,s) utype_t(a[s]) //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#define extractKey(a,s) a[s] //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #else
 #define keytp_t uint32_t
-#define extractKey(a,s) utype_t(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
+#define keytp_v keytp_t[2]
 #define make_v(vm,a) addrw_v(vm[(a<<bshift)+0],vm[(a<<bshift)+1])
 
 

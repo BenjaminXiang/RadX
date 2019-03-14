@@ -70,10 +70,10 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate)); [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i;
-            if (predicate wmI) { keyW = extractKey(keyM, push_block.Shift); };
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
-        }};
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate));
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); };
+        };
 
         // 
 #define prtmask prtMskL[w][ln][i]
