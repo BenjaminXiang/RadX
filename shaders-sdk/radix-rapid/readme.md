@@ -1,10 +1,6 @@
-# Radix sort dedicated shaders
+# Rapid Sort (next-gen radix sort)
 
 - Here is dedicated shader source for GPU sorting
-
-## TO DO
-
-- Reduce processing key count to 2 for NVIDIA RTX sorting
-- Add dedicated buffer for caching these keys
-- Use 16-bit packing instead of 8-bit directly when not available to store
-- Transition to reference buffer model (read buffer key by reference, and do final permute)
+- This is next generation of radix sort
+- Very optimized for NVIDIA Turing GPU's
+- Can be optimized for other GPU's
