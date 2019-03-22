@@ -47,6 +47,19 @@ const uint BSIZE = min(Wc,Wave_Size);
 // 
 layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
 
+
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+    #define sgp_exc sgr_prt
+#else
+    #define sgp_exc sgr_blt
+#endif
+
+#if (defined(AMD_PLATFORM))
+    #define sgp_cnt mbcntAMD
+#else
+    #define sgp_cnt(m) bitcnt(ext_blt(gl_SubgroupLtMask)&m)
+#endif
+
 // 
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + w);
@@ -77,32 +90,31 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate));
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); }};
         
-        // subgroup interleaving support
 #define prtmask prtMskL[w][ln][i]
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // nvidia Turing support
-            prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[w][i];
-#else
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) { // fallback method (execution mask)
-                prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i]; // 
-            }};
+        [[flatten]] if (w < VEC_SIZE) 
+#ifndef ENABLE_SUBGROUP_PARTITION_SORT
+        [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) 
+        [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) [[flatten]] if (keyW == (r+wT)) 
 #endif
-        }};
+        {
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; prtmask = ext_blt(sgp_exc(keyW)) & validAddressL[w][i]; };
 
-        subgroupBarrier();
-        [[flatten]] if (w == 0u) { [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { // critically calculate partition offset
-        [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-            prtsumW = localCounts[uint(keyW)]; 
-            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-        }}};
-
-        subgroupBarrier();
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-            const lowp uint li = i*Wave_Size + Lane_Idx;
-            [[flatten]] if (blt_inv(prtmask)) { const lowp uint prtscnW = bitcnt(ext_blt(gl_SubgroupLtMask)&prtmask); // planned better `mbcntAMD` support
-                keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtscnW + prtsumW)] = keyM;
+            subgroupBarrier();
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+            [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++)  // critically calculate partition offset
+#endif
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
+                prtsumW = localCounts[uint(keyW)];
+                [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             };
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
-        }};
+
+            subgroupBarrier();
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
+                [[flatten]] if (blt_inv(prtmask)) { const lowp uint prtscnW = sgp_cnt(prtmask);
+                    keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtscnW + prtsumW)] = keyM;
+                };
+                addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+            };
+        };
     };
 };
