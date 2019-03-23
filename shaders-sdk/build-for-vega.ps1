@@ -6,7 +6,7 @@
 $VNDR="vega10"
 . "./shaders-list.ps1"
 
-BuildAllShaders ""
+BuildAllShaders "" "radix-rapid/"
 
 #pause for check compile errors
 Pause

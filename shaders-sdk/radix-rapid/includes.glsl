@@ -75,28 +75,54 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
-#define utype_v u8x2_t
+#define addrw_t uint
 
 // internal vector typing (experimental, Ampere support planned)
-
+#if (defined(AMD_PLATFORM))
+#define ivectr 1
+#define bshift 1
+#define utype_v u8x1_t
+#define btype_v bool
+#define addrw_v uint
+#define keytp_v keytp_t
+#define wmI  
+#else
 #define ivectr 2
 #define bshift 1
+#define utype_v u8x2_t
 #define btype_v bvec2
-#define addrw_t uint
 #define addrw_v uvec2
+#define keytp_v keytp_t[2]
 #define wmI [i]
 #define INTERLEAVED_PARTITION
+#endif
 
 #ifdef READ_U8
 #define keytp_t u8vec4
 #define extractKey(a,s) a[s] //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #else
 #define keytp_t uint32_t
-#define extractKey(a,s) bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
+#define extractKey(a,s) utype_t(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
-#define keytp_v keytp_t[2]
-#define make_v(vm,a) addrw_v(vm[(a<<bshift)+0],vm[(a<<bshift)+1])
+//#define make_v(vm,a) addrw_v(vm[(a<<bshift)+0],vm[(a<<bshift)+1])
+
+
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+    #define sgp_exc sgr_prt
+    #define sgp_kpl keyW
+#else
+    #define sgp_exc(m) sgr_blt(true)
+    #define sgp_kpl (r+wT)
+#endif
+
+#if (defined(AMD_PLATFORM))
+    #define sgp_cnt mbcntAMD
+    #define sgp_ext ext_blt
+#else
+    #define sgp_cnt(m) bitcnt(ext_blt(gl_SubgroupLtMask)&m)
+    #define sgp_ext ext_blt2
+#endif
 
 
 

@@ -15,8 +15,13 @@ shared uint localCounts[RADICES];
 // 
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared addrw_t addrL[VEC_SIZE][Wave_Size*ivectr];
+#if (defined(AMD_PLATFORM))
+shared bqtype_t prtMskL[VEC_SIZE][Wave_Size];
+shared bqtype_t[VEC_SIZE] validAddressL;
+#else
 shared bqtype2 prtMskL[VEC_SIZE][Wave_Size];
 shared bqtype2[VEC_SIZE] validAddressL;
+#endif
 shared blocks_info blocks;
 
 #define addrW addrL[w][li]
@@ -70,20 +75,25 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = ext_blt2(sgr_blt(predicate));
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ext(sgr_blt(predicate));
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); };
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); };
         };
 
         // 
+#if (defined(AMD_PLATFORM))
+#define prtmask prtMskL[w][ln]
+#define validL validAddressL[w]
+#else
 #define prtmask prtMskL[w][ln][i]
+#define validL validAddressL[w][i]
+#endif
+
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT // nvidia Turing support
-            prtmask = ext_blt(sgr_prt(keyW)) & validAddressL[w][i];
+            prtmask = ext_blt(sgr_prt(keyW)) & validL;
 #else
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) { // fallback method (execution mask)
-                prtmask = ext_blt(sgr_blt(true)) & validAddressL[wcmsk][i]; // 
-            }};
+            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) { prtmask = ext_blt(sgr_blt(true)) & validL; }};
 #endif
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;

@@ -254,12 +254,12 @@ vec4 crossp4(in vec4 a, in vec4 b) { return crossp4(a.xyz,b.xyz); };
 
 
 // 64-bit packing
-#define U2P unpack32
-#define P2U pack64
+//#define U2P unpack32
+//#define P2U pack64
 
 // 128-bit packing (2x64bit)
-u32vec4 U4P(in u64vec2 pckg) { return u32vec4(U2P(pckg.x ), U2P(pckg.y )); };
-u64vec2 P4U(in u32vec4 pckg) { return u64vec2(P2U(pckg.xy), P2U(pckg.zw)); };
+//u32vec4 U4P(in u64vec2 pckg) { return u32vec4(U2P(pckg.x ), U2P(pckg.y )); };
+//u64vec2 P4U(in u32vec4 pckg) { return u64vec2(P2U(pckg.xy), P2U(pckg.zw)); };
 
 // float packing
    u32vec2 packHalf4x16(in highp vec4 floats) { return u32vec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)); };
@@ -278,12 +278,12 @@ lowp int msb(in uint vlc) { return findMSB(vlc); }
 lowp uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
 lowp uint bitcnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
 //uint bitcnt(in uvec2 lh) { return bitCount(P2U(lh)); }
-lowp uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(U2P(lh)); return uint(bic.x+bic.y); }
+lowp uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(unpack32(lh)); return uint(bic.x+bic.y); }
 
 // bit measure utils
 lowp int lsb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
-    return findLSB(P2U(pair));
+    return findLSB(pack64(pair));
 #else
     const ivec2 hl = findLSB(pair);
     return hl.x >= 0 ? hl.x : 32 + hl.y;
@@ -292,7 +292,7 @@ lowp int lsb(in uvec2 pair) {
 
 lowp int msb(in uvec2 pair) {
 #ifdef AMD_PLATFORM
-    return findMSB(P2U(pair));
+    return findMSB(pack64(pair));
 #else
     const ivec2 hl = findMSB(pair);
     return hl.y >= 0 ? 32 + hl.y : hl.x;
@@ -304,6 +304,8 @@ lowp int lsb(in uvec4 quadr){ return lsb(quadr.xy); };
 lowp int msb(in uvec4 quadr){ return msb(quadr.xy); };
 lowp uint bitcnt(in uvec4 quadr){ return bitcnt(quadr.xy); };
 
+lowp int lsb(in uint64_t pair) { return lsb(unpack32(pair)); };
+lowp int msb(in uint64_t pair) { return msb(unpack32(pair)); };
 
 // bit insert and extract
  int BFE_HW(in  int base, in  int offset , in int bits) { return bitfieldExtract(base, offset, bits); }
