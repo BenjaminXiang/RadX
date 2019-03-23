@@ -5,7 +5,7 @@ $CFLAGSV="--target-env spirv1.3 -V -d -t --aml --nsf -DUSE_MORTON_32 -DUSE_F32_B
 $VNDR="nvidia"
 . "./shaders-list.ps1"
 
-BuildAllShaders ""
+BuildAllShaders "" "radix-rapid/"
 
 #pause for check compile errors
 Pause

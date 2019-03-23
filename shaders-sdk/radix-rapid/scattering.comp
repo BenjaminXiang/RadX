@@ -115,8 +115,7 @@ void main() {
             subgroupBarrier();
 #endif
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-                [[flatten]] if (blt_inv(prtmask)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtsumW + sgp_cnt(prtmask))] = keyM; };
-                addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+                [[flatten]] if (blt_inv(prtmask)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + (prtsumW + sgp_cnt(prtmask))] = keyM; addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); };
             };
         };
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
