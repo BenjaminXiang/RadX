@@ -106,10 +106,10 @@ void main() {
             subgroupBarrier();
             [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++)  // critically calculate partition offset
 #endif
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; [[flatten]] if (keyW == sgp_kpl) {
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
                 prtsumW = localCounts[uint(keyW)];
                 [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
-            }};
+            };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             subgroupBarrier();
