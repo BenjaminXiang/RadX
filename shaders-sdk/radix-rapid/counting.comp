@@ -75,7 +75,7 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ext(sgr_blt(predicate));
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ble(predicate);
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); };
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); };
         };
@@ -90,14 +90,13 @@ void main() {
 #endif
 
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT // nvidia Turing support
-            prtmask = ext_blt(sgr_prt(keyW)) & validL;
-#else
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) { [[flatten]] if (keyW == (r+wT)) { prtmask = ext_blt(sgr_blt(true)) & validL; }};
+#ifndef ENABLE_SUBGROUP_PARTITION_SORT
+            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) [[flatten]] if (keyW == (r+wT)) 
 #endif
+            {prtmask = sgp_exc(keyW) & validL;};
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bit_cnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         }};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };

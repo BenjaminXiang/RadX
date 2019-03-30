@@ -108,22 +108,30 @@
 //#define make_v(vm,a) addrw_v(vm[(a<<bshift)+0],vm[(a<<bshift)+1])
 
 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-    #define sgp_exc sgr_prt
-    #define sgp_kpl keyW
-#else
-    #define sgp_exc(m) sgr_blt(true)
-    #define sgp_kpl (r+wT)
-#endif
-
 #if (defined(AMD_PLATFORM))
     #define sgp_cnt mbcntAMD
+    #define sgp_blt ballotARB
     #define sgp_ext ext_blt
+    #define sgp_ble ballotARB
 #else
-    #define sgp_cnt(m) bitcnt(ext_blt(gl_SubgroupLtMask)&m)
+    #define sgp_cnt(m) bit_cnt(ext_blt(gl_SubgroupLtMask)&m)
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+    #define sgp_blt(m) ext_blt(sgr_prt(m))
+#else
+    #define sgp_blt(m) ext_blt(sgr_blt(m))
+#endif
     #define sgp_ext ext_blt2
+    #define sgp_ble(m) ext_blt2(sgr_blt(m))
 #endif
 
+
+#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+    #define sgp_exc sgp_blt
+    #define sgp_kpl keyW
+#else
+    #define sgp_exc(m) sgp_blt(true)
+    #define sgp_kpl (r+wT)
+#endif
 
 
 #ifdef USE_MORTON_32

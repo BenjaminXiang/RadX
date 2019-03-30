@@ -80,7 +80,7 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ext(sgr_blt(predicate));
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ble(predicate);
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); }};
 
         // 
@@ -100,7 +100,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) 
 #endif
         {
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; [[flatten]] if (keyW == sgp_kpl) prtmask = ext_blt(sgp_exc(keyW)) & validL; };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; [[flatten]] if (keyW == sgp_kpl) prtmask = sgp_exc(keyW) & validL; };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             subgroupBarrier();
@@ -108,7 +108,7 @@ void main() {
 #endif
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
                 prtsumW = localCounts[uint(keyW)];
-                [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bit_cnt(prtmask), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT

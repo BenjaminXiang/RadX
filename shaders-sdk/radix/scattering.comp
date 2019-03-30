@@ -98,7 +98,7 @@ void main() {
     #else // subgroup interleaving support (NVIDIA)
         [[flatten]] if (w < VEC_SIZE) {
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
-                prtmask = (interleave32x2(sgr_prt(keyW))<<i) & validAddressL[w], prtsumW = bitcnt(prtmask), fsLaneW = lsb(prtmask)>>bshift;
+                prtmask = (interleave32x2(sgr_prt(keyW))<<i) & validAddressL[w], prtsumW = bit_cnt(prtmask), fsLaneW = lsb(prtmask)>>bshift;
                 [[flatten]] if (fsLaneW == Lane_Idx) { prtMskW[uint(keyW)] = uvec4(0u); };
             };
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
@@ -134,7 +134,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) { // TODO: local sorting to avoid cache missing or using TBO
 #ifdef INTERLEAVED_PARTITION
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { [[flatten]] if (predicate[i]) { // copy from backup to inner store
-                const lowp uint prtscnW = bitcnt(prtMskW[uint(keyW)]&genLt2Mask(i));
+                const lowp uint prtscnW = bit_cnt(prtMskW[uint(keyW)]&genLt2Mask(i));
                 keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM[i]; 
             }};
 #else

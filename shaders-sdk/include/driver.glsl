@@ -28,18 +28,7 @@
 #define USE_INT16_FOR_MORTON           // WARNING! Fixed only 32-bit types support!
 //#define USE_INT16_BOOL_PAIR
 
-
-// AMuDe extensions
-#ifdef ENABLE_VEGA_INSTRUCTION_SET
-#extension GL_AMD_shader_trinary_minmax : enable
-#extension GL_AMD_texture_gather_bias_lod : enable
-#extension GL_AMD_shader_image_load_store_lod : enable
-#extension GL_AMD_gcn_shader : enable
-#extension GL_AMD_shader_ballot : enable
-#endif
-
 // 
-//#extension GL_ARB_gpu_shader_int64 : enable // historical
 #extension GL_EXT_shader_atomic_int64 : enable
 #extension GL_EXT_shader_8bit_storage : enable
 #extension GL_EXT_shader_16bit_storage : enable
@@ -48,7 +37,18 @@
 #extension GL_KHR_memory_scope_semantics : enable // no actual support
 
 // 
+#extension GL_AMD_shader_trinary_minmax : enable
+#extension GL_AMD_texture_gather_bias_lod : enable
+#extension GL_AMD_shader_image_load_store_lod : enable
+#extension GL_AMD_gcn_shader : enable
+
+// 
 #extension GL_ARB_gpu_shader_int64 : enable
+#extension GL_AMD_gpu_shader_int16 : enable
+#extension GL_AMD_gpu_shader_half_float_fetch : enable
+#extension GL_AMD_gpu_shader_half_float : enable
+
+// 
 #extension GL_EXT_shader_explicit_arithmetic_types : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_float32 : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_float16 : enable
@@ -58,6 +58,8 @@
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : enable
 
 // subgroup operations
+#extension GL_ARB_shader_ballot : enable
+#extension GL_AMD_shader_ballot : enable
 #extension GL_KHR_shader_subgroup_basic            : require
 #extension GL_KHR_shader_subgroup_vote             : require
 #extension GL_KHR_shader_subgroup_ballot           : require
@@ -96,7 +98,7 @@
 #ifdef ENABLE_VEGA_INSTRUCTION_SET
     #define ENABLE_INT16_SUPPORT
     #define ENABLE_FP16_SUPPORT
-    //#define ENABLE_NATIVE_U8
+    
 #endif
 
 // if Turing specific
@@ -116,11 +118,9 @@
     #undef USE_INT16_BOOL_PAIR // use RPM based booleans
 #endif
 
-// only under AMD shaders
-#ifdef AMD_PLATFORM
-    #extension GL_AMD_gpu_shader_half_float_fetch : enable
-    #extension GL_AMD_gpu_shader_half_float : enable
-    #extension GL_AMD_gpu_shader_int16 : enable
+// AMuDe extensions
+#ifdef ENABLE_VEGA_INSTRUCTION_SET
+
 #endif
 
 // platform-oriented compute

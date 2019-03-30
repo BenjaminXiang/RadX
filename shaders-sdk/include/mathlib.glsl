@@ -275,10 +275,10 @@ u32vec2 packUnorm4x16(in  vec4 floats) { return u32vec2(packUnorm2x16(floats.xy)
 // bit utils
 lowp int lsb(in uint vlc) { return findLSB(vlc); }
 lowp int msb(in uint vlc) { return findMSB(vlc); }
-lowp uint bitcnt(in uint vlc) { return uint(bitCount(vlc)); }
-lowp uint bitcnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
-//uint bitcnt(in uvec2 lh) { return bitCount(P2U(lh)); }
-lowp uint bitcnt(in uint64_t lh) { ivec2 bic = bitCount(unpack32(lh)); return uint(bic.x+bic.y); }
+lowp uint bit_cnt(in uint vlc) { return uint(bitCount(vlc)); }
+lowp uint bit_cnt(in uvec2 lh) { uvec2 bic = bitCount(lh); return uint(bic.x+bic.y); }
+//uint bit_cnt(in uvec2 lh) { return bitCount(P2U(lh)); }
+lowp uint bit_cnt(in uint64_t lh) { ivec2 bic = bitCount(unpack32(lh)); return uint(bic.x+bic.y); }
 
 // bit measure utils
 lowp int lsb(in uvec2 pair) {
@@ -302,7 +302,7 @@ lowp int msb(in uvec2 pair) {
 
 lowp int lsb(in uvec4 quadr){ return lsb(quadr.xy); };
 lowp int msb(in uvec4 quadr){ return msb(quadr.xy); };
-lowp uint bitcnt(in uvec4 quadr){ return bitcnt(quadr.xy); };
+lowp uint bit_cnt(in uvec4 quadr){ return bit_cnt(quadr.xy); };
 
 lowp int lsb(in uint64_t pair) { return lsb(unpack32(pair)); };
 lowp int msb(in uint64_t pair) { return msb(unpack32(pair)); };
