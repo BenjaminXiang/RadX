@@ -10,14 +10,8 @@
 #include "./includes.glsl"
 
 layout (local_size_x = BLOCK_SIZE) in;
-shared uint localCounts[RADICES], localPartitions[RADICES];
-
-// 
-shared addrw_t addrL[VEC_SIZE][Wave_Size*ivectr], prtsumL[VEC_SIZE][Wave_Size*ivectr];
-
-
-shared sgp_tp prtMskL[VEC_SIZE][RADICES];
-shared sgp_tp[VEC_SIZE] validAddressL;
+shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size*ivectr], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size*ivectr];
+shared sgp_tp validAddressL[VEC_SIZE], prtMskL[VEC_SIZE][RADICES];
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared blocks_info blocks;
 
