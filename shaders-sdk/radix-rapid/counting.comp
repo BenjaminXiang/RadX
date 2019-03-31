@@ -67,14 +67,14 @@ void main() {
 
         // 
 //#define ptnmask prtMskL[w][uint(keyW)]
-#define ptnmask prtMskL[w][ln]
+#define prmskM prtMskL[w][ln]
 #define validM validAddressL[w]
 #if (defined(AMD_PLATFORM))
-#define prtmask ptnmask
+#define prmskL prmskM
 #define validL validM
 const lowp uint bms = 63;
 #else
-#define prtmask ptnmask[i]
+#define prmskL prmskM[i]
 #define validL validM[i]
 const lowp uint bms = 31;
 //const lowp uint bms = 63;
@@ -93,10 +93,10 @@ const lowp uint bms = 31;
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r++) [[flatten]] if (keyW == r) 
 #endif
-            { prtmask = sgpexc(keyW) & validL; };
+            { prmskL = sgpexc(keyW) & validL; };
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp), bnt = bitcnt(ptnmask);
-            [[flatten]] if ((li&bms) == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if ((li&bms) == lsb(prmskL) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskL), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         }};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };
