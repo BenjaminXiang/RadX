@@ -10,18 +10,18 @@
         #define bqtype2 u64vec2
         #define Wave_Size 64u
         #define bqualf highp
-        bqtype_t ext_blt(in uvec4 blt){return pack64(blt.xy);};
-        bqtype2 ext_blt2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
-        bool blt_inv(in bqtype_t a){return subgroupInverseBallot(uvec4(unpack32(a),0u.xx));};
+        bqtype_t extblt(in uvec4 blt){return pack64(blt.xy);};
+        bqtype2 extbl2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
+        bool bltinv(in bqtype_t a){return subgroupInverseBallot(uvec4(unpack32(a),0u.xx));};
     #else
         #define bqtype_t uint32_t
         #define bqtype2 u32vec2
         #define Wave_Size 32u
         #define bqualf lowp
-        bqtype_t ext_blt(in uvec4 blt){return blt.x;};
-        bqtype2 ext_blt2(in uvec4 blt){return blt.xy;};
-        bool blt_inv(in bqtype_t a){return subgroupInverseBallot(uvec4(a,0u.xxx));};
-        //bool blt_inv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); return bool(bitfieldExtract(a,l,1)); };
+        bqtype_t extblt(in uvec4 blt){return blt.x;};
+        bqtype2 extbl2(in uvec4 blt){return blt.xy;};
+        bool bltinv(in bqtype_t a){return subgroupInverseBallot(uvec4(a,0u.xxx));};
+        //bool bltinv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); return bool(bitfieldExtract(a,l,1)); };
     #endif
 #endif
 
@@ -108,19 +108,19 @@ void fname(in  uint WHERE) {\
 
 
 
-bqualf uvec4 sgr_blt(in bool k) { return subgroupBallot(k); };
+bqualf uvec4 sgrblt(in bool k) { return subgroupBallot(k); };
 
 //#ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
 #if (defined(AMD_PLATFORM))
-highp uvec4 sgr_blt(in bvec2 k) { return interleave64x2(u32x4_t(
+highp uvec4 sgrblt(in bvec2 k) { return interleave64x2(u32x4_t(
 #else
-highp uvec4 sgr_blt(in bvec2 k) { return interleave32x2(u32x4_t(
+highp uvec4 sgrblt(in bvec2 k) { return interleave32x2(u32x4_t(
 #endif
     subgroupBallot(k[0]).x,
     subgroupBallot(k[1]).x,
     0u.xx
 ));};
-uvec4 sgr_blt(in bvec4 k) { return interleave32x4(u32x4_t(
+uvec4 sgrblt(in bvec4 k) { return interleave32x4(u32x4_t(
     subgroupBallot(k[0]).x,
     subgroupBallot(k[1]).x,
     subgroupBallot(k[2]).x,
@@ -129,13 +129,13 @@ uvec4 sgr_blt(in bvec4 k) { return interleave32x4(u32x4_t(
 //#endif
 
 #ifdef ENABLE_TURING_INSTRUCTION_SET
-bqualf uvec4 sgr_prt(in lowp uint k) { return subgroupPartitionNV(k); };
-highp uvec4 sgr_prt(in lowp uvec2 k) { return interleave32x2(u32x4_t(
+bqualf uvec4 sgrprt(in lowp uint k) { return subgroupPartitionNV(k); };
+highp uvec4 sgrprt(in lowp uvec2 k) { return interleave32x2(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     0u.xx
 ));};
-uvec4 sgr_prt(in lowp uvec4 k) { return interleave32x4(u32x4_t(
+uvec4 sgrprt(in lowp uvec4 k) { return interleave32x4(u32x4_t(
     subgroupPartitionNV(k[0]).x,
     subgroupPartitionNV(k[1]).x,
     subgroupPartitionNV(k[2]).x,

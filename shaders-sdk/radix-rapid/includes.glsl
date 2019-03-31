@@ -97,6 +97,7 @@
 #define INTERLEAVED_PARTITION
 #endif
 
+
 #ifdef READ_U8
 #define keytp_t u8vec4
 #define extractKey(a,s) a[s] //((a>>(s*BITS_PER_PASS))&RADICES_MASK)
@@ -105,32 +106,28 @@
 #define extractKey(a,s) utype_t(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
-//#define make_v(vm,a) addrw_v(vm[(a<<bshift)+0],vm[(a<<bshift)+1])
-
 
 #if (defined(AMD_PLATFORM))
-    #define sgp_cnt mbcntAMD
-    #define sgp_blt ballotARB
-    #define sgp_ext ext_blt
-    #define sgp_ble ballotARB
+    #define sgpcnt mbcntAMD
+    #define sgpblt ballotARB
+    #define sgpble ballotARB
 #else
-    #define sgp_cnt(m) bit_cnt(ext_blt(gl_SubgroupLtMask)&m)
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-    #define sgp_blt(m) ext_blt(sgr_prt(m))
-#else
-    #define sgp_blt(m) ext_blt(sgr_blt(m))
-#endif
-    #define sgp_ext ext_blt2
-    #define sgp_ble(m) ext_blt2(sgr_blt(m))
+    #define sgpcnt(m) bitcnt(extblt(gl_SubgroupLtMask)&m)
+    #define sgpble(m) extbl2(sgrblt(m))
+    #ifdef ENABLE_SUBGROUP_PARTITION_SORT
+        #define sgpblt(m) extblt(sgrprt(m))
+    #else
+        #define sgpblt(m) extblt(sgrblt(m))
+    #endif
 #endif
 
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
-    #define sgp_exc sgp_blt
-    #define sgp_kpl keyW
+    #define sgpexc sgpblt
+    #define sgpkpl keyW
 #else
-    #define sgp_exc(m) sgp_blt(true)
-    #define sgp_kpl (r+wT)
+    #define sgpexc(m) sgpblt(true)
+    #define sgpkpl (r+wT)
 #endif
 
 

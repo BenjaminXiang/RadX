@@ -51,6 +51,7 @@ layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { ui
 //layout ( binding = 5, set = 0, scalar ) workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
 // 
+const lowp int blp = 32-bshift;
 void main() {
     const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF;
     const lowp uint ln = Lane_Idx;//w * Wave_Size + Lane_Idx;
@@ -64,20 +65,20 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; addrW = blocks.offset + ((Local_Idx<<bshift)|i); }; };
+    [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW = blocks.offset + bitfieldInsert(i,Local_Idx,bshift,blp); }; };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
         btype_v predicate = btype_v(false);
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i;
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp);
             predicate wmI = lessThan(addrW, addrw_t(blocks.limit));
         }};
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgp_ble(predicate);
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; keyW = extractKey(keyM, push_block.Shift); };
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = (ln<<bshift)|i; addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); };
+        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgpble(predicate);
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); keyW = extractKey(keyM, push_block.Shift); };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW += (Wave_Size_RT<<bshift) << VEC_SHIF; };
         };
 
         // 
@@ -93,10 +94,10 @@ void main() {
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) [[flatten]] if (keyW == (r+wT)) 
 #endif
-            {prtmask = sgp_exc(keyW) & validL;};
+            {prtmask = sgpexc(keyW) & validL;};
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bit_cnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         }};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };
