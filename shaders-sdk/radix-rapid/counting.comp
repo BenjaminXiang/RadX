@@ -51,7 +51,7 @@ layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { ui
 //layout ( binding = 5, set = 0, scalar ) workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
 // 
-const lowp int blp = 32-bshift;
+const lowp int blp = 8-bshift;
 void main() {
     const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF;
     const lowp uint ln = Lane_Idx;//w * Wave_Size + Lane_Idx;

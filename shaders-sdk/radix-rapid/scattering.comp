@@ -54,7 +54,7 @@ layout ( binding = 4, set = 0, scalar ) readonly workgroupcoherent buffer Prefix
 
 
 // 
-const lowp int blp = 32-bshift;
+const lowp int blp = 8-bshift;
 void main() {
     //const m8pq utype_t Radice_Idx = utype_t(gl_WorkGroupID.y * Wave_Count_RX + w);
     //const lowp uint w = Wave_Idx, Wr = Wc * w;
