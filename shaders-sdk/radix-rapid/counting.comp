@@ -15,13 +15,9 @@ shared uint localCounts[RADICES];
 // 
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared addrw_t addrL[VEC_SIZE][Wave_Size*ivectr];
-#if (defined(AMD_PLATFORM))
-shared bqtype_t prtMskL[VEC_SIZE][Wave_Size];
-shared bqtype_t[VEC_SIZE] validAddressL;
-#else
-shared bqtype2 prtMskL[VEC_SIZE][Wave_Size];
-shared bqtype2[VEC_SIZE] validAddressL;
-#endif
+shared sgp_tp prtMskL[VEC_SIZE][Wave_Size];
+//shared sgp_tp prtMskL[VEC_SIZE][RADICES];
+shared sgp_tp[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define addrW addrL[w][li]
@@ -82,22 +78,30 @@ void main() {
         };
 
         // 
+//#define ptnmask prtMskL[w][uint(keyW)]
+#define ptnmask prtMskL[w][ln]
 #if (defined(AMD_PLATFORM))
-#define prtmask prtMskL[w][ln]
+#define prtmask ptnmask
 #define validL validAddressL[w]
+const lowp uint bms = 63;
 #else
-#define prtmask prtMskL[w][ln][i]
+#define prtmask ptnmask[i]
 #define validL validAddressL[w][i]
+const lowp uint bms = 31;
+//const lowp uint bms = 63;
 #endif
 
+        // 
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; ptnmask = DEF_MASK; }; };
+        [[flatten]] if (w < VEC_SIZE) { ptnmask = DEF_MASK; };
         [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
-            [[unroll]] for (lowp uint r=0;r<RADICES;r+=wC) [[flatten]] if (keyW == (r+wT)) 
+            [[unroll]] for (lowp uint r=0;r<RADICES;r++) [[flatten]] if (keyW == r) 
 #endif
-            {prtmask = sgpexc(keyW) & validL;};
+            {prtmask |= sgpexc(keyW) & validL;};
         //}};
-        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
-            [[flatten]] if (Lane_Idx == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp), bnt = bitcnt(ptnmask);
+            [[flatten]] if ((li&bms) == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         }};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF ); }};
     };

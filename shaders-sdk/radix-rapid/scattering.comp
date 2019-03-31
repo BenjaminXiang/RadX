@@ -16,13 +16,8 @@ shared uint localCounts[RADICES], localPartitions[RADICES];
 shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared addrw_t prtsumL[VEC_SIZE][Wave_Size*ivectr];
 shared addrw_t addrL[VEC_SIZE][Wave_Size*ivectr];
-#if (defined(AMD_PLATFORM))
-shared bqtype_t prtMskL[VEC_SIZE][Wave_Size];
-shared bqtype_t[VEC_SIZE] validAddressL;
-#else
-shared bqtype2 prtMskL[VEC_SIZE][Wave_Size];
-shared bqtype2[VEC_SIZE] validAddressL;
-#endif
+shared sgp_tp prtMskL[VEC_SIZE][RADICES];
+shared sgp_tp[VEC_SIZE] validAddressL;
 shared blocks_info blocks;
 
 #define addrW addrL[w][li]
@@ -85,13 +80,17 @@ void main() {
         [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); keyW = extractKey(keyM, push_block.Shift); }};
 
         // 
+#define ptnmask prtMskL[w][uint(keyW)]
 #if (defined(AMD_PLATFORM))
-#define prtmask prtMskL[w][ln]
+#define prtmask ptnmask
 #define validL validAddressL[w]
 #else
-#define prtmask prtMskL[w][ln][i]
+#define prtmask ptnmask[i]
 #define validL validAddressL[w][i]
 #endif
+
+        // 
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; ptnmask = DEF_MASK; }; };
 
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
         subgroupBarrier();
@@ -101,7 +100,7 @@ void main() {
         [[flatten]] if (w < VEC_SIZE) 
 #endif
         {
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; [[flatten]] if (keyW == sgpkpl) prtmask = sgpexc(keyW) & validL; };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; [[flatten]] if (keyW == sgpkpl) prtmask |= sgpexc(keyW) & validL; };
 
 #ifdef ENABLE_SUBGROUP_PARTITION_SORT
             subgroupBarrier();

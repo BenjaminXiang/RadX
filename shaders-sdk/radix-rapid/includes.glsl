@@ -85,7 +85,9 @@
 #define btype_v bool
 #define addrw_v uint
 #define keytp_v keytp_t
+#define sgp_tp bqtype_t
 #define wmI  
+#define DEF_MASK 0ul
 #else
 #define ivectr 2
 #define bshift 1
@@ -93,7 +95,9 @@
 #define btype_v bvec2
 #define addrw_v uvec2
 #define keytp_v keytp_t[2]
+#define sgp_tp bqtype2
 #define wmI [i]
+#define DEF_MASK 0u.xx
 #define INTERLEAVED_PARTITION
 #endif
 
