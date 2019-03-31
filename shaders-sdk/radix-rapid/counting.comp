@@ -13,11 +13,12 @@ layout (local_size_x = BLOCK_SIZE) in;
 shared uint localCounts[RADICES];
 
 // 
-shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared addrw_t addrL[VEC_SIZE][Wave_Size*ivectr];
+//shared sgp_tp prtMskL[VEC_SIZE][Wave_Size];
+//shared bqtype_t prtMskL[VEC_SIZE][Wave_Size];
 shared sgp_tp prtMskL[VEC_SIZE][Wave_Size];
-//shared sgp_tp prtMskL[VEC_SIZE][RADICES];
 shared sgp_tp[VEC_SIZE] validAddressL;
+shared m8pq utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared blocks_info blocks;
 
 #define addrW addrL[w][li]
@@ -49,8 +50,7 @@ layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { ui
 // 
 const lowp int blp = 8-bshift;
 void main() {
-    const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF;
-    const lowp uint ln = Lane_Idx;//w * Wave_Size + Lane_Idx;
+    const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF, ln = Lane_Idx;//w * Wave_Size_RT + Lane_Idx;
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
@@ -72,33 +72,34 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validAddressL[w] = sgpble(predicate);
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); keyW = extractKey(keyM, push_block.Shift); };
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW += (Wave_Size_RT<<bshift) << VEC_SHIF; };
-        };
-
-        // 
 //#define ptnmask prtMskL[w][uint(keyW)]
 #define ptnmask prtMskL[w][ln]
+#define validM validAddressL[w]
 #if (defined(AMD_PLATFORM))
 #define prtmask ptnmask
-#define validL validAddressL[w]
+#define validL validM
 const lowp uint bms = 63;
 #else
 #define prtmask ptnmask[i]
-#define validL validAddressL[w][i]
+#define validL validM[i]
 const lowp uint bms = 31;
 //const lowp uint bms = 63;
 #endif
 
         // 
-        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx; ptnmask = DEF_MASK; }; };
-        [[flatten]] if (w < VEC_SIZE) { ptnmask = DEF_MASK; };
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size + Lane_Idx;
+        [[flatten]] if (w < VEC_SIZE) { validM = sgpble(predicate);
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); keyW = extractKey(keyM, push_block.Shift); };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW += (Wave_Size_RT<<bshift) << VEC_SHIF; };
+        };
+
+        // 
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size_RT + Lane_Idx; ptnmask = DEF_MASK; }; };
+        //[[flatten]] if (w < VEC_SIZE) { ptnmask = DEF_MASK; };
+        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = i*Wave_Size_RT + Lane_Idx;
 #ifndef ENABLE_SUBGROUP_PARTITION_SORT
             [[unroll]] for (lowp uint r=0;r<RADICES;r++) [[flatten]] if (keyW == r) 
 #endif
-            {prtmask |= sgpexc(keyW) & validL;};
+            { prtmask = sgpexc(keyW) & validL; };
         //}};
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp), bnt = bitcnt(ptnmask);
             [[flatten]] if ((li&bms) == lsb(prtmask) && prtmask > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prtmask), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
