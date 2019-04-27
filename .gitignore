@@ -72,3 +72,8 @@ x64/*
 */Release/*
 */x64/*
 */.vs/*
+
+ipch/*
+*/ipch/*
+ipch/
+*/ipch/
