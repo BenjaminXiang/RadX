@@ -9,7 +9,7 @@ namespace radx {
     protected:
         std::shared_ptr<radx::Device> device = {};
         std::unique_ptr<VmaAllocatedBuffer> bufferMemory = {}; // allocated personally, once
-		
+        
 
         vk::DescriptorSet descriptorSet = {};
         size_t maxElementCount = 1024*1024;
@@ -21,11 +21,11 @@ namespace radx {
             
         };
 
-		// TODO: use std::vector instead of 
-		vk::DescriptorBufferInfo 
-			keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
-			keysCacheBufferInfo = {}, countMaximBufferInfo = {},
-			histogramBufferInfo = {}, prefixScansBufferInfo = {};
+        // TODO: use std::vector instead of 
+        vk::DescriptorBufferInfo 
+            keysStoreBufferInfo = {}, keysBackupBufferInfo = {},
+            keysCacheBufferInfo = {}, countMaximBufferInfo = {},
+            histogramBufferInfo = {}, prefixScansBufferInfo = {};
 
         // deprecated stuff
         virtual InternalInterface& setKeysStoreBufferInfo(const vk::DescriptorBufferInfo& keysStore = {}) { this->keysStoreBufferInfo = keysStore; return *this; };
@@ -58,8 +58,8 @@ namespace radx {
         friend Algorithm;
         InputInterface(){};
         InputInterface(const std::shared_ptr<radx::Device>& device): device(device) {};
-		vk::DescriptorBufferInfo keysBufferInfo = {}, swapBufferInfo = {};
-		size_t elementCount = 0;
+        vk::DescriptorBufferInfo keysBufferInfo = {}, swapBufferInfo = {};
+        size_t elementCount = 0;
 
         // for building arguments 
         virtual InputInterface& setKeysBufferInfo(const vk::DescriptorBufferInfo& keys = {}){ this->keysBufferInfo = keys; return *this; };

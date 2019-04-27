@@ -14,17 +14,17 @@
 
 namespace rad {
 
-	// general command buffer pipeline barrier
-	static inline void commandTransferBarrier(const vk::CommandBuffer& cmdBuffer) {
-		VkMemoryBarrier memoryBarrier = {};
-		memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-		memoryBarrier.pNext = nullptr;
-		memoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-		memoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT;
-		cmdBuffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader,
-			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader, {}, { memoryBarrier }, {}, {});
-	};
+    // general command buffer pipeline barrier
+    static inline void commandTransferBarrier(const vk::CommandBuffer& cmdBuffer) {
+        VkMemoryBarrier memoryBarrier = {};
+        memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        memoryBarrier.pNext = nullptr;
+        memoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+        memoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT;
+        cmdBuffer.pipelineBarrier(
+            vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader,
+            vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eComputeShader, {}, { memoryBarrier }, {}, {});
+    };
 
     class ComputeFramework {
     protected:
@@ -141,19 +141,19 @@ namespace rad {
         const vk::Instance& getInstance() const {return this->instance;};
         const vk::CommandPool& getCommandPool() const {return this->commandPool;};
 
-		void submitCommandWithSync(const vk::CommandBuffer& cmdBuf) {
-			// submit command
-			vk::SubmitInfo sbmi = {};
-			sbmi.commandBufferCount = 1;//cmdBuffers.size();
-			sbmi.pCommandBuffers = &cmdBuf;
+        void submitCommandWithSync(const vk::CommandBuffer& cmdBuf) {
+            // submit command
+            vk::SubmitInfo sbmi = {};
+            sbmi.commandBufferCount = 1;//cmdBuffers.size();
+            sbmi.pCommandBuffers = &cmdBuf;
 
-			// submit commands
-			auto fence = getFence(); {
-				getQueue().submit(sbmi, fence);
-				device.waitForFences({ fence }, true, INT32_MAX);
-			};
-			device.resetFences({ 1, &fence });
-		}
+            // submit commands
+            auto fence = getFence(); {
+                getQueue().submit(sbmi, fence);
+                device.waitForFences({ fence }, true, INT32_MAX);
+            };
+            device.resetFences({ 1, &fence });
+        }
     };
 
 
@@ -168,7 +168,7 @@ namespace rad {
         std::shared_ptr<radx::InputInterface> inputInterface;
         std::shared_ptr<ComputeFramework> fw;
         std::shared_ptr<radx::VmaAllocatedBuffer> vmaDeviceBuffer, vmaToHostBuffer, vmaHostBuffer;//, vmaToDeviceBuffer;
-		
+        
 
         // 
         const size_t elementCount = (1 << 23);
@@ -177,7 +177,7 @@ namespace rad {
         vk::DeviceSize keysOffset = 0, keysBackupOffset = 0;
 
 #ifdef ENABLE_THRUST_BENCHMARK
-		void testSortingThrust();
+        void testSortingThrust();
 #endif
 
     public:
