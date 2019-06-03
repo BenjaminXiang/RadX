@@ -73,10 +73,13 @@
 #define WRK_SIZE_RT (gl_NumWorkGroups.y * Wave_Count_RX)
 
 
+// currently prefer 16-bit types with reserved 8-bit lanes 
+
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
 
 // internal vector typing (experimental, Ampere support planned)
+/*
 #if defined(ENABLE_TURING_INSTRUCTION_SET)
 #define ivectr 2
 #define bshift 1
@@ -99,6 +102,7 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #endif
 
 #else
+*/
 #define ivectr 1
 #define bshift 0
 #define utype_v utype_t
@@ -118,7 +122,7 @@ lowp uint sumV(in lowp addrw_v a){return a.x+a.y;};
 #define extractKey(a,s) utype_v(bitfieldExtract(a,int(s*BITS_PER_PASS),int(BITS_PER_PASS)))//((a>>(s*BITS_PER_PASS))&RADICES_MASK)
 #endif
 
-#endif
+//#endif
 
 
 #ifdef USE_MORTON_32

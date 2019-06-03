@@ -50,10 +50,10 @@
 #define Wave_Count_RX Wave_Count_RT 
 
 // SM configuration
-#define VEC_SIZE 4u
+#define VEC_SIZE 8u // shared memory limited, but optimal for RTX 2080
 #define VEC_MULT VEC_SIZE
-#define VEC_SHIF 2u
-#define VEC_MASK 3u
+#define VEC_SHIF 4u
+#define VEC_MASK 15u//3u
 #define wcmsk w&VEC_MASK
 
 // 
@@ -74,14 +74,14 @@
 
 
 #define PREFER_UNPACKED
-#define utype_t u8x1_t
+#define utype_t u8x1_t // but Turing still using 64xINT32 (16x per unit) in SMID (i.e. myth-busted)
 #define addrw_t uint
 
 // internal vector typing (experimental, Ampere support planned)
 #if (defined(AMD_PLATFORM))
 #define ivectr 1
-#define bshift 1
-#define utype_v u8x1_t
+#define bshift 0
+#define utype_v utype_t
 #define btype_v bool
 #define addrw_v uint
 #define keytp_v keytp_t
@@ -91,7 +91,7 @@
 #else
 #define ivectr 2
 #define bshift 1
-#define utype_v u8x2_t
+#define utype_v u8x2_t // but Turing still using 64xINT32 (16x per unit) in SMID (i.e. myth-busted)
 #define btype_v bvec2
 #define addrw_v uvec2
 #define keytp_v keytp_t[2]
@@ -172,7 +172,7 @@ layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 struct blocks_info { uint count, limit, offset, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
-        block_tile = (Wave_Size_RT<<bshift) << VEC_SHIF, 
+        block_tile = (Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
         block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,

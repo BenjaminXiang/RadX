@@ -42,7 +42,7 @@ layout ( binding = 3, set = 0, scalar ) workgroupcoherent buffer HistogramB { ui
 //layout ( binding = 5, set = 0, scalar ) workgroupcoherent buffer ReferenceB { uint data[]; } offsets[];
 
 // 
-const lowp int blp = 8-bshift;
+const lowp int blp = 10-bshift;
 void main() {
     const lowp uint w = Wave_Idx, wT = w>>VEC_SHIF, wC = Wave_Count_RT>>VEC_SHIF, ln = Lane_Idx;//w * Wave_Size_RT + Lane_Idx;
 
@@ -83,7 +83,7 @@ const lowp uint bms = 31;
         // 
         [[flatten]] if (w < VEC_SIZE) { validM = sgpble(predicate);
             [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); keyW = extractKey(keyM, push_block.Shift); };
-            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW += (Wave_Size_RT<<bshift) << VEC_SHIF; };
+            [[unroll]] for (lowp uint i=0;i<ivectr;i++) { const lowp uint li = bitfieldInsert(i,ln,bshift,blp); addrW += (Wave_Size_RT * VEC_SIZE)<<bshift; };
         };
 
         // 

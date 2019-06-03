@@ -143,7 +143,7 @@ void main() {
                 keysOut[1-(push_block.Shift&1)].data[prtscnW + prtsumW + localPartitions[uint(keyW)]] = keyM; };
 #endif
             //subgroupBarrier(); // barrier faster memory operation
-            addrW += ( (Wave_Size_RT<<bshift) << VEC_SHIF );
+            addrW += (Wave_Size_RT * VEC_SIZE)<<bshift;
         };
     };
 };
