@@ -25,6 +25,22 @@
     #endif
 #endif
 
+
+#ifdef ENABLE_RTX_EDITION
+    u32vec4 fwp_rtx(in uint32_t W8_PER_4) {
+        return interleave32x4(u32vec4(W8_PER_4,0u.xxx));
+    }
+
+    u32vec4 fwp_rtx_u4(in bvec4 U4) {
+        return 
+            (fwp_rtx(subgroupBallot(U4.x).x)<<0) | 
+            (fwp_rtx(subgroupBallot(U4.y).x)<<1) | 
+            (fwp_rtx(subgroupBallot(U4.z).x)<<2) | 
+            (fwp_rtx(subgroupBallot(U4.w).x)<<3);
+    }
+#endif
+
+
 // Z-swizzle for 
 #define Ni 2u
 
