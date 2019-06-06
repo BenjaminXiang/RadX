@@ -80,11 +80,12 @@ void main() {
 
         // 
         //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; prmskL = 0u; }; };
-        [[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; prmskM = DEF_MASK; }; };
+        //[[flatten]] if (w < VEC_SIZE) { [[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; prmskM = DEF_MASK; }; };
 
         [[flatten]] if (w < VEC_SIZE) 
         {
-            [[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; [[flatten]] if (keyW == sgpkpl) prmskL |= sgpexc(keyW) & validL; };
+            //[[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; [[flatten]] if (keyW == sgpkpl) prmskL |= sgpexc(keyW) & validL; };
+            [[unroll]] for (lowp uint li=0;li<ivectr;li++) { const lowp uint ln = (li<<3u)|(Lane_Idx>>2u), i = wID&3u; [[flatten]] if (keyW == sgpkpl) prmskL = sgpexc(keyW) & validL; };
 
             subgroupBarrier();
             [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++)  // critically calculate partition offset
