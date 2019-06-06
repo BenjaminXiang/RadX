@@ -36503,6 +36503,11 @@ namespace VULKAN_HPP_NAMESPACE
       valueFloat = valueFloat_;
     }
 
+    PerformanceValueDataINTEL( bool valueBool_ )
+    {
+      valueBool = valueBool_;
+    }
+
     PerformanceValueDataINTEL( const char* valueString_ )
     {
       valueString = valueString_;
