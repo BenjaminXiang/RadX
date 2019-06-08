@@ -11,7 +11,7 @@
 
 
 // current work group size
-const uint WG_COUNT = 96u;
+const uint WG_COUNT = 108u;
 
 // shared memory of...
 shared uint localPartitions[RADICES];
@@ -21,8 +21,8 @@ const uint local_size_def = Wave_Size*32u;
 layout ( local_size_x = local_size_def) in; // use many as possible
 
 // 
-layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB {uint counts[][RADICES]; };
-layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB {uint partitions[][RADICES]; };
+layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB { uint counts[][RADICES]; };
+layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB { uint partitions[][RADICES]; };
 
 // X axis is workgroup count, Y is radices
 void main() {

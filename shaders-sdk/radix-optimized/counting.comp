@@ -13,12 +13,12 @@
 layout (local_size_x = BLOCK_SIZE) in;
 shared addrw_t localCounts[RADICES], addrL[BLOCK_SIZE];
 shared uint32_t validAddressL[ivectr], prtMskL[Wave_Size][ivectr];
-shared m8pq utype_t keyL[ivectr][Wave_Size];
+shared m8pq utype_v keyL[ivectr][8u];
 shared blocks_info blocks;
 
 #define addrW addrL[Local_Idx]
 #define keyM keys[push_block.Shift&1].data[addrW]
-#define keyW keyL[i][Lane_Idx]
+#define keyW keyL[i][smID][wID]
 #define bcount blocks.count
 
 
@@ -29,7 +29,7 @@ shared blocks_info blocks;
 // 
 void main() {
     const lowp uint w = 0u, ln = Lane_Idx, i = Wave_Idx;
-    const lowp uint wID = Lane_Idx&7, smID = Lane_Idx>>3;
+    const lowp uint wID = Lane_Idx&3, smID = Lane_Idx>>2;
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;

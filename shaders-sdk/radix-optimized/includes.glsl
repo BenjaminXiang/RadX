@@ -52,6 +52,7 @@
 
 #define PREFER_UNPACKED
 #define utype_t u8x1_t
+#define utype_v u8x4_t
 #define addrw_t uint
 
 // internal vector typing (experimental, Ampere support planned)
