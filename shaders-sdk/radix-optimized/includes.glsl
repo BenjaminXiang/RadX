@@ -49,16 +49,23 @@
 #define Wave_Size_RX Wave_Size_RT
 #define Wave_Count_RX Wave_Count_RT 
 
-// SM configuration
-#define VEC_SIZE 8u // shared memory limited, but optimal for RTX 2080
-#define VEC_MULT VEC_SIZE
-#define VEC_SHIF 4u
-#define VEC_MASK 15u//3u
-#define wcmsk w&VEC_MASK
+
+#define PREFER_UNPACKED
+#define utype_t u8x1_t
+#define addrw_t uint
+
+// internal vector typing (experimental, Ampere support planned)
+#define ivectr 8//4
+#define bshift 3//2
+#define btype_v bvec4
+#define addrw_v uvec4
+#define keytp_v keytp_t[4]
+#define wmI [i]
+#define INTERLEAVED_PARTITION
 
 // 
 //#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-#define Wave_Count VEC_SIZE
+#define Wave_Count ivectr//VEC_SIZE
 //#else
 //#define Wave_Count 16u
 //#endif
@@ -73,21 +80,7 @@
 #define WRK_SIZE_RT (gl_NumWorkGroups.y * Wave_Count_RX)
 
 
-#define PREFER_UNPACKED
-#define utype_t u8x1_t // but Turing still using 64xINT32 (16x per unit) in SMID (i.e. myth-busted)
-#define addrw_t uint
 
-// internal vector typing (experimental, Ampere support planned)
-#define ivectr 4
-#define bshift 2
-#define utype_v u8x4_t // but Turing still using 64xINT32 (16x per unit) in SMID (i.e. myth-busted)
-#define btype_v bvec4
-#define addrw_v uvec4
-#define keytp_v keytp_t[4]
-//#define sgp_tp bqtype2
-#define wmI [i]
-#define DEF_MASK 0u.xxxx
-#define INTERLEAVED_PARTITION
 
 
 #ifdef READ_U8
@@ -146,7 +139,7 @@ struct RadicePropStruct { uint Descending, IsSigned; };
 const KEYTYPE OutOfRange = KEYTYPE(0xFFFFFFFFu);
 
 // input influence data
-layout ( binding = 1, set = 1, scalar )  readonly subgroupcoherent buffer ValueInB {uint data[]; } valueIn[];
+//layout ( binding = 1, set = 1, scalar )  readonly workgroupcoherent buffer ValueInB {uint data[]; } valueIn[];
 
 // push constant in radix sort
 layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_block;
@@ -160,14 +153,14 @@ layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 struct blocks_info { uint count, limit, offset, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
-        block_tile = (Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
+        block_tile = Wave_Size_RT<<bshift,
         block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,
         block_limit = block_offset + block_size,
         block_count = tiled(block_size, block_tile);
 
-    return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
+    return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, block_size*gl_WorkGroupID.x);
 };
 
 
