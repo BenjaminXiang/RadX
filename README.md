@@ -15,9 +15,9 @@ GPU sorting shaders dedication from vRt project. Optimized for modern GPU's and 
 
 ## Preview results
 
-- In average can sort (up to, and more) 900 million uint32_t elements per second (tested with RTX 2070)
-- Outperform parallel std::sort up to 30x faster (Intel Core i7-8700K)
-- Performance tested in Windows 10 (Insiders) and Visual Studio 2017 
+- In average can sort (up to, and more) 1 billion uint32_t elements per second (tested with RTX 2070)
+- Outperform parallel std::sort up to 40x faster (Intel Core i7-8700K)
+- Performance tested in Windows 10 (Insiders) and Visual Studio 2019 
 - Can be built by GCC-8 in Linux systems (tested in Ubuntu 18.10)
 
 ## Materials 
