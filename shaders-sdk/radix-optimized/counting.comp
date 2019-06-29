@@ -54,7 +54,7 @@ void main() {
 
         {
             keyW = extractKey(keyM, push_block.Shift), addrW += Wave_Size_RT<<bshift, prmskL = sgpexc(keyW) & validL;
-            [[flatten]] if (Lane_Idx == lsb(prmskL) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskL), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (prmskL > 0u && Lane_Idx == lsb(prmskL)) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskL), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
     };
     subgroupBarrier();

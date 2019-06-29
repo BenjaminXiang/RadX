@@ -12,8 +12,8 @@
 
 layout (local_size_x = BLOCK_SIZE) in;
 shared addrw_t localCounts[RADICES], addrL[BLOCK_SIZE], localPartitions[RADICES];
-shared uint32_t validAddressL[ivectr], prtMskL[Wave_Size][ivectr], prtsumL[ivectr][Wave_Size];
-shared m8pq utype_v keyL[ivectr][8u];
+shared uint32_t validAddressL[ivectr], prtMskL[RADICES][ivectr], prtsumL[ivectr][Wave_Size];
+shared m8pq utype_v keyL[ivectr][8u]; // 8u is sequence/SIMDs count
 shared blocks_info blocks;
 
 #define addrW addrL[Local_Idx]
@@ -50,18 +50,21 @@ void main() {
 
     // 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
-#define prmskL prtMskL[Lane_Idx][i]
+#define prmskL prtMskL[uint(keyW)][i]
+//#define prmskL prtMskL[Lane_Idx][i]
 #define validL validAddressL[i]
 
         const bool predicate = addrW < blocks.limit; IFALL(!predicate) break; validL = subgroupBallot(predicate).x;
 
         {
             keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL;
+            //const uint32_t prmask = sgpexc(keyW) & validL;
+            //[[flatten]] if (Lane_Idx == lsb(prmask)) prmskL = prmask;
 
             subgroupBarrier();
             [[flatten]] if (i < 1u) [[unroll]] for (lowp uint i=0;i<ivectr;i++) {
                 prtsumW = localCounts[uint(keyW)];
-                [[flatten]] if (Lane_Idx == lsb(prmskL) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskL), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+                [[flatten]] if (prmskL > 0u && Lane_Idx == lsb(prmskL)) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskL), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
             };
 
             subgroupBarrier();
