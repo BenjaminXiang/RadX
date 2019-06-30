@@ -1,0 +1,31 @@
+﻿{
+    "configurations": [
+        {
+            "name": "Debug",
+            "generator": "Ninja",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\build\\${name}",
+            "installRoot": "${projectDir}\\install\\${name}",
+            "cmakeCommandArgs": "x64",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "intelliSenseMode": "windows-msvc-x64",
+            "variables": []
+        },
+        {
+            "name": "RelWithDebInfo",
+            "generator": "Ninja",
+            "configurationType": "RelWithDebInfo",
+            "buildRoot": "${projectDir}\\build\\${name}",
+            "installRoot": "${projectDir}\\install\\${name}",
+            "cmakeExecutable": "",
+            "cmakeCommandArgs": "x64",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "intelliSenseMode": "windows-msvc-x64",
+            "variables": []
+        }
+    ]
+}

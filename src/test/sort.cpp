@@ -40,7 +40,7 @@ namespace rad {
     vk::Instance ComputeFramework::createInstance() {
 
 #ifdef VOLK_H_
-        volkInitialize();
+        if (!volkInitialize()) { std::cout << "Not Able To Initialize Vulkan" << std::endl; exit(0); };
 #endif
 
         auto supportedVkApiVersion = 0u;

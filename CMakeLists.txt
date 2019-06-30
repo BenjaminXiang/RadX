@@ -22,7 +22,7 @@ set(SOURCES_LIST
     "./include/vulkan/*"
     "./include/vma/*"
     "./include/vku/*"
-    "./include/volk/*"
+    #"./include/volk/*"
     "./include/spirv/*"
     "./include/spirv/*/*"
     "./src/*.hpp"
@@ -123,7 +123,7 @@ set (CMAKE_CXX_EXTENSIONS 1)
 
 # compiler specific options
 if (MSVC) # Clang in Visual Studio 2017
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
     # fix MSVC 2019 winprt lib 
     #set (LIB_DIR ${LIB_DIR} "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.20.27508/lib/x64") 
