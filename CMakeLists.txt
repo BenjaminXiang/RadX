@@ -71,10 +71,10 @@ endif()
 
 # set CUDA compiling options
 if (CUDA_FOUND) 
-set(CUDA_ARCH -gencode=arch=compute_70,code=sm_70)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
-set(CMAKE_CUDA_FLAGS ”-arch=sm_70 -std=c++14”)
+set (CUDA_ARCH -gencode=arch=compute_70,code=sm_70)
+set (CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CUDA_ARCH} -g -G)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/")
+set (CMAKE_CUDA_FLAGS ”-arch=sm_70 -std=c++14”)
 endif()
 
 # find package Thrust 
