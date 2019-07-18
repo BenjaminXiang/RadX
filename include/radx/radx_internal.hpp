@@ -86,14 +86,14 @@ namespace radx {
         vk::PipelineLayout pipelineLayout;
 
         // internal methods (for devs)
-        virtual VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) { return VK_SUCCESS; };
-        virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return VK_SUCCESS; };
+        virtual cvk::VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, cvk::VkResult& vkres) { return cvk::VK_SUCCESS; };
+        virtual cvk::VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) { return cvk::VK_SUCCESS; };
 
     public:
         Algorithm(): groupX(1){};
 
         friend Sort<Algorithm>;
-        virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) { return VK_SUCCESS; };
+        virtual cvk::VkResult initialize(const std::shared_ptr<radx::Device>& device) { return cvk::VK_SUCCESS; };
 
         // can be used by children 
         virtual operator Algorithm&() { return *this; };
@@ -127,7 +127,7 @@ namespace radx {
 
         // TODO: add unique ptr support of input interface 
         virtual Sort<T>& command(const vk::CommandBuffer& cmdBuf, std::shared_ptr<radx::InputInterface>& inputInterface){
-            VkResult vkres = VK_SUCCESS; algorithm->command(cmdBuf, internalInterface, inputInterface, vkres); //return vkres;
+            cvk::VkResult vkres = cvk::VK_SUCCESS; algorithm->command(cmdBuf, internalInterface, inputInterface, vkres); //return vkres;
             return *this;
         };
 
@@ -137,14 +137,14 @@ namespace radx {
     class Radix : public Algorithm, public std::enable_shared_from_this<Radix> {
     protected:
         uint32_t counting = 0, partition = 1, scattering = 2, indiction = 3, permutation = 4, resolve = 5;
-        virtual VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) override;
+        virtual cvk::VkResult command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, cvk::VkResult& vkres) override;
 
     public:
         Radix() { this->groupX = 108u; };
 
         friend Sort<Radix>;
-        virtual VkResult initialize(const std::shared_ptr<radx::Device>& device) override;
-        virtual VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override;
+        virtual cvk::VkResult initialize(const std::shared_ptr<radx::Device>& device) override;
+        virtual cvk::VkResult createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount = 1024 * 1024) override;
     };
 
 };

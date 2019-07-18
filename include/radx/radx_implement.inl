@@ -19,7 +19,7 @@ namespace radx {
         const std::shared_ptr<radx::Device>& device,
         vk::DeviceSize dsize,
         vk::BufferUsageFlags bufferUsage,
-        VmaMemoryUsage vmaUsage, bool alwaysMapped
+        vma::VmaMemoryUsage vmaUsage, bool alwaysMapped
     ) : device(device) {
 
         // Create the buffer object without memory.
@@ -31,12 +31,12 @@ namespace radx {
         ci.pQueueFamilyIndices = device->queueFamilyIndices().data();
 
         // 
-        VmaAllocationCreateInfo aci{};
-        aci.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        vma::VmaAllocationCreateInfo aci{};
+        aci.flags |= vma::VMA_ALLOCATION_CREATE_MAPPED_BIT;
         aci.usage = this->usage = vmaUsage;
 
         //
-        vmaCreateBuffer(*device, (VkBufferCreateInfo*)&ci, &aci, (VkBuffer*)&buffer, &allocation, &allocationInfo);
+        vma::vmaCreateBuffer(*device, (cvk::VkBufferCreateInfo*)&ci, &aci, (cvk::VkBuffer*)&buffer, &allocation, &allocationInfo);
 
         // 
         bufInfo = { buffer, 0, VK_WHOLE_SIZE };
@@ -44,8 +44,8 @@ namespace radx {
 
     // Get mapped memory
     void* VmaAllocatedBuffer::map() {
-        if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && !allocationInfo.pMappedData) {
-            vmaMapMemory(*device, allocation, &mappedData);
+        if (this->usage == vma::VMA_MEMORY_USAGE_GPU_ONLY && !allocationInfo.pMappedData) {
+            vma::vmaMapMemory(*device, allocation, &mappedData);
         }
         else {
             mappedData = allocationInfo.pMappedData;
@@ -55,8 +55,8 @@ namespace radx {
 
     // GPU unmap memory
     void VmaAllocatedBuffer::unmap() {
-        if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && mappedData) {
-            vmaUnmapMemory(*device, allocation);
+        if (this->usage == vma::VMA_MEMORY_USAGE_GPU_ONLY && mappedData) {
+            vma::vmaUnmapMemory(*device, allocation);
         };
     };
 
@@ -68,11 +68,11 @@ namespace radx {
 		vk::Format format,
 		vk::Extent2D dsize,
 		vk::ImageUsageFlags imageUsage,
-		VmaMemoryUsage vmaUsage, 
+        vma::VmaMemoryUsage vmaUsage,
 		bool alwaysMapped
 	) {
 		// result will no fully handled
-		VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+		cvk::VkResult result = cvk::VK_ERROR_INITIALIZATION_FAILED;
 
 		// init image dimensional type
 		vk::ImageType imageType = vk::ImageType::e2D; bool isCubemap = false;
@@ -89,27 +89,27 @@ namespace radx {
 
 		// additional usage
 		//auto usage = vk::ImageUsageFlags(cinfo.usage) | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc;
-		auto usage = VkImageUsageFlags(imageUsage) | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		auto usage = cvk::VkImageUsageFlags(imageUsage) | cvk::VK_IMAGE_USAGE_TRANSFER_DST_BIT | cvk::VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		// image memory descriptor
 #ifdef VRT_ENABLE_VEZ_INTEROP
 		auto imageInfo = VezImageCreateInfo{};
 #else
-		auto imageInfo = VkImageCreateInfo(vk::ImageCreateInfo{});
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.sharingMode = VkSharingMode(vk::SharingMode::eExclusive);
+		auto imageInfo = cvk::VkImageCreateInfo(vk::ImageCreateInfo{});
+		imageInfo.sType = cvk::VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.initialLayout = cvk::VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.sharingMode = cvk::VkSharingMode(vk::SharingMode::eExclusive);
 #endif
 
 		// unified create structure
 		imageInfo.pNext = nullptr;
-		imageInfo.imageType = VkImageType(imageType);
+		imageInfo.imageType = cvk::VkImageType(imageType);
 		imageInfo.arrayLayers = 1; // unsupported
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.extent = VkExtent3D{ dsize.width, dsize.height, (isCubemap ? 6u : 1u) };
-		imageInfo.format = VkFormat(format);
+		imageInfo.tiling = cvk::VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.extent = cvk::VkExtent3D{ dsize.width, dsize.height, (isCubemap ? 6u : 1u) };
+		imageInfo.format = cvk::VkFormat(format);
 		imageInfo.mipLevels = 1;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.samples = cvk::VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.usage = usage;
 		imageInfo.flags = {};
 
@@ -123,9 +123,9 @@ namespace radx {
 		VezMemoryFlags mem = VEZ_MEMORY_GPU_ONLY;
 		if (vezCreateImage(device->_device, mem, &imageInfo, &vtDeviceImage->_image) == VK_SUCCESS) { result = VK_SUCCESS; };
 #else
-		VmaAllocationCreateInfo allocCreateInfo = {};
-		allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-		if (vmaCreateImage(*device, &imageInfo, &allocCreateInfo, (VkImage*)&image, &allocation, &allocationInfo) == VK_SUCCESS) { result = VK_SUCCESS; };
+        vma::VmaAllocationCreateInfo allocCreateInfo = {};
+		allocCreateInfo.usage = vma::VMA_MEMORY_USAGE_GPU_ONLY;
+		if (vmaCreateImage(*device, &imageInfo, &allocCreateInfo, (cvk::VkImage*)&image, &allocation, &allocationInfo) == cvk::VK_SUCCESS) { result = cvk::VK_SUCCESS; };
 #endif
 
 
@@ -148,15 +148,15 @@ namespace radx {
 		auto vinfo = VezImageViewCreateInfo{};
 		vinfo.subresourceRange = *(VezImageSubresourceRange*)(&vtDeviceImage->_subresourceRange.baseMipLevel);
 #else
-		auto vinfo = VkImageViewCreateInfo(vk::ImageViewCreateInfo{});
+		auto vinfo = cvk::VkImageViewCreateInfo(vk::ImageViewCreateInfo{});
 		vinfo.subresourceRange = srange;
 		vinfo.flags = {};
 #endif
 		vinfo.pNext = nullptr;
-		vinfo.components = VkComponentMapping{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-		vinfo.format = VkFormat(format);
+		vinfo.components = cvk::VkComponentMapping{ cvk::VK_COMPONENT_SWIZZLE_R, cvk::VK_COMPONENT_SWIZZLE_G, cvk::VK_COMPONENT_SWIZZLE_B, cvk::VK_COMPONENT_SWIZZLE_A };
+		vinfo.format = cvk::VkFormat(format);
 		vinfo.image = image;
-		vinfo.viewType = VkImageViewType(imageViewType);
+		vinfo.viewType = cvk::VkImageViewType(imageViewType);
 
 #ifdef VRT_ENABLE_VEZ_INTEROP
 		vezCreateImageView(device->_device, &vinfo, &vtDeviceImage->_imageView);
@@ -174,7 +174,7 @@ namespace radx {
 
 	// Get mapped memory
 	void* VmaAllocatedImage::map() {
-		if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && !allocationInfo.pMappedData) {
+		if (this->usage == vma::VMA_MEMORY_USAGE_GPU_ONLY && !allocationInfo.pMappedData) {
 			vmaMapMemory(*device, allocation, &mappedData);
 		}
 		else {
@@ -185,7 +185,7 @@ namespace radx {
 
 	// GPU unmap memory
 	void VmaAllocatedImage::unmap() {
-		if (this->usage == VMA_MEMORY_USAGE_GPU_ONLY && mappedData) {
+		if (this->usage == vma::VMA_MEMORY_USAGE_GPU_ONLY && mappedData) {
 			vmaUnmapMemory(*device, allocation);
 		};
 	};
@@ -237,14 +237,14 @@ namespace radx {
 #endif
 
             // create Vma allocator
-            VmaAllocatorCreateInfo allocatorInfo = {};
+            vma::VmaAllocatorCreateInfo allocatorInfo = {};
 #ifdef VOLK_H_
             allocatorInfo.pVulkanFunctions = &vfuncs;
 #endif
-            allocatorInfo.physicalDevice = VkPhysicalDevice(*this->physicalHelper);
-            allocatorInfo.device = VkDevice(*this);
+            allocatorInfo.physicalDevice = cvk::VkPhysicalDevice(*this->physicalHelper);
+            allocatorInfo.device = cvk::VkDevice(*this);
             allocatorInfo.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);
-            allocatorInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            allocatorInfo.flags = vma::VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || vma::VMA_ALLOCATION_CREATE_MAPPED_BIT;
             allocatorInfo.pAllocationCallbacks = nullptr;
             allocatorInfo.pHeapSizeLimit = nullptr;
             vmaCreateAllocator(&allocatorInfo, &this->allocator);
@@ -388,7 +388,7 @@ namespace radx {
     };
 
 
-    VkResult Radix::initialize(const std::shared_ptr<radx::Device>& device) {
+    cvk::VkResult Radix::initialize(const std::shared_ptr<radx::Device>& device) {
         this->device = device;
         std::vector<vk::DescriptorSetLayout> setLayouts = device->getDescriptorSetLayoutSupport();
 
@@ -414,11 +414,11 @@ namespace radx {
         this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::permutation), pipelineLayout, *device));
 
         // return shared_ptr when needed
-        return VK_SUCCESS;
+        return cvk::VK_SUCCESS;
     };
 
 
-    VkResult Radix::command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, VkResult& vkres) {
+    cvk::VkResult Radix::command(const vk::CommandBuffer& cmdBuf, const std::unique_ptr<radx::InternalInterface>& internalInterface, const std::shared_ptr<radx::InputInterface>& inputInterface, cvk::VkResult& vkres) {
         std::vector<vk::DescriptorSet> descriptors = { *internalInterface, *inputInterface };
         cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->pipelineLayout, 0, descriptors, {});
 
@@ -443,11 +443,11 @@ namespace radx {
 
         };
 
-        return VK_SUCCESS;
+        return cvk::VK_SUCCESS;
     };
 
 
-    VkResult Radix::createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount) {
+    cvk::VkResult Radix::createInternalMemory(std::unique_ptr<radx::InternalInterface>& internalInterface, const size_t& maxElementCount) {
         vk::DeviceSize tileFix = 4u * this->groupX;
 
         vk::DeviceSize
@@ -486,7 +486,7 @@ namespace radx {
         // command for build descriptor set
         internalInterface->buildMemory(memorySize).buildDescriptorSet();
 
-        return VK_SUCCESS;
+        return cvk::VK_SUCCESS;
     };
 #endif
 

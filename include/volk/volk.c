@@ -8,6 +8,7 @@
 #endif
 
 #ifdef __cplusplus
+namespace cvk {
 extern "C" {
 #endif
 
@@ -1597,5 +1598,5 @@ PFN_vkAcquireNextImage2KHR vkAcquireNextImage2KHR;
 #endif
 
 #ifdef __cplusplus
-}
+}};
 #endif

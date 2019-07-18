@@ -1671,6 +1671,11 @@ available through VmaAllocatorCreateInfo::pRecordSettings.
     #include <windows.h>
 #endif
 
+#ifdef __cplusplus
+namespace vma { // NAMESPACED VMA PATCH
+    using namespace cvk; // USE NAMESPACED VULKAN
+#endif
+
 #if !defined(VMA_DEDICATED_ALLOCATION)
     #if VK_KHR_get_memory_requirements2 && VK_KHR_dedicated_allocation
         #define VMA_DEDICATED_ALLOCATION 1
@@ -3120,7 +3125,7 @@ void vmaDestroyImage(
     VmaAllocation allocation);
 
 #ifdef __cplusplus
-}
+}};
 #endif
 
 #endif // AMD_VULKAN_MEMORY_ALLOCATOR_H
@@ -3401,6 +3406,8 @@ If providing your own implementation, you need to implement a subset of std::ato
     #include <atomic>
     #define VMA_ATOMIC_UINT32 std::atomic<uint32_t>
 #endif
+
+namespace vma { // NAMESPACED VMA PATCH
 
 #ifndef VMA_DEBUG_ALWAYS_DEDICATED_MEMORY
     /**
@@ -17038,4 +17045,5 @@ void vmaDestroyImage(
     }
 }
 
+};
 #endif // #ifdef VMA_IMPLEMENTATION

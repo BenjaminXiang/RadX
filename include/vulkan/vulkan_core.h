@@ -2,6 +2,7 @@
 #define VULKAN_CORE_H_ 1
 
 #ifdef __cplusplus
+namespace cvk { // NAMESPACED VULKAN PATCH
 extern "C" {
 #endif
 
@@ -9442,7 +9443,7 @@ VKAPI_ATTR void VKAPI_CALL vkResetQueryPoolEXT(
 #endif
 
 #ifdef __cplusplus
-}
+}}; // NAMESPACED VULKAN PATCH
 #endif
 
 #endif

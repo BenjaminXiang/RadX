@@ -2,6 +2,8 @@
 #include "radx_core.hpp"
 #include "radx_device.hpp"
 #include <memory>
+#include <array>
+#include <string>
 
 namespace radx {
     namespace paths {

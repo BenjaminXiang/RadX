@@ -15,20 +15,20 @@ namespace radx {
         vk::PhysicalDeviceFeatures2 features = {};
         vk::PhysicalDeviceProperties2 properties = {};
         std::vector<uint32_t> queueFamilyIndices = {};
-        VmaAllocator allocator = {};
+        vma::VmaAllocator allocator = {};
 
         // required (if there is no, will generated)
         std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
         
-        virtual VkResult getFeaturesWithProperties(){
+        virtual cvk::VkResult getFeaturesWithProperties(){
             this->features = physicalDevice.getFeatures2();
             this->properties = physicalDevice.getProperties2();
-            return VK_SUCCESS;
+            return cvk::VK_SUCCESS;
         };
 
-        virtual VkResult getVendorName(){
+        virtual cvk::VkResult getVendorName(){
             driverWrap = paths::getNamedDriver(this->properties.properties.vendorID, this->features.features.shaderInt16);
-            return VK_SUCCESS;
+            return cvk::VK_SUCCESS;
         };
 
     public:
@@ -40,7 +40,7 @@ namespace radx {
         };
 
         // require vendor name 
-        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice, const VmaAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
+        PhysicalDeviceHelper(const vk::PhysicalDevice& physicalDevice, const vma::VmaAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
             this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             this->allocator = allocator;
         };
@@ -55,8 +55,8 @@ namespace radx {
         operator const vk::PhysicalDevice&() const { return physicalDevice; };
 
 
-        operator VkPhysicalDevice&() { return (VkPhysicalDevice&)physicalDevice; };
-        operator const VkPhysicalDevice&() const { return (VkPhysicalDevice&)physicalDevice; };
+        operator cvk::VkPhysicalDevice&() { return (cvk::VkPhysicalDevice&)physicalDevice; };
+        operator const cvk::VkPhysicalDevice&() const { return (cvk::VkPhysicalDevice&)physicalDevice; };
     };
 
     class Device : public std::enable_shared_from_this<Device> {
@@ -71,12 +71,12 @@ namespace radx {
         uint32_t sortInput = 1, sortInterface = 0;
 
         std::shared_ptr<radx::PhysicalDeviceHelper> physicalHelper;
-        VmaAllocator allocator = {};
+        vma::VmaAllocator allocator = {};
 
     public:
         ~Device() {
             device.waitIdle(); // wait idle before than device has been destroyed
-            vmaDestroyAllocator(allocator);
+            vma::vmaDestroyAllocator(allocator);
         };
 
         const std::vector<vk::DescriptorSetLayout>& getDescriptorSetLayoutSupport() const { return descriptorLayouts; };
@@ -119,11 +119,11 @@ namespace radx {
         operator const vk::Device&() const { return device; };
 
         // vk::Device caster
-        operator VkDevice&() { return (VkDevice&)device; };
-        operator const VkDevice&() const { return (VkDevice&)device; };
+        operator cvk::VkDevice&() { return (cvk::VkDevice&)device; };
+        operator const cvk::VkDevice&() const { return (cvk::VkDevice&)device; };
 
         // VmaAllocator caster
-        operator VmaAllocator&() { return allocator; };
-        operator const VmaAllocator&() const { return allocator; };
+        operator vma::VmaAllocator&() { return allocator; };
+        operator const vma::VmaAllocator&() const { return allocator; };
     };
 };

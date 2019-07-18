@@ -12,11 +12,11 @@ namespace radx {
             const std::shared_ptr<radx::Device>& device, 
             vk::DeviceSize dsize = sizeof(uint32_t), 
             vk::BufferUsageFlags bufferUsage = vk::BufferUsageFlagBits::eStorageBuffer, 
-            VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
+            vma::VmaMemoryUsage vmaUsage = vma::VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
         );
 
         ~VmaAllocatedBuffer() {
-            vmaDestroyBuffer(*device, *this, allocation);
+            vma::vmaDestroyBuffer(*device, *this, allocation);
         };
 
         // Get mapped memory
@@ -28,15 +28,15 @@ namespace radx {
         // vk::Device caster
         //operator vk::Buffer&() { return buffer; };
         operator const vk::Buffer&() const { return buffer; };
-        operator const VkBuffer&() const { return (VkBuffer&)buffer; };
+        operator const cvk::VkBuffer&() const { return (cvk::VkBuffer&)buffer; };
 
         // Allocation
         //operator VmaAllocation&() { return allocation; };
-        operator const VmaAllocation&() const { return allocation; };
+        operator const vma::VmaAllocation&() const { return allocation; };
 
         // AllocationInfo
         //operator VmaAllocationInfo&() { return allocationInfo; };
-        operator const VmaAllocationInfo&() const { return allocationInfo; };
+        operator const vma::VmaAllocationInfo&() const { return allocationInfo; };
         
         // 
         operator const vk::DescriptorBufferInfo&() const { return bufInfo; };
@@ -44,9 +44,9 @@ namespace radx {
     protected:
         void * mappedData = {};
         vk::Buffer buffer;
-        VmaAllocation allocation;
-        VmaAllocationInfo allocationInfo;
-        VmaMemoryUsage usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        vma::VmaAllocation allocation;
+        vma::VmaAllocationInfo allocationInfo;
+        vma::VmaMemoryUsage usage = vma::VMA_MEMORY_USAGE_GPU_ONLY;
         std::shared_ptr<radx::Device> device;
         vk::DescriptorBufferInfo bufInfo = {};
     };
@@ -59,9 +59,9 @@ namespace radx {
 		vk::ImageLayout layout = vk::ImageLayout::eGeneral;
 		vk::ImageSubresourceRange  srange = {};
 		vk::ImageSubresourceLayers slayers = {};
-		VmaAllocation allocation = {};
-		VmaAllocationInfo allocationInfo = {};
-		VmaMemoryUsage usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        vma::VmaAllocation allocation = {};
+        vma::VmaAllocationInfo allocationInfo = {};
+        vma::VmaMemoryUsage usage = vma::VMA_MEMORY_USAGE_GPU_ONLY;
 		std::shared_ptr<radx::Device> device = {};
 		vk::DescriptorImageInfo imageDesc = {};
 
@@ -73,7 +73,7 @@ namespace radx {
 			vk::Format format = vk::Format::eR8G8B8A8Unorm,
 			vk::Extent2D dsize = { 2,2 },
 			vk::ImageUsageFlags bufferUsage = vk::ImageUsageFlagBits::eStorage,
-			VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
+            vma::VmaMemoryUsage vmaUsage = vma::VMA_MEMORY_USAGE_GPU_ONLY, bool alwaysMapped = false
 		);
 
 		~VmaAllocatedImage() {
@@ -89,15 +89,15 @@ namespace radx {
 		// vk::Device caster
 		//operator vk::Buffer&() { return buffer; };
 		operator const vk::Image& () const { return image; };
-		operator const VkImage& () const { return (VkImage&)image; };
+		operator const cvk::VkImage& () const { return (cvk::VkImage&)image; };
 
 		// Allocation
 		//operator VmaAllocation&() { return allocation; };
-		operator const VmaAllocation& () const { return allocation; };
+		operator const vma::VmaAllocation& () const { return allocation; };
 
 		// AllocationInfo
 		//operator VmaAllocationInfo&() { return allocationInfo; };
-		operator const VmaAllocationInfo& () const { return allocationInfo; };
+		operator const vma::VmaAllocationInfo& () const { return allocationInfo; };
 
 		// 
 		operator const vk::ImageView& () const { return imageView; };

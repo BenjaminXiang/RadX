@@ -26,6 +26,7 @@
 #endif
 
 #ifdef __cplusplus
+namespace cvk {
 extern "C" {
 #endif
 
@@ -999,7 +1000,7 @@ extern PFN_vkAcquireNextImage2KHR vkAcquireNextImage2KHR;
 /* VOLK_GENERATE_PROTOTYPES_H */
 
 #ifdef __cplusplus
-}
+}};
 #endif
 
 #endif
