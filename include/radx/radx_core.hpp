@@ -1,11 +1,11 @@
-#pragma once 
+#pragma once
 
 // include vulkan API 
 //#include <intrin.h>
 //#include <vulkan/vulkan.h>
 //#include <volk/volk.h>
-#include <vulkan/vulkan.hpp>
-#include <botanic/red21.h>
+#include "../vulkan/vulkan.hpp"
+#include "../red21/botanic.h"
 //#include <volk/volk.h>
 //namespace cvk {
     #include <vma/vk_mem_alloc.h>

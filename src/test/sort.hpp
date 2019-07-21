@@ -58,22 +58,14 @@ namespace rad {
             "VK_EXT_hdr_metadata",
             "VK_EXT_queue_family_foreign",
             "VK_EXT_sampler_filter_minmax",
-            "VK_EXT_descriptor_indexing",
-            "VK_EXT_scalar_block_layout",
             "VK_EXT_inline_uniform_block",
 
-            "VK_AMD_gpu_shader_int16",
-            "VK_AMD_gpu_shader_half_float",
-            "VK_AMD_gcn_shader",
             "VK_AMD_buffer_marker",
-            "VK_AMD_shader_info",
             "VK_AMD_texture_gather_bias_lod",
             "VK_AMD_shader_image_load_store_lod",
             "VK_AMD_shader_trinary_minmax",
             "VK_AMD_draw_indirect_count",
 
-            "VK_KHR_16bit_storage",
-            "VK_KHR_8bit_storage",
             "VK_KHR_incremental_present",
             "VK_KHR_push_descriptor",
             "VK_KHR_swapchain",
@@ -82,29 +74,47 @@ namespace rad {
             "VK_KHR_shader_draw_parameters",
             "VK_KHR_variable_pointers",
             "VK_KHR_dedicated_allocation",
-            "VK_KHR_relaxed_block_layout",
             "VK_KHR_descriptor_update_template",
             "VK_KHR_sampler_mirror_clamp_to_edge",
             "VK_KHR_storage_buffer_storage_class",
-            "VK_KHR_vulkan_memory_model",
             "VK_KHR_dedicated_allocation",
-            "VK_KHR_driver_properties",
             "VK_KHR_get_memory_requirements2",
             "VK_KHR_bind_memory2",
-            "VK_KHR_maintenance1",
-            "VK_KHR_maintenance2",
-            "VK_KHR_maintenance3",
-            "VK_KHX_shader_explicit_arithmetic_types",
-            "VK_KHR_shader_atomic_int64",
-            "VK_KHR_shader_float16_int8",
             "VK_KHR_shader_float_controls",
             
             "VK_NV_compute_shader_derivatives",
             "VK_NV_corner_sampled_image",
             "VK_NV_shader_image_footprint",
-            "VK_NV_shader_subgroup_partitioned",
 
-            "VK_NV_ray_tracing",
+            //"VK_NV_ray_tracing", USELESS, legacy from vRtX
+
+            // RadX2 (General), planned, required
+            "VK_KHR_maintenance1",
+            "VK_KHR_maintenance2",
+            "VK_KHR_maintenance3",
+            "VK_KHR_16bit_storage",
+            "VK_KHR_8bit_storage",
+            "VK_KHX_shader_explicit_arithmetic_types",
+            "VK_KHR_shader_atomic_int64",
+            "VK_KHR_shader_float16_int8",
+            "VK_KHR_driver_properties",
+            "VK_KHR_vulkan_memory_model",
+            "VK_KHR_relaxed_block_layout",
+            "VK_EXT_scalar_block_layout",
+            "VK_EXT_descriptor_indexing",
+
+            // RadX2 (SM7-Edition), planned
+            "VK_NV_shader_subgroup_partitioned",
+            "VK_NV_shader_sm_builtins",
+            "VK_EXT_subgroup_size_control",
+
+            // RadX2 (RDNA-Edition), planned
+            "VK_AMD_shader_info",
+            "VK_AMD_gcn_shader",
+            "VK_AMD_gpu_shader_int16",
+            "VK_AMD_gpu_shader_half_float",
+            "VK_AMD_shader_ballot"
+            //"VK_EXT_subgroup_size_control" // already on-use
         };
 
         // instance layers
