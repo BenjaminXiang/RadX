@@ -27,24 +27,25 @@ shared uint localPartSum[Wave_Count_RX];
 layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB {uint counts[][RADICES]; };
 layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB {uint partitions[][RADICES]; };
 
-// TODO: subgroupExclusiveAdd support for 16u elemented!!!
+// Still in Emulation 
 // X axis is workgroup count, Y is radices
 void main() {
+    const lowp uint w = Local_Idx>>4u, ln = Local_Idx&15u;
     [[flatten]] if (Local_Idx < RADICES) localPartitions[Local_Idx] = 0u;
 
     subgroupBarrier();
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
-        const lowp uint radice = rk + Wave_Idx;
+        const lowp uint radice = rk+w;
         [[flatten]] if (radice < RADICES) { // calculate partitions by work-groups for every radice
             [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
-                const lowp uint workgroup = gp+Lane_Idx;
+                const lowp uint workgroup = gp+ln;
                 const uint16_t mask = sgrblt(workgroup < WG_COUNT && radice < RADICES);
                 const uint 
                     histv = bltinv(mask) ? counts[workgroup][radice] : 0u,
-                    scan = subgroupExclusiveAdd(histv), // TODO: bugged
-                    sum = subgroupShuffle(histv + scan, msb(uint(mask))); // TODO: bugged
+                    scan = sgrsumex(histv),
+                    sum = sgrshf(histv + scan, msb(uint(mask)));
 
-                const uint pref = localPartitions[radice]; [[flatten]] if (electedInvoc()) { localPartitions[radice] += sum; }; //pref = readFLane(pref);
+                const uint pref = localPartitions[radice]; [[flatten]] if (lsb(uint(mask))==ln) { localPartitions[radice] += sum; }; //pref = readFLane(pref);
                 [[flatten]] if (bltinv(mask)) { partitions[workgroup][radice] = (pref + scan); };
             };
         };
@@ -53,17 +54,17 @@ void main() {
     subgroupBarrier();
     const uint WG_COUNT_UP = tiled(WG_COUNT, Wave_Count_RX)*Wave_Count_RX;
     [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT_UP;gp+=Wave_Count_RX) {
-        const lowp uint workgroup = gp + Wave_Idx;
+        const lowp uint workgroup = gp+w;
         [[flatten]] if (workgroup < WG_COUNT) { uint partsum = 0u; // calculate partition offsets of every radice
             [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
-                const lowp uint radice = rk + Lane_Idx;
+                const lowp uint radice = rk+ln;
                 const uint16_t mask = sgrblt(workgroup < WG_COUNT && radice < RADICES);
                 const uint 
                     histv = bltinv(mask) ? localPartitions[radice] : 0u,
-                    scan = subgroupExclusiveAdd(histv), // TODO: bugged
-                    sum = subgroupShuffle(histv + scan, msb(uint(mask))); // TODO: bugged
+                    scan = sgrsumex(histv),
+                    sum = sgrshf(histv + scan, msb(uint(mask)));
 
-                const uint pref = readFLane(partsum); [[flatten]] if (electedInvoc()) { partsum += sum; }; //pref = readFLane(pref);
+                const uint pref = sgrshf(partsum,0u); [[flatten]] if (lsb(uint(mask))==ln) { partsum += sum; }; //pref = readFLane(pref);
                 [[flatten]] if (bltinv(mask)) { partitions[workgroup][radice] += (pref + scan); };
             };
         };

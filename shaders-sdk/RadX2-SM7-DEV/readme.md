@@ -7,3 +7,5 @@ Enable these extensions as default and required...
 - `VK_EXT_subgroup_size_control`
 
 Also, all headers will re-included and remedy! Also old version will removed!
+
+In Dev version most features was emulated!

@@ -50,27 +50,22 @@
 //#define Wave_Count_RX Wave_Count_RT 
 
 // SM configuration
-//#define VEC_SIZE 8u // shared memory limited, but optimal for RTX 2080
-//#define VEC_MULT VEC_SIZE
-//#define VEC_SHIF 4u
-//#define VEC_MASK 15u//3u
-#define VEC_SIZE 8u // shared memory limited, but optimal for RTX 2080
+#define VEC_SIZE 16u //shared memory limited, but optimal for RTX 2080
 #define VEC_MULT VEC_SIZE
 #define VEC_SHIF 4u
-#define VEC_MASK 15u//3u
-#define wcmsk w&VEC_MASK
+#define VEC_MASK 15u
 
 // 
 //#ifdef ENABLE_SUBGROUP_PARTITION_SORT
-#define Wave_Count 8u//VEC_SIZE
+#define Wave_Count VEC_SIZE
 //#else
 //#define Wave_Count 16u
 //#endif
 
 // default values
-#ifndef BLOCK_SIZE
-#define BLOCK_SIZE (Wave_Size*Wave_Count)
-#endif
+//#ifndef BLOCK_SIZE
+//#define BLOCK_SIZE (Wave_Size*Wave_Count)
+//#endif
 
 
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
@@ -119,7 +114,7 @@
     #define sgpblt ballotARB
     #define sgpble ballotARB
 #else
-    #define sgpcnt(m) bitcnt(extblt(gl_SubgroupLtMask)&m)
+    #define sgpcnt(m) bitcnt(uint(genLtMask()&m))
     #define sgpble(m) sgrblt(m)//extbl2(sgrblt(m))
     #ifdef ENABLE_SUBGROUP_PARTITION_SORT
         #define sgpblt(m) sgrprt(m)//extblt(sgrprt(m))
@@ -129,24 +124,24 @@
 #endif
 
 
-#ifdef ENABLE_SUBGROUP_PARTITION_SORT
+//#ifdef ENABLE_SUBGROUP_PARTITION_SORT
     #define sgpexc sgrprt
     #define sgpkpl keyW
-#else
-    #define sgpexc(m) sgrblt(true)
-    #define sgpkpl (r+wT)
-#endif
+//#else
+//    #define sgpexc(m) sgrblt(true)
+//    #define sgpkpl (r+wT)
+//#endif
 
 
 #ifdef USE_MORTON_32
 #define KEYTYPE uint32_t
-//lowp uint BFE(in uint32_t ua, in int o, in int n) { return bitfieldExtract(ua, o, n); }
 #define BFE bitfieldExtract
 #else
 #define KEYTYPE u32vec2
 lowp uint BFE(in u32vec2 ua, in int o, in int n) { return uint(o >= 32 ? bitfieldExtract(ua.y, o-32, n) : bitfieldExtract(ua.x, o, n)); }
 #endif
 
+// 
 struct RadicePropStruct { uint Descending, IsSigned; };
 
 #ifdef COPY_HACK_IDENTIFY
@@ -168,6 +163,7 @@ layout ( push_constant ) uniform PushBlock { uint Shift, ELCNT, r1, r2; } push_b
 layout ( binding = 6, set = 0, scalar ) uniform InlineUniformB { uint data; } internal_block[];
 layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data; } inline_block[];
 
+// 
 #define NumElements inline_block[0].data
 #define InputKeys 1
 
@@ -175,14 +171,14 @@ layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 struct blocks_info { uint count, limit, offset, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
-        block_tile = Wave_Size * VEC_SIZE,//(Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
+        block_tile = gl_WorkGroupSize.x,//(Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
         block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,
         block_limit = block_offset + block_size,
         block_count = tiled(block_size, block_tile);
 
-    return blocks_info(block_count, min(block_limit, n), block_size*gl_WorkGroupID.x, (block_size>>VEC_SHIF)*gl_WorkGroupID.x);
+    return blocks_info(block_count, min(block_limit, n), block_offset, block_size*gl_WorkGroupID.x);
 };
 
 

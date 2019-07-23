@@ -103,7 +103,7 @@ T fname(in  uint WHERE) {\
 #define initSubgroupIncReducedFunctionTarget(mem, fname, by, T)\
 void fname(in  uint WHERE) {\
     const lowp uint pfx = bSum();\
-    if (subgroupElect()) {atomicAdd(mem, T(pfx.x) * T(by), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed);};\
+    [[flatten]] if (subgroupElect()) {atomicAdd(mem, T(pfx.x) * T(by), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed);};\
 };
 
 
@@ -111,6 +111,17 @@ void fname(in  uint WHERE) {\
 uint16_t sgrblt(in bool k) { return unpack16(subgroupBallot(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t sgrprt(in lowp uint k) { return unpack16(subgroupPartitionNV(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
+//uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 
+uint sgrshf(in uint bk, in uint ps){
+    return subgroupShuffle(bk,(ps&15u)|((gl_SubgroupInvocationID>>4u)<<4u));
+}
+
+uint sgrsumex(in uint bk) {
+    uint sm = 0u;
+    [[flatten]] if (gl_SubgroupInvocationID < 16u) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID < 16u ? bk : 0u); // blurry part I
+    [[flatten]] if (gl_SubgroupInvocationID >=16u) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID >=16u ? bk : 0u); // blurry part II
+    return sm;
+}
 
 #endif
