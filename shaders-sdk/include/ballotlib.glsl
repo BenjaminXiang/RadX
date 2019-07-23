@@ -4,40 +4,26 @@
 #include "../include/mathlib.glsl"
 
 // for constant maners
-#ifndef Wave_Size
-    #if (defined(AMD_PLATFORM))
-        #define bqtype_t uint64_t
-        #define bqtype2 u64vec2
-        #define Wave_Size 64u
-        #define bqualf highp
-        bqtype_t extblt(in uvec4 blt){return pack64(blt.xy);};
-        bqtype2 extbl2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
-        bool bltinv(in bqtype_t a){return subgroupInverseBallot(uvec4(unpack32(a),0u.xx));};
-    #else
-        #define bqtype_t uint32_t
-        #define bqtype2 u32vec2
-        #define Wave_Size 32u
-        #define bqualf lowp
-        bqtype_t extblt(in uvec4 blt){return blt.x;};
-        bqtype2 extbl2(in uvec4 blt){return blt.xy;};
-        bool bltinv(in bqtype_t a){return subgroupInverseBallot(uvec4(a,0u.xxx));};
-        //bool bltinv(in bqtype_t a) { const int l = int(gl_SubgroupInvocationID); return bool(bitfieldExtract(a,l,1)); };
-    #endif
-#endif
-
-
-#ifdef ENABLE_RTX_EDITION
-    u32vec4 fwp_rtx(in uint32_t W8_PER_4) {
-        return interleave32x4(u32vec4(W8_PER_4,0u.xxx));
-    }
-
-    u32vec4 fwp_rtx_u4(in bvec4 U4) {
-        return 
-            (fwp_rtx(subgroupBallot(U4.x).x)<<0) | 
-            (fwp_rtx(subgroupBallot(U4.y).x)<<1) | 
-            (fwp_rtx(subgroupBallot(U4.z).x)<<2) | 
-            (fwp_rtx(subgroupBallot(U4.w).x)<<3);
-    }
+#if (defined(AMD_PLATFORM))
+    #define bqtype_t uint64_t
+    #define bqtype2 u64vec2
+    #define Wave_Size 64u
+    #define bqualf highp
+    bqtype_t extblt(in uvec4 blt){return pack64(blt.xy);};
+    bqtype2 extbl2(in uvec4 blt){return bqtype2(pack64(blt.xy),pack64(blt.zw));};
+    bool bltinv(in bqtype_t a){return subgroupInverseBallot(uvec4(unpack32(a),0u.xx));};
+#else
+    #define bqtype_t uint16_t
+    #define bqtype2 uint32_t
+    #define bqtype4 uint64_t
+    #define Wave_Size 16u//32u
+    #define bqualf lowp
+    bqtype_t extblt(in uvec4 blt){ return unpack16(blt.x)[gl_SubgroupInvocationID>>4u]; };
+    bqtype2 extbl2(in uvec4 blt){ return blt.x; };
+    bool bltinv(in bqtype_t a){
+        u16vec2 m16 = u16vec2(0u); m16[gl_SubgroupInvocationID>>4u] = a;
+        return subgroupInverseBallot(uvec4(pack32(m16),0u.xxx));
+    };
 #endif
 
 
@@ -69,12 +55,10 @@
 // subgroup barriers
 //#define LGROUP_BARRIER subgroupBarrier();//memoryBarrier(),subgroupBarrier();
 #define LGROUP_BARRIER subgroupBarrier();
-#define IFALL(b) [[flatten]]if(subgroupAll(b))
-#define IFANY(b)            if(subgroupAny(b))
+#define IFALL(b) [[flatten]]if(subgroupAll(b)) // TODO: support 16-bit subgroups 
+#define IFANY(b)            if(subgroupAny(b)) // TODO: support 16-bit subgroups 
 
 const uint UONE = 1u;
-//lowp uvec2 bPrefixSum(in bool val) { return uvec2(subgroupAdd(uint(val)), subgroupExclusiveAdd(uint(val))); };
-//lowp uvec2 bPrefixSum() { return uvec2(subgroupAdd(UONE), subgroupExclusiveAdd(UONE)); };
 
 lowp uvec2 bPrefixSum() {
     const bqualf uvec4 ballot = subgroupBallot(true);
@@ -123,52 +107,10 @@ void fname(in  uint WHERE) {\
 };
 
 
-
-bqualf uvec4 sgrblt(in bool k) { return subgroupBallot(k); };
-
-//#ifdef ENABLE_TURING_INSTRUCTION_SET // better only for Turing GPU's
-#if (defined(AMD_PLATFORM))
-highp uvec4 sgrblt(in bvec2 k) { return interleave64x2(u32x4_t(
-#else
-highp uvec4 sgrblt(in bvec2 k) { return interleave32x2(u32x4_t(
-#endif
-    subgroupBallot(k[0]).x,
-    subgroupBallot(k[1]).x,
-    0u.xx
-));};
-uvec4 sgrblt(in bvec4 k) { return interleave32x4(u32x4_t(
-    subgroupBallot(k[0]).x,
-    subgroupBallot(k[1]).x,
-    subgroupBallot(k[2]).x,
-    subgroupBallot(k[3]).x
-));};
-//#endif
-
-#ifdef ENABLE_TURING_INSTRUCTION_SET
-bqualf uvec4 sgrprt(in lowp uint k) { return subgroupPartitionNV(k); };
-highp uvec4 sgrprt(in lowp uvec2 k) { return interleave32x2(u32x4_t(
-    subgroupPartitionNV(k[0]).x,
-    subgroupPartitionNV(k[1]).x,
-    0u.xx
-));};
-uvec4 sgrprt(in lowp uvec4 k) { return interleave32x4(u32x4_t(
-    subgroupPartitionNV(k[0]).x,
-    subgroupPartitionNV(k[1]).x,
-    subgroupPartitionNV(k[2]).x,
-    subgroupPartitionNV(k[3]).x
-));};
-#endif
-
-// 64-bit/64-lane bitfield mask only supported 
-#ifdef ENABLE_TURING_INSTRUCTION_SET
-highp uvec4 genLt2Mask(in uint N) {
-    const lowp uint cthread = ((Lane_Idx << 1u) + N);
-    const uint64_t tmask = (1ul << uint64_t(cthread))-1ul;
-    return uvec4(unpack32(tmask),0u.xx);
-};
-#endif
-
-bqualf uvec4 genLtMask(){ return gl_SubgroupLtMask; };
+// 
+uint16_t sgrblt(in bool k) { return unpack16(subgroupBallot(k).x)[gl_SubgroupInvocationID>>4u]; };
+uint16_t sgrprt(in lowp uint k) { return unpack16(subgroupPartitionNV(k).x)[gl_SubgroupInvocationID>>4u]; };
+uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 
 
 #endif

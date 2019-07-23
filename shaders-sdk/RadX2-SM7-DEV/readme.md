@@ -1,4 +1,4 @@
-# Rapid Sort NVIDIA SM7.X Edition
+# Rapid Sort NVIDIA SM7.X Edition (in-development)
 
 Enable these extensions as default and required...
 

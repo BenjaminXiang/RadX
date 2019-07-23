@@ -1,0 +1,71 @@
+#version 460 core
+#extension GL_GOOGLE_include_directive : enable
+
+#define EXTEND_LOCAL_GROUPS
+#include "../include/driver.glsl"
+#include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
+
+// default values
+#include "./includes.glsl"
+
+
+// current work group size
+const uint WG_COUNT = 108u;
+
+// local size 
+const uint Wave_Size_RX = 16u;
+const uint Wave_Count_RX = 64u;
+const uint local_size_def = Wave_Size_RX * Wave_Count_RX;//16u;
+layout ( local_size_x = local_size_def) in; // use many as possible
+
+// shared memory of...
+shared uint localPartitions[RADICES];
+shared uint localPartSum[Wave_Count_RX];
+
+// 
+layout ( binding = 3, set = 0, scalar ) readonly subgroupcoherent buffer HistogramB {uint counts[][RADICES]; };
+layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixSumB {uint partitions[][RADICES]; };
+
+// TODO: subgroupExclusiveAdd support for 16u elemented!!!
+// X axis is workgroup count, Y is radices
+void main() {
+    [[flatten]] if (Local_Idx < RADICES) localPartitions[Local_Idx] = 0u;
+
+    subgroupBarrier();
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
+        const lowp uint radice = rk + Wave_Idx;
+        [[flatten]] if (radice < RADICES) { // calculate partitions by work-groups for every radice
+            [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
+                const lowp uint workgroup = gp+Lane_Idx;
+                const uint16_t mask = sgrblt(workgroup < WG_COUNT && radice < RADICES);
+                const uint 
+                    histv = bltinv(mask) ? counts[workgroup][radice] : 0u,
+                    scan = subgroupExclusiveAdd(histv), // TODO: bugged
+                    sum = subgroupShuffle(histv + scan, msb(uint(mask))); // TODO: bugged
+
+                const uint pref = localPartitions[radice]; [[flatten]] if (electedInvoc()) { localPartitions[radice] += sum; }; //pref = readFLane(pref);
+                [[flatten]] if (bltinv(mask)) { partitions[workgroup][radice] = (pref + scan); };
+            };
+        };
+    };
+
+    subgroupBarrier();
+    const uint WG_COUNT_UP = tiled(WG_COUNT, Wave_Count_RX)*Wave_Count_RX;
+    [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT_UP;gp+=Wave_Count_RX) {
+        const lowp uint workgroup = gp + Wave_Idx;
+        [[flatten]] if (workgroup < WG_COUNT) { uint partsum = 0u; // calculate partition offsets of every radice
+            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {
+                const lowp uint radice = rk + Lane_Idx;
+                const uint16_t mask = sgrblt(workgroup < WG_COUNT && radice < RADICES);
+                const uint 
+                    histv = bltinv(mask) ? localPartitions[radice] : 0u,
+                    scan = subgroupExclusiveAdd(histv), // TODO: bugged
+                    sum = subgroupShuffle(histv + scan, msb(uint(mask))); // TODO: bugged
+
+                const uint pref = readFLane(partsum); [[flatten]] if (electedInvoc()) { partsum += sum; }; //pref = readFLane(pref);
+                [[flatten]] if (bltinv(mask)) { partitions[workgroup][radice] += (pref + scan); };
+            };
+        };
+    };
+};
