@@ -11,7 +11,7 @@
 
 layout (local_size_x = Wave_Size*Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size];
-shared sgp_tp validAddressL[VEC_SIZE], prtMskL[VEC_SIZE][RADICES];
+shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
 shared blocks_info blocks;
 
@@ -35,6 +35,7 @@ shared blocks_info blocks;
 const lowp int blp = 10-bshift;
 void main() {
     const lowp uint w = Local_Idx>>4u, ln = Local_Idx&15u;
+    const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
     [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
@@ -54,7 +55,7 @@ void main() {
         IFALL(all(not(predicate))) break;
 
         // 
-#define prmskM prtMskL[w][uint(keyW)]
+#define prmskM prtMskL[uint(keyW)][w]
 #define validM validAddressL[w]
 #define prmskL prmskM
 #define validL validM
