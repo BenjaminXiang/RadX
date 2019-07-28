@@ -10,14 +10,20 @@
 #include "./includes.glsl"
 
 layout (local_size_x = Wave_Size*Wave_Count) in;
-shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size];
+shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size], incsumL[RADICES];
 shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
+#ifdef ENABLE_LOCAL_SORT
+shared utype_t keyR[VEC_SIZE*Wave_Size];//[VEC_SIZE][Wave_Size];
+shared addrw_t unipfxL[RADICES];
+#endif
 shared blocks_info blocks;
 
 #define addrW addrL[w][ln]
 #define keyM keysIn[push_block.Shift&1].data[addrW]
 #define prtsumW prtsumL[w][ln]
+#define incsumW incsumL[uint(keyW)]
+#define unipfxW unipfxL[uint(keyW)]
 #define fsLaneW fsLaneL[w][ln]
 #define keyW keyL[w][ln]
 #define bcount blocks.count
@@ -63,12 +69,33 @@ void main() {
         // 
         [[flatten]] if (w < VEC_SIZE) { validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL; };
         [[flatten]] if (w < VEC_SIZE) {
+            [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { incsumW = 0u; };
             subgroupBarrier();
-            [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { prtsumW = localCounts[uint(keyW)]; // critically calculate partition offset
-                [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(uint(prmskL)), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) { prtsumW = localCounts[uint(keyW)] + incsumW; // critically calculate partition offset
+                [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { incsumW += bitcnt(uint(prmskL)); };
             };
             subgroupBarrier();
+            [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) {
+                atomicAdd(localCounts[uint(keyW)], bitcnt(uint(prmskL)), gl_ScopeSubgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); 
+            };
+
+#ifdef ENABLE_LOCAL_SORT // AVAILABLE ONLY FOR 4-BITS OR LOWER
+            //subgroupBarrier();
+            uint namedsum = 0u; // per radice 
+            [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
+                [[flatten]] if (Local_Idx < RADICES) { namedsum += bitcnt(uint(prtMskL[Local_Idx][w])); };
+            };
+            const uint namedpfx = subgroupExclusiveAdd(Local_Idx < RADICES ? namedsum : 0u); 
+            unipfxL[Local_Idx] = namedpfx; // supported only inside subgroup, but NOT local groups
+            keyR[Local_Idx] = keyW; // reload local keys into backup (L1-cache)
+            subgroupBarrier();
+            const uint luc = unipfxL[keyR[Local_Idx]] + incsumW + sgpcnt(prmskL);
+            { const lowp uint w = luc>>4u, ln = luc&15u; keyW = keyR[Local_Idx]; }; // load new keys (L1-cache)
+            subgroupBarrier();
+#endif
+//#else
             [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += gl_WorkGroupSize.x; };
+//#endif
         };
 
     };
