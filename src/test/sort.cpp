@@ -129,9 +129,9 @@ namespace rad {
         };
 
         // minimal features
-        auto gSubgroupSizeControl = red21::VkPhysicalDeviceSubgroupSizeControlPropertiesEXT{};
-        auto gProperties = vk::PhysicalDeviceProperties2{};
-        gProperties.pNext = &gSubgroupSizeControl;
+        //auto gSubgroupSizeControl = red21::VkPhysicalDeviceSubgroupSizeControlPropertiesEXT{};
+        //auto gProperties = vk::PhysicalDeviceProperties2{};
+        //gProperties.pNext = &gSubgroupSizeControl;
 
         auto gStorage16 = vk::PhysicalDevice16BitStorageFeatures{};
         auto gStorage8 = vk::PhysicalDevice8BitStorageFeaturesKHR{};
@@ -148,7 +148,7 @@ namespace rad {
 
         // 
         physicalDevice.getFeatures2(&gFeatures);
-        physicalDevice.getProperties2(&gProperties);
+        //physicalDevice.getProperties2(&gProperties);
 
         // get features and queue family properties
         //auto gpuFeatures = gpu.getFeatures();
