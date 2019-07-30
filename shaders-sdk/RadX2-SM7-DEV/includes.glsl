@@ -68,7 +68,7 @@
 //#endif
 
 
-#define BLOCK_SIZE_RT (gl_WorkGroupSize.x*gl_WorkGroupSize.z)
+#define BLOCK_SIZE_RT (gl_WorkGroupSize.x*gl_WorkGroupSize.y*gl_WorkGroupSize.z)
 #define WRK_SIZE_RT (gl_NumWorkGroups.y * Wave_Count_RX)
 
 
@@ -94,7 +94,7 @@
 #define btype_v bool
 #define addrw_v uint
 #define keytp_v keytp_t
-#define sgp_tp bqtype_t
+#define sgp_tp u16vec2//bqtype_t
 #define wmI  
 #define DEF_MASK 0ul
 //#endif
@@ -114,7 +114,7 @@
     #define sgpblt ballotARB
     #define sgpble ballotARB
 #else
-    #define sgpcnt(m) bitcnt(uint(genLtMask()&m))
+    #define sgpcnt(m) bitcnt(genLtMask2()&m)//bitcnt(genLtMask2()&m)
     #define sgpble(m) sgrblt(m)//extbl2(sgrblt(m))
     #ifdef ENABLE_SUBGROUP_PARTITION_SORT
         #define sgpblt(m) sgrprt(m)//extblt(sgrprt(m))

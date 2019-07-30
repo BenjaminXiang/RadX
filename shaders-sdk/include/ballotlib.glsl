@@ -20,6 +20,7 @@
     #define bqualf lowp
     bqtype_t extblt(in uvec4 blt){ return unpack16(blt.x)[gl_SubgroupInvocationID>>4u]; };
     bqtype2 extbl2(in uvec4 blt){ return blt.x; };
+    bool bltinv2(in bqtype2 a){ return subgroupInverseBallot(uvec4(a,0u.xxx)); };
     bool bltinv(in bqtype_t a){
         u16vec2 m16 = u16vec2(0u); m16[gl_SubgroupInvocationID>>4u] = a;
         return subgroupInverseBallot(uvec4(pack32(m16),0u.xxx));
@@ -111,6 +112,7 @@ void fname(in  uint WHERE) {\
 uint16_t sgrblt(in bool k) { return unpack16(subgroupBallot(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t sgrprt(in lowp uint k) { return unpack16(subgroupPartitionNV(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
+uint32_t genLtMask2() { return pack32(u16vec2(gl_LocalInvocationID.y == 0u ? genLtMask() : 0xFFFFFFFFus, gl_LocalInvocationID.y == 1u ? genLtMask() : 0us)); };
 //uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 
 

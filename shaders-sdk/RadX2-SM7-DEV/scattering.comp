@@ -12,7 +12,7 @@
 
 layout (local_size_x = Wave_Size, local_size_y = ivectr, local_size_z = Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size*ivectr], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size*ivectr];
-shared sgp_tp[ivectr] validAddressL[VEC_SIZE], prtMskL[RADICES][VEC_SIZE];
+shared sgp_tp validAddressL[VEC_SIZE], prtMskL[RADICES][VEC_SIZE];
 shared utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 /*
 #ifdef ENABLE_NEW_PFX
@@ -61,7 +61,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { addrW = cw == 0u ? blocks.offset + (w * Wave_Size + ln) : 0xFFFFFFFF; };
+    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + (w * ivectr * Wave_Size + lf+ln); };
     subgroupBarrier();
 
     // 
@@ -74,10 +74,12 @@ void main() {
 #define validM validAddressL[w]
 #define prmskL prmskM[cw]
 #define validL validM[cw]
+#define prmskW pack32(prmskM)
 
         // 
-        [[flatten]] if (w < VEC_SIZE && cw == 0u) {
-            validL = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL;
+        //uint32_t prmskW = 0u;
+        [[flatten]] if (w < VEC_SIZE) {
+            validL = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskM = u16vec2(0u), prmskL = sgpexc(keyW) & validL;
         };
 /*
 #ifdef ENABLE_NEW_PFX
@@ -89,13 +91,13 @@ void main() {
 */
 
         subgroupBarrier();
-        [[flatten]] if (w == 0u && cw == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
+        [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
 /*#ifdef ENABLE_NEW_PFX
             unipfxW = pfxsumW, prtsumW = localCounts[uint(keyW)] + unipfxW; // critically calculate partition offset
             [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { pfxsumW += bitcnt(uint(prmskL)); };
 #else*/
             prtsumW = localCounts[uint(keyW)]; //
-            [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { localCounts[uint(keyW)] += bitcnt(uint(prmskL)); };
+            [[flatten]] if ((ln+lf) == lsb(prmskW) && prmskW > 0u) { localCounts[uint(keyW)] += bitcnt(prmskW); };
 //#endif
         };
         subgroupBarrier();
@@ -120,8 +122,8 @@ void main() {
 #else
 */
             //subgroupBarrier();
-        [[flatten]] if (w < VEC_SIZE && cw == 0u) {
-            [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += BLOCK_SIZE_RT; };
+        [[flatten]] if (w < VEC_SIZE) {
+            [[flatten]] if (bltinv2(prmskW)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskW)] = keyM; addrW += BLOCK_SIZE_RT; };
         };
 //#endif
 
