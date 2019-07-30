@@ -10,17 +10,17 @@
 #include "./includes.glsl"
 
 
-layout (local_size_x = Wave_Size, local_size_y = 2u, local_size_z = Wave_Count) in;
-shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size];
-shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
-shared utype_t keyL[VEC_SIZE][Wave_Size];
+layout (local_size_x = Wave_Size, local_size_y = ivectr, local_size_z = Wave_Count) in;
+shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size*ivectr];
+shared sgp_tp[ivectr] validAddressL[VEC_SIZE], prtMskL[RADICES][VEC_SIZE];
+shared utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared blocks_info blocks;
 
-#define addrW addrL[w][ln]
+#define addrW addrL[w][lf+ln]
 #define keyM keys[push_block.Shift&1].data[addrW]
-#define prtsumW prtsumL[w][ln]
-#define fsLaneW fsLaneL[w][ln]
-#define keyW keyL[w][ln]
+#define prtsumW prtsumL[w][lf+ln]
+#define fsLaneW fsLaneL[w][lf+ln]
+#define keyW keyL[w][lf+ln]
 #define bcount blocks.count
 
 // 
@@ -32,7 +32,7 @@ shared blocks_info blocks;
 // 
 const lowp int blp = 10-bshift;
 void main() {
-    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y;
+    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y, lf = cw*Wave_Size, vf = cw*VEC_SIZE;
     //const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
@@ -44,7 +44,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE && cw == 0u) { addrW = blocks.offset + (w * Wave_Size + ln); };
+    [[flatten]] if (w < VEC_SIZE) { addrW = cw == 0u ? blocks.offset + (w * Wave_Size + ln) : 0xFFFFFFFF; };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
@@ -54,12 +54,12 @@ void main() {
         // 
 #define prmskM prtMskL[uint(keyW)][w]
 #define validM validAddressL[w]
-#define prmskL prmskM
-#define validL validM
+#define prmskL prmskM[cw]
+#define validL validM[cw]
 
         // 
         [[flatten]] if (w < VEC_SIZE && cw == 0u) {
-            validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL, addrW += BLOCK_SIZE_RT;
+            validL = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL, addrW += BLOCK_SIZE_RT;
             [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(uint(prmskL)), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
     };

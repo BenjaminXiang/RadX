@@ -88,7 +88,7 @@
 #define wmI  
 #define DEF_MASK 0ul
 #else*/
-#define ivectr 1
+#define ivectr 2
 #define bshift 0
 #define utype_v utype_t
 #define btype_v bool
