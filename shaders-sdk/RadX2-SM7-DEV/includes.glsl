@@ -50,10 +50,10 @@
 //#define Wave_Count_RX Wave_Count_RT 
 
 // SM configuration
-#define VEC_SIZE 16u //shared memory limited, but optimal for RTX 2080
+#define VEC_SIZE 8u //shared memory limited, but optimal for RTX 2080
 #define VEC_MULT VEC_SIZE
-#define VEC_SHIF 4u
-#define VEC_MASK 15u
+#define VEC_SHIF 3u
+#define VEC_MASK 7u
 
 // 
 //#ifdef ENABLE_SUBGROUP_PARTITION_SORT

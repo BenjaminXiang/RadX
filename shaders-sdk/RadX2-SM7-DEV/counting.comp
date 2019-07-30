@@ -10,7 +10,7 @@
 #include "./includes.glsl"
 
 
-layout (local_size_x = Wave_Size, local_size_y = 1u, local_size_z = Wave_Count) in;
+layout (local_size_x = Wave_Size, local_size_y = 2u, local_size_z = Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size];
 shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
