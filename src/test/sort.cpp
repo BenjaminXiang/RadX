@@ -129,8 +129,8 @@ namespace rad {
         };
 
         // minimal features
-        //auto gSubgroupSizeControl = red21::VkPhysicalDeviceSubgroupSizeControlPropertiesEXT{};
         //auto gProperties = vk::PhysicalDeviceProperties2{};
+        //auto gSubgroupSizeControl = red21::VkPhysicalDeviceSubgroupSizeControlPropertiesEXT{};
         //gProperties.pNext = &gSubgroupSizeControl;
 
         auto gStorage16 = vk::PhysicalDevice16BitStorageFeatures{};
