@@ -94,7 +94,7 @@ namespace radx {
     };
 
     // create compute pipelines
-    static inline auto createCompute(const vk::Device& device, const vk::PipelineShaderStageCreateInfo& spi, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}, const uint32_t& subgroupSize = 0u) {
+    static inline auto createCompute(const vk::Device& device, const FixConstruction& spi, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}, const uint32_t& subgroupSize = 0u) {
         auto cmpi = vk::ComputePipelineCreateInfo{};
         cmpi.flags = {};
         cmpi.layout = layout;

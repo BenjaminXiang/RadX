@@ -113,15 +113,32 @@ uint16_t sgrprt(in lowp uint k) { return unpack16(subgroupPartitionNV(k).x)[gl_S
 uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 //uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 
-uint sgrshf(in uint bk, in uint ps){
+
+uint sgrshf(in uint bk, in uint ps) {
+//#ifdef CLUSTERED_SUPPORTED
+//    return subgroupClusteredShuffle(bk,ps,16u); // GLSL is f&cked language...
+//#else
+//#ifdef ENABLE_TURING_INSTRUCTION_SET
+
+//#else
     return subgroupShuffle(bk,(ps&15u)|((gl_SubgroupInvocationID>>4u)<<4u));
-}
+//#endif
+//    return subgroupShuffle(bk,ps); // SERIOSLY?! WHERE SUBGROUP SIZE CONTROL?
+};
 
 uint sgrsumex(in uint bk) {
+//#ifdef CLUSTERED_SUPPORTED
+//    return subgroupClusteredExclusiveAdd(bk,Wave_Size); // GLSL is f&cked language...
+//#else
+#ifdef ENABLE_TURING_INSTRUCTION_SET
+    return subgroupPartitionedExclusiveAddNV(bk,uvec4(0xFFFFu<<((gl_SubgroupInvocationID>=Wave_Size?1u:0u)*16u),0u.xxx)); // Wallhack 
+#else
     uint sm = 0u;
-    [[flatten]] if (gl_SubgroupInvocationID < 16u) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID < 16u ? bk : 0u); // blurry part I
-    [[flatten]] if (gl_SubgroupInvocationID >=16u) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID >=16u ? bk : 0u); // blurry part II
+    [[flatten]] if (gl_SubgroupInvocationID < Wave_Size) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID < Wave_Size ? bk : 0u); // blurry part I
+    [[flatten]] if (gl_SubgroupInvocationID >=Wave_Size) sm = subgroupExclusiveAdd(gl_SubgroupInvocationID >=Wave_Size ? bk : 0u); // blurry part II
     return sm;
+#endif
+//    return subgroupExclusiveAdd(bk); // SERIOSLY?! WHERE SUBGROUP SIZE CONTROL?
 }
 
 #endif

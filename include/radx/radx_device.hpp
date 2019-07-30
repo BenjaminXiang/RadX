@@ -51,9 +51,11 @@ namespace radx {
         std::string getDriverName() const { return driverWrap->getDriverName(); };
 
         uint32_t getRecommendedSubgroupSize() {
-            if (driverWrap->getDriverName() == "turing") { return 16u; };
-            if (driverWrap->getDriverName() == "amdvlk") { return 64u; }; // but GCN have SIMD16 only
-            if (driverWrap->getDriverName() == "vega10") { return 64u; }; // but GCN have SIMD16 only
+            if (driverWrap->getDriverName() == "turing") { return 16u; }; // SM7!
+            if (driverWrap->getDriverName() == "amdvlk") { return 16u; }; // GCN!
+            if (driverWrap->getDriverName() == "vega10") { return 16u; }; // GCN!
+            if (driverWrap->getDriverName() == "rdna10") { return 32u; }; // RDNA
+            if (driverWrap->getDriverName() == "nvidia") { return 32u; }; // SM6?
             return 32u;
         };
 

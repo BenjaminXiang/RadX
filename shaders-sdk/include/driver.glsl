@@ -70,6 +70,8 @@
 #extension GL_KHR_shader_subgroup_clustered        : enable
 #else
 #extension GL_KHR_shader_subgroup_clustered        : require
+#extension GL_NV_shader_sm_builtins                : require // NOW REQUIRED!
+#define CLUSTERED_SUPPORTED
 #endif
 
 // 
