@@ -10,7 +10,7 @@
 #include "./includes.glsl"
 
 
-layout (local_size_x = Wave_Size*Wave_Count) in;
+layout (local_size_x = Wave_Size, local_size_y = Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size];
 shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
@@ -36,7 +36,7 @@ void main() {
     const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
         [[flatten]] if (radice < RADICES) localCounts[radice] = 0u;
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
@@ -58,13 +58,13 @@ void main() {
 #define validL validM
 
         // 
-        [[flatten]] if (w < VEC_SIZE) { validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL, addrW += gl_WorkGroupSize.x; };
+        [[flatten]] if (w < VEC_SIZE) { validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL, addrW += gl_WorkGroupSize.x*gl_WorkGroupSize.y; };
         [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(uint(prmskL)), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
     };
     subgroupBarrier();
 
     // resolve histograms 
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) {
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) {
         const lowp uint radice = rk + Local_Idx;
         [[flatten]] if (radice < RADICES) { counts[gl_WorkGroupID.x][radice] = localCounts[radice+0u]; };
     };

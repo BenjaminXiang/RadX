@@ -17,7 +17,7 @@ const uint WG_COUNT = 108u;
 const uint Wave_Size_RX = 16u;
 const uint Wave_Count_RX = 32u;
 const uint local_size_def = Wave_Size_RX * Wave_Count_RX;//16u;
-layout ( local_size_x = local_size_def) in; // use many as possible
+layout ( local_size_x = Wave_Size_RX, local_size_y = Wave_Count_RX ) in; // use many as possible
 
 // shared memory of...
 shared uint localPartitions[RADICES];

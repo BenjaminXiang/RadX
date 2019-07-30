@@ -171,7 +171,7 @@ layout ( binding = 6, set = 1, scalar ) uniform InputInlineUniformB { uint data;
 struct blocks_info { uint count, limit, offset, wkoffset; };
 blocks_info get_blocks_info(in uint n) {
     const uint 
-        block_tile = gl_WorkGroupSize.x,//(Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
+        block_tile = gl_WorkGroupSize.x*gl_WorkGroupSize.y,//(Wave_Size_RT * VEC_SIZE)<<bshift,//(Wave_Size_RT<<bshift) << VEC_SHIF, 
         block_size_per_work = tiled(n, gl_NumWorkGroups.x), 
         block_size = tiled(block_size_per_work, block_tile) * block_tile, 
         block_offset = block_size * gl_WorkGroupID.x,

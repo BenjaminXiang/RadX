@@ -10,7 +10,7 @@
 
 #include "./includes.glsl"
 
-layout (local_size_x = Wave_Size*Wave_Count) in;
+layout (local_size_x = Wave_Size, local_size_y = Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size];
 shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
@@ -47,7 +47,7 @@ void main() {
     const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
         [[flatten]] if (radice < RADICES) { localPartitions[radice] = partitions[gl_WorkGroupID.x][radice], localCounts[radice] = 0u; 
 #ifdef ENABLE_NEW_PFX
             pfxsumL[radice] = 0u;
@@ -78,7 +78,7 @@ void main() {
             validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL;
 #ifdef ENABLE_NEW_PFX
             subgroupBarrier();
-            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
+            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
                 [[flatten]] if (radice < RADICES) { pfxsumL[radice] = 0u; };
             };
 #endif
@@ -96,7 +96,7 @@ void main() {
             subgroupBarrier();
 #ifdef ENABLE_NEW_PFX
             //subgroupBarrier();
-            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x) { const lowp uint radice = rk + Local_Idx;
+            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
                 [[flatten]] if (radice < RADICES) { localCounts[radice] += pfxsumL[radice], pfxsumL[radice] = 0u; };
             };
 #endif
@@ -110,10 +110,10 @@ void main() {
             const uint luc = unipfxW + sgpcnt(prmskL);
             { const lowp uint w = luc>>4u, ln = luc&15u; keyW = keyR[Local_Idx]; }; // load new keys (L1-cache)
             subgroupBarrier();
-            [[flatten]] if (bltinv(prmskL)) { const uint off = Local_Idx-pfxsumL; keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + off] = keyM; addrW += gl_WorkGroupSize.x; };
+            [[flatten]] if (bltinv(prmskL)) { const uint off = Local_Idx-pfxsumL; keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + off] = keyM; addrW += gl_WorkGroupSize.x*gl_WorkGroupSize.y; };
 #else
             //subgroupBarrier();
-            [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += gl_WorkGroupSize.x; };
+            [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += gl_WorkGroupSize.x*gl_WorkGroupSize.y; };
 #endif
         };
 
