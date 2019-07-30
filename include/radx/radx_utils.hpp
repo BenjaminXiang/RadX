@@ -80,7 +80,7 @@ namespace radx {
         auto f = FixConstruction{};
 
         f.spi = vk::PipelineShaderStageCreateInfo{};
-        f.spi.flags = {};
+        f.spi.flags = vk::PipelineShaderStageCreateFlags(red21::VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT);
         createShaderModuleIntrusive(device, code, f.spi.module);
         f.spi.pName = entry;
         f.spi.stage = vk::ShaderStageFlagBits::eCompute;

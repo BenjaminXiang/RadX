@@ -29,6 +29,13 @@ namespace red21 {
     const cvk::VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT = cvk::VkStructureType(1000225000u);
     const cvk::VkStructureType VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT = cvk::VkStructureType(1000225001u);
 
+    typedef enum VkPipelineShaderStageCreateFlagBits {
+        VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT = 0x00000001,
+        VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT = 0x00000002,
+        VK_PIPELINE_SHADER_STAGE_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
+    } VkPipelineShaderStageCreateFlagBits;
+    typedef VkFlags VkPipelineShaderStageCreateFlags;
+
 #pragma pack(push, 1)
     typedef struct VkPhysicalDeviceSubgroupSizeControlPropertiesEXT {
         cvk::VkStructureType       sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT;
