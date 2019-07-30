@@ -15,9 +15,9 @@ const uint WG_COUNT = 108u;
 
 // local size 
 const uint Wave_Size_RX = 16u;
-const uint Wave_Count_RX = 32u;
+const uint Wave_Count_RX = 16u;
 const uint local_size_def = Wave_Size_RX * Wave_Count_RX;//16u;
-layout ( local_size_x = Wave_Size_RX, local_size_y = Wave_Count_RX ) in; // use many as possible
+layout ( local_size_x = Wave_Size_RX, local_size_y = 1u, local_size_z = Wave_Count_RX ) in; // use many as possible
 
 // shared memory of...
 shared uint localPartitions[RADICES];
@@ -30,11 +30,12 @@ layout ( binding = 4, set = 0, scalar )          subgroupcoherent buffer PrefixS
 // Still in Emulation 
 // X axis is workgroup count, Y is radices
 void main() {
-    const lowp uint w = Local_Idx>>4u, ln = Local_Idx&15u;
+    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y;
+    //const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
     [[flatten]] if (Local_Idx < RADICES) localPartitions[Local_Idx] = 0u;
-
+    
     subgroupBarrier();
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
+    [[flatten]] if (cw == 0u) [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Count_RX) {
         const lowp uint radice = rk+w;
         [[flatten]] if (radice < RADICES) { // calculate partitions by work-groups for every radice
             [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT;gp+=Wave_Size_RX) {
@@ -53,7 +54,7 @@ void main() {
 
     subgroupBarrier();
     const uint WG_COUNT_UP = tiled(WG_COUNT, Wave_Count_RX)*Wave_Count_RX;
-    [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT_UP;gp+=Wave_Count_RX) {
+    [[flatten]] if (cw == 0u) [[unroll]] for (lowp uint gp=0u;gp<WG_COUNT_UP;gp+=Wave_Count_RX) {
         const lowp uint workgroup = gp+w;
         [[flatten]] if (workgroup < WG_COUNT) { uint partsum = 0u; // calculate partition offsets of every radice
             [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=Wave_Size_RX) {

@@ -10,7 +10,7 @@
 
 #include "./includes.glsl"
 
-layout (local_size_x = Wave_Size, local_size_y = Wave_Count) in;
+layout (local_size_x = Wave_Size, local_size_y = 1u, local_size_z = Wave_Count) in;
 shared addrw_t localCounts[RADICES], addrL[VEC_SIZE][Wave_Size], localPartitions[RADICES], prtsumL[VEC_SIZE][Wave_Size];
 shared sgp_tp[VEC_SIZE] validAddressL, prtMskL[RADICES];
 shared utype_t keyL[VEC_SIZE][Wave_Size];
@@ -43,15 +43,15 @@ shared blocks_info blocks;
 // 
 const lowp int blp = 10-bshift;
 void main() {
-    const lowp uint w = Local_Idx>>4u, ln = Local_Idx&15u;
-    const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
+    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y;
+    //const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
-    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
+    [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=BLOCK_SIZE_RT) { const lowp uint radice = rk + Local_Idx;
         [[flatten]] if (radice < RADICES) { localPartitions[radice] = partitions[gl_WorkGroupID.x][radice], localCounts[radice] = 0u; 
-#ifdef ENABLE_NEW_PFX
-            pfxsumL[radice] = 0u;
-#endif
+//#ifdef ENABLE_NEW_PFX
+//            pfxsumL[radice] = 0u;
+//#endif
         };
     };
     [[flatten]] if (Local_Idx == 0) blocks = get_blocks_info(NumElements), bcount = min(blocks.count, 1048576u);
@@ -59,7 +59,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + Local_Idx; };
+    [[flatten]] if (w < VEC_SIZE && cw == 0u) { addrW = blocks.offset + (w * Wave_Size + ln); };
     subgroupBarrier();
 
     // 
@@ -74,48 +74,54 @@ void main() {
 #define validL validM
 
         // 
-        [[flatten]] if (w < VEC_SIZE) {
+        [[flatten]] if (w < VEC_SIZE && cw == 0u) {
             validM = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskL = sgpexc(keyW) & validL;
-#ifdef ENABLE_NEW_PFX
-            subgroupBarrier();
-            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
-                [[flatten]] if (radice < RADICES) { pfxsumL[radice] = 0u; };
-            };
-#endif
-
-            subgroupBarrier();
-            [[flatten]] if (w == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
-#ifdef ENABLE_NEW_PFX
-                unipfxW = pfxsumW, prtsumW = localCounts[uint(keyW)] + unipfxW; // critically calculate partition offset
-                [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { pfxsumW += bitcnt(uint(prmskL)); };
-#else
-                prtsumW = localCounts[uint(keyW)]; //
-                [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { localCounts[uint(keyW)] += bitcnt(uint(prmskL)); };
-#endif
-            };
-            subgroupBarrier();
-#ifdef ENABLE_NEW_PFX
-            //subgroupBarrier();
-            [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=gl_WorkGroupSize.x*gl_WorkGroupSize.y) { const lowp uint radice = rk + Local_Idx;
-                [[flatten]] if (radice < RADICES) { localCounts[radice] += pfxsumL[radice], pfxsumL[radice] = 0u; };
-            };
-#endif
-
-#ifdef ENABLE_LOCAL_SORT // AVAILABLE ONLY FOR 4-BITS OR LOWER
-            const uint namedsum = pfxsumW; // per radice 
-            const uint namedpfx = subgroupExclusiveAdd(Local_Idx < RADICES ? namedsum : 0u);
-            pfxsumL[Local_Idx] = namedpfx; // supported only inside subgroup, but NOT local groups
-            keyR[Local_Idx] = keyW; // reload local keys into backup (L1-cache)
-            subgroupBarrier();
-            const uint luc = unipfxW + sgpcnt(prmskL);
-            { const lowp uint w = luc>>4u, ln = luc&15u; keyW = keyR[Local_Idx]; }; // load new keys (L1-cache)
-            subgroupBarrier();
-            [[flatten]] if (bltinv(prmskL)) { const uint off = Local_Idx-pfxsumL; keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + off] = keyM; addrW += gl_WorkGroupSize.x*gl_WorkGroupSize.y; };
-#else
-            //subgroupBarrier();
-            [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += gl_WorkGroupSize.x*gl_WorkGroupSize.y; };
-#endif
         };
+/*
+#ifdef ENABLE_NEW_PFX
+        subgroupBarrier();
+        [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=BLOCK_SIZE_RT) { const lowp uint radice = rk + Local_Idx;
+            [[flatten]] if (radice < RADICES) { pfxsumL[radice] = 0u; };
+        };
+#endif
+*/
+
+        subgroupBarrier();
+        [[flatten]] if (w == 0u && cw == 0u) [[unroll]] for (lowp uint w=0;w<VEC_SIZE;w++) {
+/*#ifdef ENABLE_NEW_PFX
+            unipfxW = pfxsumW, prtsumW = localCounts[uint(keyW)] + unipfxW; // critically calculate partition offset
+            [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { pfxsumW += bitcnt(uint(prmskL)); };
+#else*/
+            prtsumW = localCounts[uint(keyW)]; //
+            [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { localCounts[uint(keyW)] += bitcnt(uint(prmskL)); };
+//#endif
+        };
+        subgroupBarrier();
+/*#ifdef ENABLE_NEW_PFX
+        //subgroupBarrier();
+        [[unroll]] for (lowp uint rk=0u;rk<RADICES;rk+=BLOCK_SIZE_RT) { const lowp uint radice = rk + Local_Idx;
+            [[flatten]] if (radice < RADICES) { localCounts[radice] += pfxsumL[radice], pfxsumL[radice] = 0u; };
+        };
+#endif*/
+
+/*
+#ifdef ENABLE_LOCAL_SORT // AVAILABLE ONLY FOR 4-BITS OR LOWER
+        const uint namedsum = pfxsumW; // per radice 
+        const uint namedpfx = subgroupExclusiveAdd(Local_Idx < RADICES ? namedsum : 0u);
+        pfxsumL[Local_Idx] = namedpfx; // supported only inside subgroup, but NOT local groups
+        keyR[Local_Idx] = keyW; // reload local keys into backup (L1-cache)
+        subgroupBarrier();
+        const uint luc = unipfxW + sgpcnt(prmskL);
+        { const lowp uint w = luc>>4u, ln = luc&15u; keyW = keyR[Local_Idx]; }; // load new keys (L1-cache)
+        subgroupBarrier();
+        [[flatten]] if (bltinv(prmskL)) { const uint off = Local_Idx-pfxsumL; keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + off] = keyM; addrW += BLOCK_SIZE_RT; };
+#else
+*/
+            //subgroupBarrier();
+        [[flatten]] if (w < VEC_SIZE && cw == 0u) {
+            [[flatten]] if (bltinv(prmskL)) { keysOut[1-(push_block.Shift&1)].data[localPartitions[uint(keyW)] + prtsumW + sgpcnt(prmskL)] = keyM; addrW += BLOCK_SIZE_RT; };
+        };
+//#endif
 
     };
 };
