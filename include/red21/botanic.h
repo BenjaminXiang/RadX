@@ -7,6 +7,8 @@
 
 namespace red21 {
 
+    using namespace cvk;
+
     #define VK_EXT_subgroup_size_control 1
     #define VK_EXT_SUBGROUP_SIZE_CONTROL_SPEC_VERSION 1
     #define VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME "VK_EXT_subgroup_size_control"
@@ -27,19 +29,21 @@ namespace red21 {
     const cvk::VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT = cvk::VkStructureType(1000225000u);
     const cvk::VkStructureType VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT = cvk::VkStructureType(1000225001u);
 
+#pragma pack(push, 1)
     typedef struct VkPhysicalDeviceSubgroupSizeControlPropertiesEXT {
-        cvk::VkStructureType       sType;
-        void*                 pNext;
-        uint32_t              minSubgroupSize;
-        uint32_t              maxSubgroupSize;
-        uint32_t              maxComputeWorkgroupSubgroups;
-        cvk::VkShaderStageFlags    requiredSubgroupSizeStages;
+        cvk::VkStructureType       sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT;
+        void*                      pNext = nullptr;
+        uint32_t                   minSubgroupSize = 0u;//16u;
+        uint32_t                   maxSubgroupSize = 0u;//64u;
+        uint32_t                   maxComputeWorkgroupSubgroups = 0u;//36u;
+        cvk::VkShaderStageFlags    requiredSubgroupSizeStages = 0u;//VK_SHADER_STAGE_COMPUTE_BIT;
     } VkPhysicalDeviceSubgroupSizeControlPropertiesEXT;
 
     typedef struct VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT {
-        cvk::VkStructureType    sType;
-        void*              pNext;
-        uint32_t           requiredSubgroupSize;
+        cvk::VkStructureType    sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT;
+        void*                   pNext = nullptr;
+        uint32_t                requiredSubgroupSize = 16u;
     } VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT;
+#pragma pack(pop)
 
 };

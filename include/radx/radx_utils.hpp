@@ -65,19 +65,36 @@ namespace radx {
         auto sm = vk::ShaderModule{}; return createShaderModuleIntrusive(device, code, sm); return sm;
     };
 
+    struct FixConstruction {
+        vk::PipelineShaderStageCreateInfo spi = {};
+        red21::VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT sgmp = {};
+
+        operator vk::PipelineShaderStageCreateInfo& () { return spi; };
+        operator const vk::PipelineShaderStageCreateInfo& () const { return spi; };
+        operator red21::VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () { return sgmp; };
+        operator const red21::VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () const { return sgmp; };
+    };
+
     // create shader module
-    static inline auto makeComputePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, const char * entry = "main") {
-        auto spi = vk::PipelineShaderStageCreateInfo{};
-        spi.flags = {};
-        createShaderModuleIntrusive(device, code, spi.module);
-        spi.pName = entry;
-        spi.stage = vk::ShaderStageFlagBits::eCompute;
-        spi.pSpecializationInfo = {};
-        return spi;
+    static inline auto&& makeComputePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", const uint32_t& subgroupSize = 0u) {
+        auto f = FixConstruction{};
+
+        f.spi = vk::PipelineShaderStageCreateInfo{};
+        f.spi.flags = {};
+        createShaderModuleIntrusive(device, code, f.spi.module);
+        f.spi.pName = entry;
+        f.spi.stage = vk::ShaderStageFlagBits::eCompute;
+        f.spi.pSpecializationInfo = {};
+
+        f.sgmp = red21::VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT{};
+        f.sgmp.requiredSubgroupSize = subgroupSize;
+        if (subgroupSize) f.spi.pNext = &f.sgmp;
+
+        return std::move(f);
     };
 
     // create compute pipelines
-    static inline auto createCompute(const vk::Device& device, const vk::PipelineShaderStageCreateInfo& spi, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
+    static inline auto createCompute(const vk::Device& device, const vk::PipelineShaderStageCreateInfo& spi, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}, const uint32_t& subgroupSize = 0u) {
         auto cmpi = vk::ComputePipelineCreateInfo{};
         cmpi.flags = {};
         cmpi.layout = layout;
@@ -87,13 +104,15 @@ namespace radx {
     };
 
     // create compute pipelines
-    static inline auto createCompute(const vk::Device& device, const std::vector<uint32_t>& code, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
-        return createCompute(device, makeComputePipelineStageInfo(device, code), layout, cache);
+    static inline auto createCompute(const vk::Device& device, const std::vector<uint32_t>& code, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}, const uint32_t& subgroupSize = 0u) {
+        auto f = makeComputePipelineStageInfo(device, code, "main", subgroupSize);
+        if (subgroupSize) f.spi.pNext = &f.sgmp; // fix link
+        return createCompute(device, f, layout, cache, subgroupSize);
     };
 
     // create compute pipelines
-    static inline auto createCompute(const vk::Device& device, const std::string& path, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}) {
-        return createCompute(device, readBinary(path), layout, cache);
+    static inline auto createCompute(const vk::Device& device, const std::string& path, const vk::PipelineLayout& layout, const vk::PipelineCache& cache = {}, const uint32_t& subgroupSize = 0u) {
+        return createCompute(device, readBinary(path), layout, cache, subgroupSize);
     };
 
     // general command buffer pipeline barrier

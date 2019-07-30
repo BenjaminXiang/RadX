@@ -50,6 +50,13 @@ namespace radx {
         std::string getPath(const std::string fpath) const { return driverWrap->getPath(fpath); };
         std::string getDriverName() const { return driverWrap->getDriverName(); };
 
+        uint32_t getRecommendedSubgroupSize() {
+            if (driverWrap->getDriverName() == "turing") { return 16u; };
+            if (driverWrap->getDriverName() == "amdvlk") { return 64u; }; // but GCN have SIMD16 only
+            if (driverWrap->getDriverName() == "vega10") { return 64u; }; // but GCN have SIMD16 only
+            return 32u;
+        };
+
         // vk::PhysicalDevice caster
         operator vk::PhysicalDevice&() { return physicalDevice; };
         operator const vk::PhysicalDevice&() const { return physicalDevice; };
@@ -101,6 +108,7 @@ namespace radx {
         operator const std::shared_ptr<paths::DriverWrapBase>& () const { return *physicalHelper; };
         std::string getPath(const std::string fpath) const { return physicalHelper->getPath(fpath); };
         std::string getDriverName() const { return physicalHelper->getDriverName(); }
+        uint32_t getRecommendedSubgroupSize() const { return physicalHelper->getRecommendedSubgroupSize(); };
 
         // vk::PhysicalDevice caster
         operator vk::PhysicalDevice& () { return *physicalHelper; };

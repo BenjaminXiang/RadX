@@ -407,11 +407,11 @@ namespace radx {
 
         // create pipeline layout 
         this->pipelineLayout = vk::Device(*device).createPipelineLayout(pplLayoutCi);
-        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::counting   ), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::partition  ), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::scattering ), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::indiction  ), pipelineLayout, *device));
-        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::permutation), pipelineLayout, *device));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::counting   ), pipelineLayout, *device, device->getRecommendedSubgroupSize()));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::partition  ), pipelineLayout, *device, device->getRecommendedSubgroupSize()));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::scattering ), pipelineLayout, *device, device->getRecommendedSubgroupSize()));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::indiction  ), pipelineLayout, *device, device->getRecommendedSubgroupSize()));
+        this->pipelines.push_back(createCompute(*device, device->getPath(radx::paths::permutation), pipelineLayout, *device, device->getRecommendedSubgroupSize()));
 
         // return shared_ptr when needed
         return cvk::VK_SUCCESS;
