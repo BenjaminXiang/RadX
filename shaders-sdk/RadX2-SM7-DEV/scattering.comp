@@ -24,13 +24,13 @@ shared utype_t keyR[VEC_SIZE*Wave_Size];//[VEC_SIZE][Wave_Size];
 */
 shared blocks_info blocks;
 
-#define addrW addrL[w][lf+ln]
+#define addrW addrL[w][lh]
 #define keyM keysIn[push_block.Shift&1].data[addrW]
-#define prtsumW prtsumL[w][lf+ln]
+#define prtsumW prtsumL[w][lh]
 #define pfxsumW pfxsumL[uint(keyW)]
-#define unipfxW unipfxL[w][lf+ln]
-#define fsLaneW fsLaneL[w][lf+ln]
-#define keyW keyL[w][lf+ln]
+#define unipfxW unipfxL[w][lh]
+#define fsLaneW fsLaneL[w][lh]
+#define keyW keyL[w][lh]
 #define bcount blocks.count
 
 // 
@@ -45,7 +45,7 @@ shared blocks_info blocks;
 // 
 const lowp int blp = 10-bshift;
 void main() {
-    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y, lf = cw*Wave_Size, vf = cw*VEC_SIZE;
+    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y, lf = cw*Wave_Size, lh = ln+lf, vf = cw*VEC_SIZE;
     //const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
@@ -61,7 +61,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + (w * ivectr * Wave_Size + lf+ln); };
+    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + (w * ivectr * Wave_Size + lh); };
     subgroupBarrier();
 
     // 
@@ -97,7 +97,7 @@ void main() {
             [[flatten]] if (ln == lsb(uint(prmskL)) && prmskL > 0u) { pfxsumW += bitcnt(uint(prmskL)); };
 #else*/
             prtsumW = localCounts[uint(keyW)]; //
-            [[flatten]] if ((ln+lf) == lsb(prmskW) && prmskW > 0u) { localCounts[uint(keyW)] += bitcnt(prmskW); };
+            [[flatten]] if (lh == lsb(prmskW) && prmskW > 0u) { localCounts[uint(keyW)] += bitcnt(prmskW); };
 //#endif
         };
         subgroupBarrier();

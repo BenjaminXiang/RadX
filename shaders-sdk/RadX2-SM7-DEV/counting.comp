@@ -16,11 +16,11 @@ shared sgp_tp validAddressL[VEC_SIZE], prtMskL[RADICES][VEC_SIZE];
 shared utype_t keyL[VEC_SIZE][Wave_Size*ivectr];
 shared blocks_info blocks;
 
-#define addrW addrL[w][lf+ln]
+#define addrW addrL[w][lh]
 #define keyM keys[push_block.Shift&1].data[addrW]
-#define prtsumW prtsumL[w][lf+ln]
-#define fsLaneW fsLaneL[w][lf+ln]
-#define keyW keyL[w][lf+ln]
+#define prtsumW prtsumL[w][lh]
+#define fsLaneW fsLaneL[w][lh]
+#define keyW keyL[w][lh]
 #define bcount blocks.count
 
 // 
@@ -32,7 +32,7 @@ shared blocks_info blocks;
 // 
 const lowp int blp = 10-bshift;
 void main() {
-    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y, lf = cw*Wave_Size, vf = cw*VEC_SIZE;
+    const lowp uint w = gl_LocalInvocationID.z, ln = gl_LocalInvocationID.x, cw = gl_LocalInvocationID.y, lf = cw*Wave_Size, lh = ln+lf, vf = cw*VEC_SIZE;
     //const lowp uint lv = Local_Idx&3u, lc = Local_Idx>>2u; // get vec4/sequence count representations 
 
     // clear histogram of block (planned distribute threads)
@@ -44,7 +44,7 @@ void main() {
     [[flatten]] IFANY (bcount <= 0) return;
 
     // permute blocks by partitions
-    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + (w * ivectr * Wave_Size + lf+ln); };
+    [[flatten]] if (w < VEC_SIZE) { addrW = blocks.offset + (w * ivectr * Wave_Size + lh); };
     subgroupBarrier();
 
     [[dependency_infinite]] for ( uint wk = 0; wk < bcount; wk++ ) {
@@ -61,7 +61,7 @@ void main() {
         // 
         [[flatten]] if (w < VEC_SIZE) {
             validL = sgpble(predicate), keyW = extractKey(keyM, push_block.Shift), prmskM = u16vec2(0u), prmskL = sgpexc(keyW) & validL, addrW += BLOCK_SIZE_RT;
-            [[flatten]] if ((ln+lf) == lsb(prmskW) && prmskW > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskW), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
+            [[flatten]] if (lh == lsb(prmskW) && prmskW > 0u) { atomicAdd(localCounts[uint(keyW)], bitcnt(prmskW), gl_ScopeWorkgroup, gl_StorageSemanticsShared, gl_SemanticsRelaxed); };
         };
     };
     subgroupBarrier();
