@@ -112,7 +112,7 @@ void fname(in  uint WHERE) {\
 uint16_t sgrblt(in bool k) { return unpack16(subgroupBallot(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t sgrprt(in lowp uint k) { return unpack16(subgroupPartitionNV(k).x)[gl_SubgroupInvocationID>>4u]; };
 uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
-uint32_t genLtMask2() { return pack32(u16vec2(gl_LocalInvocationID.y == 0u ? genLtMask() : 0xFFFFFFFFus, gl_LocalInvocationID.y == 1u ? genLtMask() : 0us)); };
+uint32_t genLtMask2() { const uint16_t pu = genLtMask(); return pack32(u16vec2(gl_LocalInvocationID.y == 0u ? pu : 0xFFFFFFFFus, gl_LocalInvocationID.y == 1u ? pu : 0us)); };
 //uint16_t genLtMask() { return unpack16(gl_SubgroupLtMask.x)[gl_SubgroupInvocationID>>4u]; };
 
 
